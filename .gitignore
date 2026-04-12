@@ -14,3 +14,7 @@ assets/
 
 # Local reference material — not for distribution
 .reference/
+
+# PDF build artifacts
+book-combined.md
+claude-code-from-source.pdf

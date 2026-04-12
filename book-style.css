@@ -1,0 +1,435 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 10.5pt;
+  line-height: 1.75;
+  color: #1a1a2e;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Cover Page ─────────────────────────────────────────── */
+.cover-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  page-break-after: always;
+  overflow: hidden;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ─── Title Page ─────────────────────────────────────────── */
+.title-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f0f23;
+  page-break-after: always;
+}
+
+.title-page-inner {
+  text-align: center;
+  padding: 3em 2em;
+  color: #fff;
+}
+
+.title-page-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5pt;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #e07b39;
+  margin: 0 0 1.5em 0;
+}
+
+.title-page-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 38pt;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.05;
+  margin: 0 0 0.5em 0;
+  letter-spacing: -1.5px;
+}
+
+.title-page-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: 12pt;
+  font-weight: 300;
+  color: #a0a0c0;
+  line-height: 1.6;
+  margin: 0 0 2em 0;
+}
+
+.title-page-rule {
+  width: 60px;
+  height: 3px;
+  background: #e07b39;
+  margin: 0 auto 2em auto;
+}
+
+.title-page-year {
+  font-family: 'Inter', sans-serif;
+  font-size: 9pt;
+  color: #555577;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+/* ─── Copyright Page ─────────────────────────────────────── */
+.copyright-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  page-break-after: always;
+}
+
+.copyright-inner {
+  max-width: 420px;
+  text-align: center;
+  color: #444;
+  font-family: 'Inter', sans-serif;
+  font-size: 9pt;
+  line-height: 1.7;
+}
+
+.copyright-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 13pt;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.3em 0;
+}
+
+.copyright-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 9pt;
+  color: #777;
+  margin: 0 0 1.5em 0;
+}
+
+.copyright-divider {
+  width: 40px;
+  height: 2px;
+  background: #e07b39;
+  margin: 1.5em auto;
+}
+
+.copyright-meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 8pt;
+  color: #999;
+  margin: 0;
+  line-height: 1.8;
+}
+
+/* ─── Table of Contents ──────────────────────────────────── */
+.toc-page {
+  page-break-after: always;
+  padding: 0;
+}
+
+.toc-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 24pt;
+  font-weight: 700;
+  color: #1a1a2e;
+  border-bottom: 3px solid #e07b39;
+  padding-bottom: 0.3em;
+  margin: 0 0 1.5em 0;
+  letter-spacing: -0.5px;
+}
+
+.toc-body {
+  font-family: 'Inter', sans-serif;
+}
+
+.toc-part {
+  font-family: 'Inter', sans-serif;
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #e07b39;
+  margin: 1.4em 0 0.5em 0;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #ececf4;
+}
+
+.toc-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  padding: 0.3em 0;
+  border-bottom: 1px dotted #e8e8f0;
+  font-size: 9.5pt;
+}
+
+.toc-ch {
+  font-weight: 600;
+  color: #555577;
+  min-width: 72px;
+  font-size: 8.5pt;
+  flex-shrink: 0;
+}
+
+.toc-title-text {
+  color: #1a1a2e;
+  font-weight: 400;
+}
+
+/* ─── Part Dividers ──────────────────────────────────────── */
+.part-divider {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+  page-break-after: always;
+}
+
+.part-divider-inner {
+  text-align: center;
+  padding: 3em 2em;
+  color: #fff;
+  max-width: 480px;
+}
+
+.part-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #e07b39;
+  margin: 0 0 0.8em 0;
+}
+
+.part-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 32pt;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  margin: 0 0 0.6em 0;
+  letter-spacing: -1px;
+  border: none;
+  padding: 0;
+}
+
+.part-tagline {
+  font-family: 'Source Serif 4', serif;
+  font-size: 11pt;
+  font-style: italic;
+  color: #8888aa;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ─── Page Breaks ────────────────────────────────────────── */
+.page-break {
+  page-break-after: always;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Chapter Content ────────────────────────────────────── */
+h1 {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 22pt;
+  font-weight: 700;
+  color: #0f0f23;
+  margin: 0 0 0.4em 0;
+  padding-bottom: 0.2em;
+  border-bottom: 3px solid #e07b39;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 14pt;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 1.8em 0 0.5em 0;
+  letter-spacing: -0.3px;
+  border-bottom: 1px solid #e8e8f0;
+  padding-bottom: 0.25em;
+}
+
+h3 {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 11.5pt;
+  font-weight: 600;
+  color: #2d2d4e;
+  margin: 1.4em 0 0.4em 0;
+  letter-spacing: -0.2px;
+}
+
+h4 {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 9.5pt;
+  font-weight: 600;
+  color: #555577;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 1.2em 0 0.3em 0;
+}
+
+p {
+  margin: 0 0 0.85em 0;
+  orphans: 3;
+  widows: 3;
+}
+
+hr {
+  border: none;
+  border-top: 2px solid #e07b39;
+  margin: 2.5em auto;
+  width: 60px;
+}
+
+/* Blockquotes */
+blockquote {
+  margin: 1.2em 0;
+  padding: 0.8em 1.2em;
+  border-left: 4px solid #e07b39;
+  background: #fdf6f0;
+  border-radius: 0 6px 6px 0;
+  color: #3a3a5c;
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+blockquote strong {
+  font-style: normal;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.4em;
+  font-family: 'Inter', sans-serif;
+  font-size: 8.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #e07b39;
+}
+
+/* Code */
+pre {
+  background: #0f0f1a;
+  color: #e8e8f8;
+  padding: 1em 1.2em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 8.5pt;
+  line-height: 1.55;
+  margin: 1em 0 1.2em 0;
+  border: 1px solid #2a2a3e;
+  page-break-inside: avoid;
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 8.5pt;
+  background: #f0f0f8;
+  color: #c0392b;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  border: 1px solid #e0e0ec;
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #1a1a2e;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  padding: 0.5em 0.8em;
+  text-align: left;
+  font-size: 8.5pt;
+  letter-spacing: 0.3px;
+}
+
+td {
+  padding: 0.45em 0.8em;
+  border-bottom: 1px solid #e8e8f0;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td {
+  background: #f8f8fc;
+}
+
+/* Lists */
+ul, ol {
+  margin: 0.5em 0 0.85em 0;
+  padding-left: 1.6em;
+}
+
+li {
+  margin-bottom: 0.3em;
+  line-height: 1.65;
+}
+
+li > ul, li > ol {
+  margin: 0.2em 0;
+}
+
+strong {
+  font-weight: 700;
+  color: #0f0f23;
+}
+
+em {
+  font-style: italic;
+  color: #333355;
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center;
+  margin: 1.5em 0;
+  page-break-inside: avoid;
+}
