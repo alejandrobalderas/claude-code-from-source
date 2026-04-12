@@ -94,6 +94,25 @@ Every chapter has layered depth: a narrative flow for technical leaders, deep-di
 
 ---
 
+## Generate the PDF
+
+You can render the entire book as a styled PDF locally:
+
+```bash
+# Requires Node.js and Google Chrome installed
+make pdf
+```
+
+This runs `scripts/build-pdf.js` to assemble all chapters into a single document (with cover page, table of contents, and part dividers), then uses [`md-to-pdf`](https://github.com/simonhaenisch/md-to-pdf) to render it via headless Chrome.
+
+The output is `claude-code-from-source.pdf` in the repo root. If Chrome is not at the default path for your OS, set `CHROME_PATH`:
+
+```bash
+CHROME_PATH="/path/to/chrome" make pdf
+```
+
+---
+
 ## The 10 Patterns That Make It Work
 
 If you read nothing else:
