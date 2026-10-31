@@ -11,9 +11,9 @@ interface Preset {
 }
 
 const presets: Preset[] = [
-  { label: "Code review (3 agents)", prefixTokens: 60000, uniqueTokens: 8000, children: 3 },
-  { label: "Large refactor (10 agents)", prefixTokens: 100000, uniqueTokens: 5000, children: 10 },
-  { label: "Test suite (15 agents)", prefixTokens: 80000, uniqueTokens: 3000, children: 15 },
+  { label: "코드 검토(에이전트 3명)", prefixTokens: 60000, uniqueTokens: 8000, children: 3 },
+  { label: "대규모 리팩터링(에이전트 10개)", prefixTokens: 100000, uniqueTokens: 5000, children: 10 },
+  { label: "테스트 스위트(에이전트 15개)", prefixTokens: 80000, uniqueTokens: 3000, children: 15 },
 ];
 
 // --- Hooks ---
@@ -187,7 +187,7 @@ export default function PromptCacheCalculator({ className }: Props) {
             fontFamily: "var(--font-mono)",
           }}
         >
-          Presets:
+          사전 설정:
         </span>
         {presets.map((preset) => (
           <button
@@ -238,9 +238,9 @@ export default function PromptCacheCalculator({ className }: Props) {
         >
           <div style={sliderGroupStyle}>
             <div style={labelStyle}>
-              <span>Shared prefix size</span>
+              <span>공유 접두사 크기</span>
               <span style={valueStyle}>
-                {(prefixTokens / 1000).toFixed(0)}K tokens
+                {(prefixTokens / 1000).toFixed(0)}K토큰
               </span>
             </div>
             <input
@@ -256,9 +256,9 @@ export default function PromptCacheCalculator({ className }: Props) {
 
           <div style={sliderGroupStyle}>
             <div style={labelStyle}>
-              <span>Per-child unique tokens</span>
+              <span>자녀별 고유 토큰</span>
               <span style={valueStyle}>
-                {(uniqueTokens / 1000).toFixed(0)}K tokens
+                {(uniqueTokens / 1000).toFixed(0)}K토큰
               </span>
             </div>
             <input
@@ -274,7 +274,7 @@ export default function PromptCacheCalculator({ className }: Props) {
 
           <div style={sliderGroupStyle}>
             <div style={labelStyle}>
-              <span>Number of children</span>
+              <span>자녀 수</span>
               <span style={valueStyle}>{children}</span>
             </div>
             <input
@@ -290,7 +290,7 @@ export default function PromptCacheCalculator({ className }: Props) {
 
           <div style={sliderGroupStyle}>
             <div style={labelStyle}>
-              <span>Input token price</span>
+              <span>입력 토큰 가격</span>
               <span style={valueStyle}>${inputPrice}/1M</span>
             </div>
             <input
@@ -306,7 +306,7 @@ export default function PromptCacheCalculator({ className }: Props) {
 
           <div style={sliderGroupStyle}>
             <div style={labelStyle}>
-              <span>Cache hit price</span>
+              <span>캐시 적중 가격</span>
               <span style={valueStyle}>${cachePrice}/1M</span>
             </div>
             <input
@@ -335,7 +335,7 @@ export default function PromptCacheCalculator({ className }: Props) {
                 letterSpacing: 1,
               }}
             >
-              Cost Comparison
+              비용 비교
             </div>
 
             {/* Without cache bar */}
@@ -349,7 +349,7 @@ export default function PromptCacheCalculator({ className }: Props) {
                   color: colors.textSecondary,
                 }}
               >
-                <span>Without cache</span>
+                <span>캐시 없음</span>
                 <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>
                   {formatDollars(animWithout)}
                 </span>
@@ -387,7 +387,7 @@ export default function PromptCacheCalculator({ className }: Props) {
                   color: colors.text,
                 }}
               >
-                <span>With cache sharing</span>
+                <span>캐시 공유 사용</span>
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
@@ -451,7 +451,7 @@ export default function PromptCacheCalculator({ className }: Props) {
                 marginTop: 2,
               }}
             >
-              saved ({formatDollars(animSavings)})
+              저장됨({formatDollars(animSavings)})
             </div>
           </div>
 
@@ -468,17 +468,17 @@ export default function PromptCacheCalculator({ className }: Props) {
             }}
           >
             <div>
-              <span style={{ opacity: 0.7 }}>No cache:</span>{" "}
+              <span style={{ opacity: 0.7 }}>캐시 없음:</span>{" "}
               {children} x ({(prefixTokens / 1000).toFixed(0)}K + {(uniqueTokens / 1000).toFixed(0)}K) x ${inputPrice}/1M
             </div>
             <div>
-              <span style={{ opacity: 0.7 }}>Cached:</span>{" "}
-              1 full + {Math.max(0, children - 1)} cached prefix + {children} unique
+              <span style={{ opacity: 0.7 }}>캐시됨:</span>{" "}
+              전체 1개 + {Math.max(0, children - 1)} 캐시된 접두사 + {children} 독특한
             </div>
             <div style={{ marginTop: 6, color: colors.text, fontSize: 11 }}>
               {children <= 1
-                ? "Add more children to see cache savings."
-                : `Cache sharing pays off with N >= 2 children.`}
+                ? "캐시 절감 효과를 보려면 하위 항목을 더 추가하세요."
+                : "캐시 공유는 N >= 2명의 자녀에게 효과적입니다."}
             </div>
           </div>
         </div>

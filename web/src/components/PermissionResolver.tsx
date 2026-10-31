@@ -31,48 +31,48 @@ interface Preset {
 // --- Data ---
 
 const toolTypes: { value: ToolType; label: string }[] = [
-  { value: "read", label: "Read file" },
-  { value: "write", label: "Write file" },
-  { value: "bash", label: "Bash command" },
-  { value: "mcp", label: "MCP tool" },
+  { value: "read", label: "파일 읽기" },
+  { value: "write", label: "파일 쓰기" },
+  { value: "bash", label: "배시 명령" },
+  { value: "mcp", label: "MCP 도구" },
 ];
 
 const permissionModes: { value: PermissionMode; label: string; description: string }[] = [
-  { value: "bypassPermissions", label: "bypassPermissions", description: "Everything allowed. No checks. Internal/testing only" },
-  { value: "dontAsk", label: "dontAsk", description: "All allowed, still logged. No user prompts" },
-  { value: "auto", label: "auto", description: "LLM transcript classifier decides allow/deny" },
-  { value: "acceptEdits", label: "acceptEdits", description: "File edits auto-approved; other mutations prompt" },
-  { value: "default", label: "default", description: "Standard interactive mode. User approves each action" },
-  { value: "plan", label: "plan", description: "Read-only. All mutations blocked" },
-  { value: "bubble", label: "bubble", description: "Escalate decision to parent agent (sub-agent mode)" },
+  { value: "bypassPermissions", label: "우회권한", description: "모든 것이 허용됩니다. 수표가 없습니다. 내부/테스트 전용" },
+  { value: "dontAsk", label: "묻지 마세요", description: "모두 허용되었으며 여전히 기록되어 있습니다. 사용자 프롬프트 없음" },
+  { value: "auto", label: "자동", description: "LLM 성적표 분류자가 허용/거부 결정" },
+  { value: "acceptEdits", label: "accept편집", description: "파일 수정이 자동 승인되었습니다. 다른 돌연변이 프롬프트" },
+  { value: "default", label: "기본값", description: "표준 대화형 모드. 사용자가 각 작업을 승인합니다." },
+  { value: "plan", label: "계획", description: "읽기 전용입니다. 모든 돌연변이가 차단됨" },
+  { value: "bubble", label: "거품", description: "상위 상담사에게 결정 에스컬레이션(하위 상담사 모드)" },
 ];
 
 const presets: Preset[] = [
-  { label: "Read file in auto mode", tool: "read", mode: "auto", hasHook: false },
-  { label: "Bash rm in plan mode", tool: "bash", mode: "plan", hasHook: false },
-  { label: "Write with hook override", tool: "write", mode: "default", hasHook: true, hookDecision: "ALLOWED" },
-  { label: "MCP tool in default mode", tool: "mcp", mode: "default", hasHook: false },
-  { label: "Bash in full-auto (dontAsk)", tool: "bash", mode: "dontAsk", hasHook: false },
-  { label: "Write blocked by hook", tool: "write", mode: "acceptEdits", hasHook: true, hookDecision: "DENIED" },
+  { label: "자동 모드에서 파일 읽기", tool: "read", mode: "auto", hasHook: false },
+  { label: "계획 모드의 Bash rm", tool: "bash", mode: "plan", hasHook: false },
+  { label: "훅 재정의로 쓰기", tool: "write", mode: "default", hasHook: true, hookDecision: "ALLOWED" },
+  { label: "기본 모드의 MCP 도구", tool: "mcp", mode: "default", hasHook: false },
+  { label: "완전 자동 배쉬(dontAsk)", tool: "bash", mode: "dontAsk", hasHook: false },
+  { label: "훅에 의해 쓰기가 차단되었습니다.", tool: "write", mode: "acceptEdits", hasHook: true, hookDecision: "DENIED" },
 ];
 
 const allNodes: Record<string, FlowNode> = {
-  start: { id: "start", label: "Tool call needs permission", detail: "A tool_use block was parsed from the model response", type: "decision" },
-  hookCheck: { id: "hookCheck", label: "Hook rule match?", detail: "Check if any PreToolUse hook matches this tool invocation", type: "decision" },
-  hookDecision: { id: "hookDecision", label: "Use hook decision", detail: "Hook returned allow, deny, or ask -- this overrides all other checks", type: "decision" },
-  checkPerms: { id: "checkPerms", label: "tool.checkPermissions()", detail: "Each tool defines its own permission logic (read-only tools often return 'allow')", type: "decision" },
-  toolAllow: { id: "toolAllow", label: "Tool self-allows", detail: "checkPermissions() returned 'allow' -- tool is inherently safe", type: "decision" },
-  modeCheck: { id: "modeCheck", label: "Permission mode?", detail: "Check the active permission mode (7 modes, most to least permissive)", type: "decision" },
-  bypassAllow: { id: "bypassAllow", label: "bypassPermissions / dontAsk", detail: "No restrictions. Everything passes through", type: "decision" },
-  planDeny: { id: "planDeny", label: "plan mode: read-only", detail: "All mutations are blocked. Only read operations pass", type: "decision" },
-  planReadCheck: { id: "planReadCheck", label: "Is it a read operation?", detail: "Plan mode allows reads but blocks writes and executions", type: "decision" },
-  acceptEditsCheck: { id: "acceptEditsCheck", label: "acceptEdits: file write?", detail: "File edits are auto-approved, everything else prompts the user", type: "decision" },
-  autoClassifier: { id: "autoClassifier", label: "LLM classifier evaluates", detail: "A lightweight LLM call classifies the tool invocation against the conversation transcript", type: "decision" },
-  promptUser: { id: "promptUser", label: "Prompt user", detail: "User sees: allow once / allow for session / allow always / deny", type: "decision" },
-  bubbleUp: { id: "bubbleUp", label: "Escalate to parent", detail: "Sub-agent cannot approve its own dangerous actions. Permission bubbles up", type: "decision" },
-  resultAllow: { id: "resultAllow", label: "ALLOWED", detail: "Tool execution proceeds", type: "result" },
-  resultDeny: { id: "resultDeny", label: "DENIED", detail: "Tool execution blocked, error returned to model", type: "result" },
-  resultAsk: { id: "resultAsk", label: "ASK USER", detail: "Interactive permission prompt shown to user", type: "result" },
+  start: { id: "start", label: "도구 호출에 권한이 필요합니다", detail: "tool_use 블록이 모델 응답에서 구문 분석되었습니다.", type: "decision" },
+  hookCheck: { id: "hookCheck", label: "훅 규칙 일치?", detail: "PreToolUse 훅가 이 도구 호출과 일치하는지 확인하세요.", type: "decision" },
+  hookDecision: { id: "hookDecision", label: "훅 결정 사용", detail: "훅가 허용, 거부 또는 요청을 반환했습니다. 이는 다른 모든 확인보다 우선합니다.", type: "decision" },
+  checkPerms: { id: "checkPerms", label: "tool.checkPermissions()", detail: "각 도구는 자체 권한 논리를 정의합니다(읽기 전용 도구는 종종 '허용'을 반환함).", type: "decision" },
+  toolAllow: { id: "toolAllow", label: "도구 자체 허용", detail: "checkPermissions()가 '허용'을 반환했습니다. 도구는 본질적으로 안전합니다.", type: "decision" },
+  modeCheck: { id: "modeCheck", label: "권한 모드?", detail: "활성 권한 모드를 확인하세요(7개 모드, 최대 허용부터 최소 허용까지).", type: "decision" },
+  bypassAllow: { id: "bypassAllow", label: "우회권한/묻지마", detail: "제한이 없습니다. 모든 것은 통과한다", type: "decision" },
+  planDeny: { id: "planDeny", label: "계획 모드: 읽기 전용", detail: "모든 돌연변이가 차단됩니다. 읽기 작업만 통과", type: "decision" },
+  planReadCheck: { id: "planReadCheck", label: "읽기 작업인가요?", detail: "계획 모드에서는 읽기가 허용되지만 쓰기 및 실행은 차단됩니다.", type: "decision" },
+  acceptEditsCheck: { id: "acceptEditsCheck", label: "acceptEdits: 파일 쓰기?", detail: "파일 수정 사항은 자동으로 승인되며, 그 밖의 모든 사항은 사용자에게 메시지가 표시됩니다.", type: "decision" },
+  autoClassifier: { id: "autoClassifier", label: "LLM 분류기는 평가합니다.", detail: "경량 LLM 호출은 대화 내용을 기준으로 도구 호출을 분류합니다.", type: "decision" },
+  promptUser: { id: "promptUser", label: "사용자에게 프롬프트", detail: "사용자에게 표시되는 내용: 한 번 허용/세션 허용/항상 허용/거부", type: "decision" },
+  bubbleUp: { id: "bubbleUp", label: "부모에게 에스컬레이션", detail: "하위 에이전트는 자신의 위험한 행동을 승인할 수 없습니다. 허가가 거품이 난다", type: "decision" },
+  resultAllow: { id: "resultAllow", label: "허용됨", detail: "도구 실행이 진행됩니다.", type: "result" },
+  resultDeny: { id: "resultDeny", label: "거부됨", detail: "도구 실행이 차단되고 오류가 모델에 반환되었습니다.", type: "result" },
+  resultAsk: { id: "resultAsk", label: "사용자에게 문의", detail: "사용자에게 표시되는 대화형 권한 프롬프트", type: "result" },
 };
 
 function resolvePermission(
@@ -87,14 +87,14 @@ function resolvePermission(
     nodes.push("hookDecision");
     if (hookDecision === "ALLOWED") {
       nodes.push("resultAllow");
-      return { nodes, result: "ALLOWED", explanation: "PreToolUse hook matched and returned allow -- skips all other checks" };
+      return { nodes, result: "허용됨", explanation: "PreToolUse 훅가 일치하고 반환된 허용 - 다른 모든 검사를 건너뜁니다." };
     }
     if (hookDecision === "DENIED") {
       nodes.push("resultDeny");
-      return { nodes, result: "DENIED", explanation: "PreToolUse hook matched and returned deny -- tool blocked before permission prompt" };
+      return { nodes, result: "거부됨", explanation: "PreToolUse 훅가 일치하고 거부를 반환했습니다. 권한 메시지가 표시되기 전에 도구가 차단되었습니다." };
     }
     nodes.push("resultAsk");
-    return { nodes, result: "ASK_USER", explanation: "PreToolUse hook matched and returned ask -- user must decide" };
+    return { nodes, result: "ASK_USER", explanation: "PreToolUse 훅가 일치하고 요청이 반환됨 - 사용자가 결정해야 함" };
   }
 
   nodes.push("checkPerms");
@@ -102,7 +102,7 @@ function resolvePermission(
   // Read-only tools self-allow
   if (tool === "read") {
     nodes.push("toolAllow", "resultAllow");
-    return { nodes, result: "ALLOWED", explanation: "Read tool's checkPermissions() returns 'allow' -- read-only tools are inherently safe" };
+    return { nodes, result: "허용됨", explanation: "읽기 도구의 checkPermissions()가 'allow'를 반환합니다. 읽기 전용 도구는 본질적으로 안전합니다." };
   }
 
   nodes.push("modeCheck");
@@ -111,43 +111,43 @@ function resolvePermission(
     case "bypassPermissions":
     case "dontAsk":
       nodes.push("bypassAllow", "resultAllow");
-      return { nodes, result: "ALLOWED", explanation: `${mode} mode: all tool calls are allowed without prompting` };
+      return { nodes, result: "허용됨", explanation: `${mode} mode: all tool calls are allowed without prompting` };
 
     case "plan":
       nodes.push("planDeny");
       if (tool === "read") {
         nodes.push("planReadCheck", "resultAllow");
-        return { nodes, result: "ALLOWED", explanation: "Plan mode allows read operations" };
+        return { nodes, result: "허용됨", explanation: "계획 모드에서는 읽기 작업이 가능합니다." };
       }
       nodes.push("resultDeny");
-      return { nodes, result: "DENIED", explanation: "Plan mode: all mutations are blocked. Only read operations are allowed" };
+      return { nodes, result: "거부됨", explanation: "계획 모드: 모든 돌연변이가 차단됩니다. 읽기 작업만 허용됩니다." };
 
     case "acceptEdits":
       nodes.push("acceptEditsCheck");
       if (tool === "write") {
         nodes.push("resultAllow");
-        return { nodes, result: "ALLOWED", explanation: "acceptEdits mode: file write operations are auto-approved" };
+        return { nodes, result: "허용됨", explanation: "acceptEdits 모드: 파일 쓰기 작업이 자동으로 승인됩니다." };
       }
       nodes.push("resultAsk");
-      return { nodes, result: "ASK_USER", explanation: "acceptEdits mode: non-write operations require user approval" };
+      return { nodes, result: "ASK_USER", explanation: "acceptEdits 모드: 쓰기가 아닌 작업에는 사용자 승인이 필요합니다." };
 
     case "auto":
       nodes.push("autoClassifier");
       // For the interactive demo, auto mode allows writes and denies dangerous bash
       if (tool === "bash") {
         nodes.push("resultAsk");
-        return { nodes, result: "ASK_USER", explanation: "Auto mode: LLM classifier flagged this bash command as potentially unsafe" };
+        return { nodes, result: "ASK_USER", explanation: "자동 모드: LLM 분류자가 이 bash 명령을 잠재적으로 안전하지 않은 것으로 표시했습니다." };
       }
       nodes.push("resultAllow");
-      return { nodes, result: "ALLOWED", explanation: "Auto mode: LLM classifier determined this action is consistent with user intent" };
+      return { nodes, result: "허용됨", explanation: "자동 모드: LLM 분류자가 이 작업이 사용자 의도와 일치한다고 판단했습니다." };
 
     case "default":
       nodes.push("promptUser", "resultAsk");
-      return { nodes, result: "ASK_USER", explanation: "Default mode: user must approve each mutation interactively" };
+      return { nodes, result: "ASK_USER", explanation: "기본 모드: 사용자는 각 변형을 대화형으로 승인해야 합니다." };
 
     case "bubble":
       nodes.push("bubbleUp", "resultAsk");
-      return { nodes, result: "ASK_USER", explanation: "Bubble mode: sub-agent escalates permission to parent agent or user" };
+      return { nodes, result: "ASK_USER", explanation: "버블 모드: 하위 에이전트가 상위 에이전트 또는 사용자에게 권한을 에스컬레이션합니다." };
   }
 }
 
@@ -179,19 +179,19 @@ function ResultBadge({ result, isDark }: { result: Resolution; isDark: boolean }
       bg: isDark ? "rgba(34, 197, 94, 0.15)" : "rgba(34, 197, 94, 0.12)",
       border: "rgba(34, 197, 94, 0.4)",
       color: "#22c55e",
-      label: "ALLOWED",
+      label: "허용됨",
     },
     DENIED: {
       bg: isDark ? "rgba(239, 68, 68, 0.15)" : "rgba(239, 68, 68, 0.1)",
       border: "rgba(239, 68, 68, 0.4)",
       color: "#ef4444",
-      label: "DENIED",
+      label: "거부됨",
     },
     ASK_USER: {
       bg: isDark ? "rgba(234, 179, 8, 0.15)" : "rgba(234, 179, 8, 0.1)",
       border: "rgba(234, 179, 8, 0.4)",
       color: "#eab308",
-      label: "ASK USER",
+      label: "사용자에게 문의",
     },
   }[result];
 
@@ -334,7 +334,7 @@ export default function PermissionResolver({ className }: Props) {
                 letterSpacing: "0.05em",
               }}
             >
-              Tool type
+              도구 유형
             </label>
             <select value={tool} onChange={(e) => { setTool(e.target.value as ToolType); reset(); }} style={selectStyle}>
               {toolTypes.map((t) => (
@@ -357,7 +357,7 @@ export default function PermissionResolver({ className }: Props) {
                 letterSpacing: "0.05em",
               }}
             >
-              Permission mode
+              권한 모드
             </label>
             <select value={mode} onChange={(e) => { setMode(e.target.value as PermissionMode); reset(); }} style={selectStyle}>
               {permissionModes.map((m) => (
@@ -380,7 +380,7 @@ export default function PermissionResolver({ className }: Props) {
                 letterSpacing: "0.05em",
               }}
             >
-              Hook rule
+              훅 규칙
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <label
@@ -399,7 +399,7 @@ export default function PermissionResolver({ className }: Props) {
                   onChange={(e) => { setHasHook(e.target.checked); reset(); }}
                   style={{ accentColor: colors.accent }}
                 />
-                Has matching hook
+                어울리는 훅 있음
               </label>
               {hasHook && (
                 <select
@@ -407,9 +407,9 @@ export default function PermissionResolver({ className }: Props) {
                   onChange={(e) => { setHookDecision(e.target.value as Resolution); reset(); }}
                   style={{ ...selectStyle, width: "auto" }}
                 >
-                  <option value="ALLOWED">allow</option>
-                  <option value="DENIED">deny</option>
-                  <option value="ASK_USER">ask</option>
+                  <option value="ALLOWED">허용하다</option>
+                  <option value="DENIED">부정하다</option>
+                  <option value="ASK_USER">묻다</option>
                 </select>
               )}
             </div>
@@ -448,7 +448,7 @@ export default function PermissionResolver({ className }: Props) {
               transition: "background 0.2s",
             }}
           >
-            Resolve
+            해결
           </button>
 
           {resolved && (
@@ -465,7 +465,7 @@ export default function PermissionResolver({ className }: Props) {
                 cursor: "pointer",
               }}
             >
-              Clear
+              지우기
             </button>
           )}
         </div>
@@ -490,7 +490,7 @@ export default function PermissionResolver({ className }: Props) {
             letterSpacing: "0.05em",
           }}
         >
-          Presets:
+          사전 설정:
         </span>
         {presets.map((preset) => (
           <button
@@ -563,15 +563,15 @@ export default function PermissionResolver({ className }: Props) {
                   if (resolved.result === "ALLOWED") {
                     dotColor = colors.green;
                     borderColor = "rgba(34, 197, 94, 0.4)";
-                    bgColor = isDark ? "rgba(34, 197, 94, 0.08)" : "rgba(34, 197, 94, 0.05)";
+                    bgColor = isDark ? "RGBA(34, 197, 94, 0.08)" : "RGBA(34, 197, 94, 0.05)";
                   } else if (resolved.result === "DENIED") {
                     dotColor = colors.red;
                     borderColor = "rgba(239, 68, 68, 0.4)";
-                    bgColor = isDark ? "rgba(239, 68, 68, 0.08)" : "rgba(239, 68, 68, 0.05)";
+                    bgColor = isDark ? "RGBA(239, 68, 68, 0.08)" : "RGBA(239, 68, 68, 0.05)";
                   } else {
                     dotColor = colors.amber;
                     borderColor = "rgba(234, 179, 8, 0.4)";
-                    bgColor = isDark ? "rgba(234, 179, 8, 0.08)" : "rgba(234, 179, 8, 0.05)";
+                    bgColor = isDark ? "RGBA(234, 179, 8, 0.08)" : "RGBA(234, 179, 8, 0.05)";
                   }
                 }
 
@@ -717,7 +717,7 @@ export default function PermissionResolver({ className }: Props) {
                       marginRight: 8,
                     }}
                   >
-                    Resolution:
+                    해결 방법:
                   </span>
                   {resolved.explanation}
                 </div>
@@ -749,7 +749,7 @@ export default function PermissionResolver({ className }: Props) {
               letterSpacing: "0.05em",
             }}
           >
-            Permission modes (most to least permissive)
+            권한 모드(가장 허용적인 것부터 가장 낮은 것까지)
           </div>
           {permissionModes.map((m, i) => (
             <div

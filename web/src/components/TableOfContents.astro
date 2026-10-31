@@ -18,7 +18,7 @@ const tocHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 {tocHeadings.length > 0 && (
   <aside class="hidden xl:block w-56 shrink-0">
     <div class="sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-6 px-4">
-      <p class="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-3">On this page</p>
+      <p class="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-3">이 페이지에서</p>
       <ul class="space-y-1">
         {tocHeadings.map((heading) => (
           <li>

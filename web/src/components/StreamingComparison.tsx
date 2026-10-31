@@ -15,17 +15,17 @@ interface TimelineBlock {
 // --- Data ---
 
 const sequentialBlocks: TimelineBlock[] = [
-  { label: "Model generates response", kind: "model", startTime: 0, endTime: 3 },
-  { label: "Tool 1: Read file", kind: "read", startTime: 3, endTime: 4.5 },
-  { label: "Tool 2: Read file", kind: "read", startTime: 4.5, endTime: 6 },
-  { label: "Tool 3: Write file", kind: "write", startTime: 6, endTime: 8 },
+  { label: "모델이 응답을 생성합니다", kind: "model", startTime: 0, endTime: 3 },
+  { label: "도구 1: 파일 읽기", kind: "read", startTime: 3, endTime: 4.5 },
+  { label: "도구 2: 파일 읽기", kind: "read", startTime: 4.5, endTime: 6 },
+  { label: "도구 3: 파일 쓰기", kind: "write", startTime: 6, endTime: 8 },
 ];
 
 const streamingBlocks: TimelineBlock[] = [
-  { label: "Model streaming...", kind: "model", startTime: 0, endTime: 3 },
-  { label: "Tool 1: Read file (speculative)", kind: "read", startTime: 1, endTime: 2.5 },
-  { label: "Tool 2: Read file (speculative)", kind: "read", startTime: 2, endTime: 3.5 },
-  { label: "Tool 3: Write file", kind: "write", startTime: 3, endTime: 5 },
+  { label: "모델 스트리밍...", kind: "model", startTime: 0, endTime: 3 },
+  { label: "도구 1: 파일 읽기(추측)", kind: "read", startTime: 1, endTime: 2.5 },
+  { label: "도구 2: 파일 읽기(추측)", kind: "read", startTime: 2, endTime: 3.5 },
+  { label: "도구 3: 파일 쓰기", kind: "write", startTime: 3, endTime: 5 },
 ];
 
 const SEQUENTIAL_TOTAL = 8;
@@ -410,7 +410,7 @@ export default function StreamingComparison({ className }: Props) {
           }}
         >
           {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          {isPlaying ? "Pause" : "Play"}
+          {isPlaying ? "일시중지" : "플레이"}
         </button>
 
         {/* Reset */}
@@ -431,13 +431,13 @@ export default function StreamingComparison({ className }: Props) {
           }}
         >
           <ResetIcon />
-          Reset
+          재설정
         </button>
 
         {/* Speed control */}
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
           <span style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "var(--font-mono)" }}>
-            Speed:
+            속도:
           </span>
           {[1, 2].map((s) => (
             <button
@@ -493,9 +493,9 @@ export default function StreamingComparison({ className }: Props) {
         }}
       >
         {[
-          { label: "Model streaming", color: "#d97757" },
-          { label: "Read-only tool", color: "#87867f" },
-          { label: "Write tool", color: isDark ? "#d4a24e" : "#c4922e" },
+          { label: "모델 스트리밍", color: "#d97757" },
+          { label: "읽기 전용 도구", color: "#87867f" },
+          { label: "쓰기 도구", color: isDark ? "#d4a24e" : "#c4922e" },
         ].map((item) => (
           <span key={item.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span
@@ -535,12 +535,12 @@ export default function StreamingComparison({ className }: Props) {
             }}
           >
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 12, color: colors.textSecondary }}>Sequential</div>
+              <div style={{ fontSize: 12, color: colors.textSecondary }}>순차</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: colors.text }}>{SEQUENTIAL_TOTAL}s</div>
             </div>
-            <div style={{ fontSize: 20, color: colors.textSecondary }}>vs</div>
+            <div style={{ fontSize: 20, color: colors.textSecondary }}>대</div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 12, color: colors.textSecondary }}>Streaming</div>
+              <div style={{ fontSize: 12, color: colors.textSecondary }}>스트리밍</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#d97757" }}>{STREAMING_TOTAL}s</div>
             </div>
             <div
@@ -553,7 +553,7 @@ export default function StreamingComparison({ className }: Props) {
                 fontWeight: 700,
               }}
             >
-              {(SEQUENTIAL_TOTAL / STREAMING_TOTAL).toFixed(1)}x faster
+              {(SEQUENTIAL_TOTAL / STREAMING_TOTAL).toFixed(1)}x 더 빠르게
             </div>
           </motion.div>
         )}

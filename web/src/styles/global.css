@@ -16,13 +16,15 @@
   --color-border: #c2c0b6;
   --color-highlight: #eda100;
 
-  --font-serif: "Source Serif 4 Variable", Georgia, "Times New Roman", serif;
+  --font-serif: "Source Serif 4 Variable", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --font-mono: "JetBrains Mono Variable", "Fira Code", "Consolas", monospace;
 }
 
 /* Base styles */
 html {
   scroll-behavior: smooth;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

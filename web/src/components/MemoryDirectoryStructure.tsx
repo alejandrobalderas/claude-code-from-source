@@ -37,28 +37,28 @@ const entries: FileEntry[] = [
   {
     name: "MEMORY.md",
     indent: 4,
-    annotation: "always loaded, index file",
+    annotation: "항상 로드됨, 인덱스 파일",
     highlighted: true,
   },
   {
     name: "user_role.md",
     indent: 4,
-    annotation: "user_ prefix = auto-categorized",
+    annotation: "user_ 접두사 = 자동 분류됨",
   },
   {
     name: "feedback_testing.md",
     indent: 4,
-    annotation: "feedback_ prefix = correction-driven",
+    annotation: "피드백_ 접두사 = 수정 중심",
   },
   {
     name: "project_auth.md",
     indent: 4,
-    annotation: "project_ prefix = domain knowledge",
+    annotation: "project_ 접두사 = 도메인 지식",
   },
   {
     name: "reference_docs.md",
     indent: 4,
-    annotation: "reference_ prefix = external links",
+    annotation: "참조_ 접두사 = 외부 링크",
   },
 ];
 
@@ -231,7 +231,7 @@ export default function MemoryDirectoryStructure({ className }: Props) {
               display: "inline-block",
             }}
           />
-          Always loaded (index)
+          항상 로드됨(인덱스)
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <span
@@ -243,7 +243,7 @@ export default function MemoryDirectoryStructure({ className }: Props) {
               display: "inline-block",
             }}
           />
-          Loaded on demand via MEMORY.md references
+          MEMORY.md 참조를 통해 요청 시 로드됨
         </span>
       </motion.div>
     </div>

@@ -7,16 +7,16 @@ document.querySelectorAll('pre').forEach((pre) => {
 
   const btn = document.createElement('button');
   btn.className = 'copy-button';
-  btn.textContent = 'Copy';
+  btn.textContent = '복사';
   btn.addEventListener('click', async () => {
     const code = pre.querySelector('code')?.textContent || pre.textContent || '';
     try {
       await navigator.clipboard.writeText(code);
-      btn.textContent = 'Copied!';
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      btn.textContent = '복사됨!';
+      setTimeout(() => { btn.textContent = '복사'; }, 2000);
     } catch {
-      btn.textContent = 'Failed';
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      btn.textContent = '복사 실패';
+      setTimeout(() => { btn.textContent = '복사'; }, 2000);
     }
   });
   wrapper.appendChild(btn);

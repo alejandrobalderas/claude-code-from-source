@@ -20,18 +20,18 @@ interface PipelineStage {
 const stages: PipelineStage[] = [
   {
     id: 1,
-    name: "React Commit",
+    name: "리액트 커밋",
     shortName: "Commit",
-    description: "React reconciles virtual DOM. State updates processed, commitUpdate diffs props. resetAfterCommit triggers Yoga layout.",
+    description: "React는 가상 DOM을 조정합니다. 상태 업데이트가 처리되었으며, commitUpdate가 소품을 비교합니다. ResetAfterCommit은 요가 레이아웃을 트리거합니다.",
     metric: "12 nodes",
     timeMs: 0.3,
     color: "#60a5fa",
   },
   {
     id: 2,
-    name: "Yoga Layout",
+    name: "요가 레이아웃",
     shortName: "Yoga",
-    description: "CSS flexbox layout via Yoga WASM. Resolves flex-grow, shrink, padding, margin, gap, alignment. Custom measureTextNode for word wrapping.",
+    description: "Yoga WASM을 통한 CSS Flexbox 레이아웃. 플렉스 성장, 축소, 패딩, 여백, 간격, 정렬을 해결합니다. 단어 줄 바꿈을 위한 사용자 정의 측정 텍스트 노드입니다.",
     metric: "48 measured",
     timeMs: 0.5,
     color: "#818cf8",
@@ -40,16 +40,16 @@ const stages: PipelineStage[] = [
     id: 3,
     name: "DOM-to-Screen",
     shortName: "Render",
-    description: "Depth-first walk writes characters and styles into a packed Screen buffer. Each cell = 2 Int32 words. Blit fast-path copies unchanged subtrees.",
+    description: "깊이 우선 보행은 압축된 화면 버퍼에 문자와 스타일을 씁니다. 각 셀 = 2 Int32 단어. Blit 빠른 경로는 변경되지 않은 하위 트리를 복사합니다.",
     metric: "384 cells",
     timeMs: 0.4,
     color: "#a78bfa",
   },
   {
     id: 4,
-    name: "Selection/Search Overlay",
+    name: "선택/검색 오버레이",
     shortName: "Overlay",
-    description: "Text selection (inverse video) and search highlighting modify screen buffer in-place. Sets prevFrameContaminated flag.",
+    description: "텍스트 선택(역 비디오) 및 검색 강조 표시는 화면 버퍼를 내부에서 수정합니다. prevFrameContaminating 플래그를 설정합니다.",
     metric: "0 modified",
     timeMs: 0.1,
     color: "#c084fc",
@@ -58,7 +58,7 @@ const stages: PipelineStage[] = [
     id: 5,
     name: "Diff",
     shortName: "Diff",
-    description: "Cell-by-cell comparison: 2 integer comparisons per cell. Only walks the damage rectangle. Steady-state: ~3 cells changed out of 24,000.",
+    description: "셀별 비교: 셀당 2개의 정수 비교. 손상 직사각형만 이동합니다. 정상 상태: 24,000개 중 ~3개의 셀이 변경되었습니다.",
     metric: "47 changed",
     timeMs: 0.3,
     color: "#f472b6",
@@ -67,16 +67,16 @@ const stages: PipelineStage[] = [
     id: 6,
     name: "Optimize",
     shortName: "Optimize",
-    description: "Merge adjacent patches on same row. Eliminate redundant cursor moves. Style transitions via StylePool.transition() cache. 30-50% byte reduction.",
+    description: "같은 행에 인접한 패치를 병합합니다. 중복된 커서 이동을 제거합니다. StylePool.transition() 캐시를 통한 스타일 전환. 30-50% 바이트 감소.",
     metric: "23 writes",
     timeMs: 0.2,
     color: "#fb923c",
   },
   {
     id: 7,
-    name: "Terminal Write",
+    name: "터미널 쓰기",
     shortName: "Write",
-    description: "Single stdout.write() wrapped in BSU/ESU (synchronized update markers). Entire frame appears atomically -- no tearing.",
+    description: "BSU/ESU(동기화된 업데이트 마커)로 래핑된 단일 stdout.write(). 전체 프레임이 원자적으로 나타나며 찢어지지 않습니다.",
     metric: "1.2 KB",
     timeMs: 0.5,
     color: "#4ade80",
@@ -316,7 +316,7 @@ export default function RenderingPipeline({ className }: Props) {
             transition: "background 0.2s",
           }}
         >
-          {isRunning ? "Reset" : "Render Frame"}
+          {isRunning ? "재설정" : "렌더 프레임"}
         </button>
 
         <label
@@ -335,7 +335,7 @@ export default function RenderingPipeline({ className }: Props) {
             onChange={(e) => setShowBlit(e.target.checked)}
             style={{ accentColor: colors.accent }}
           />
-          Show double-buffer
+          이중 버퍼 표시
         </label>
 
         <div style={{ flex: 1 }} />
@@ -351,7 +351,7 @@ export default function RenderingPipeline({ className }: Props) {
             }}
           >
             <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: colors.textSecondary }}>
-              Frame:
+              프레임:
             </span>
             <span
               style={{
@@ -545,8 +545,8 @@ export default function RenderingPipeline({ className }: Props) {
           <path d="M8 2L14 8L8 14L2 8L8 2Z" stroke="#d97757" strokeWidth="1.5" />
         </svg>
         <span>
-          <strong style={{ color: colors.accent }}>Blit fast-path:</strong> Unchanged subtrees copy cells directly from prevScreen.
-          On steady-state frames, 99% of cells are blitted -- only the spinner re-renders.
+          <strong style={{ color: colors.accent }}>블릿 빠른 경로:</strong> 변경되지 않은 하위 트리는 prevScreen에서 직접 셀을 복사합니다.
+          정상 상태 프레임에서는 셀의 99%가 블리팅되며 스피너만 다시 렌더링됩니다.
         </span>
       </div>
 
@@ -591,7 +591,7 @@ export default function RenderingPipeline({ className }: Props) {
                       {stage.id}
                     </div>
                     <span style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>
-                      Stage {stage.id}: {stage.name}
+                      무대 {stage.id}: {stage.name}
                     </span>
                     <span
                       style={{
@@ -640,7 +640,7 @@ export default function RenderingPipeline({ className }: Props) {
                   marginBottom: 12,
                 }}
               >
-                Double-Buffer Rendering
+                이중 버퍼 렌더링
               </div>
               <div
                 style={{
@@ -661,7 +661,7 @@ export default function RenderingPipeline({ className }: Props) {
                   <svg width="32" height="16" viewBox="0 0 32 16" fill="none">
                     <path d="M2 8H28M28 8L22 3M28 8L22 13" stroke={colors.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: colors.textSecondary }}>swap</span>
+                  <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: colors.textSecondary }}>교환</span>
                 </div>
                 <MiniGrid
                   label="Back Buffer (rendering)"
@@ -671,7 +671,7 @@ export default function RenderingPipeline({ className }: Props) {
                 />
               </div>
               <div style={{ fontSize: 11, color: colors.textSecondary, textAlign: "center", lineHeight: 1.5 }}>
-                Frames swap via pointer assignment -- zero allocation. Old front becomes next back for blit optimization and diffing.
+                포인터 할당을 통한 프레임 교환 - 할당 없음. blit 최적화 및 diffing을 위해 이전 프런트가 다음 프런트가 됩니다.
               </div>
             </div>
           </motion.div>
@@ -695,7 +695,7 @@ export default function RenderingPipeline({ className }: Props) {
             marginBottom: 10,
           }}
         >
-          FrameEvent Timing Breakdown
+          FrameEvent 타이밍 분석
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80, marginBottom: 8 }}>
           {stages.map((stage) => {
@@ -742,8 +742,8 @@ export default function RenderingPipeline({ className }: Props) {
           ))}
         </div>
         <div style={{ textAlign: "center", marginTop: 8, fontSize: 11, color: colors.textSecondary }}>
-          Total: <strong style={{ color: colors.accent, fontFamily: "var(--font-mono)" }}>{TOTAL_FRAME_MS.toFixed(1)}ms</strong> per frame
-          {" "} -- {Math.round(1000 / TOTAL_FRAME_MS)}fps theoretical maximum
+          합계: <strong style={{ color: colors.accent, fontFamily: "var(--font-mono)" }}>{TOTAL_FRAME_MS.toFixed(1)}ms</strong> 프레임당
+          {" "} -- {Math.round(1000 / TOTAL_FRAME_MS)}fps 이론상 최대값
         </div>
       </div>
     </div>

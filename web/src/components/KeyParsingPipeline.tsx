@@ -42,52 +42,52 @@ interface KeyPreset {
 const stages: PipelineStage[] = [
   {
     id: "stdin",
-    label: "stdin Raw Bytes",
+    label: "표준 입력 원시 바이트",
     shortLabel: "stdin",
     description:
-      "Raw bytes arrive from the terminal. A single read() may contain a complete escape sequence or just a fragment. The tokenizer buffers partial sequences with a 50ms timeout.",
+      "원시 바이트가 터미널에서 도착합니다. 단일 read()에는 완전한 이스케이프 시퀀스가 ​​포함될 수도 있고 단편만 포함될 수도 있습니다. 토크나이저는 50ms 시간 초과로 부분 시퀀스를 버퍼링합니다.",
   },
   {
     id: "protocol",
-    label: "Protocol Detection",
+    label: "프로토콜 탐지",
     shortLabel: "Protocol",
     description:
-      "Classify the byte sequence: Kitty keyboard protocol (CSI u), xterm modifyOtherKeys (CSI 27;mod;key~), legacy VT220, SGR mouse events, or bracketed paste.",
+      "바이트 시퀀스를 분류합니다: Kitty 키보드 프로토콜(CSI u), xterm 수정OtherKeys(CSI 27;mod;key~), 레거시 VT220, SGR 마우스 이벤트 또는 대괄호 붙여넣기.",
   },
   {
     id: "parse",
-    label: "Sequence Parsing",
+    label: "시퀀스 파싱",
     shortLabel: "Parse",
     description:
-      "Decode the escape sequence into key identity + modifiers. XTerm convention: modifier = 1 + (shift?1:0) + (alt?2:0) + (ctrl?4:0) + (super?8:0).",
+      "이스케이프 시퀀스를 키 ID + 수정자로 디코딩합니다. XTerm 규칙: 수정자 = 1 + (shift?1:0) + (alt?2:0) + (ctrl?4:0) + (super?8:0).",
   },
   {
     id: "event",
-    label: "Key Event Creation",
+    label: "주요 이벤트 생성",
     shortLabel: "Event",
     description:
-      "Structured ParsedKey object: { kind: 'key', name, ctrl, meta, shift, option, super, sequence, isPasted }. All ambiguity eliminated.",
+      "구조화된 ParsedKey 개체: { 종류: '키', 이름, ctrl, 메타, 시프트, 옵션, 슈퍼, 시퀀스, isPasted }. 모든 모호성이 제거되었습니다.",
   },
   {
     id: "binding",
-    label: "Keybinding Lookup",
+    label: "키바인딩 조회",
     shortLabel: "Binding",
     description:
-      "Match against the merged binding table across all 16 active contexts. Last matching binding wins (user overrides take precedence). Context list rebuilt on every keystroke.",
+      "16개 활성 컨텍스트 전체에서 병합된 바인딩 테이블과 일치합니다. 마지막으로 일치하는 바인딩이 우선합니다(사용자 재정의가 우선 적용됨). 키를 누를 때마다 컨텍스트 목록이 다시 작성됩니다.",
   },
   {
     id: "chord",
-    label: "Chord Handling",
+    label: "코드 핸들링",
     shortLabel: "Chord",
     description:
-      "If first half of a chord: wait up to 1000ms for the second half. ChordInterceptor captures all input during wait. Cancelled chords discard prefix but pass through the non-matching character.",
+      "코드의 전반부인 경우: 후반부는 최대 1000ms까지 기다립니다. ChordInterceptor는 대기 중에 모든 입력을 캡처합니다. 취소된 코드는 접두어를 삭제하지만 일치하지 않는 문자를 통과합니다.",
   },
   {
     id: "action",
-    label: "Action Dispatch",
+    label: "액션 디스패치",
     shortLabel: "Action",
     description:
-      "Execute the bound action handler. stopImmediatePropagation() prevents further processing. React batches all resulting state updates.",
+      "바인딩된 작업 핸들러를 실행합니다. stopImmediatePropagation()은 추가 처리를 방지합니다. React는 모든 결과 상태 업데이트를 일괄 처리합니다.",
   },
 ];
 
@@ -120,10 +120,10 @@ const presets: KeyPreset[] = [
     matchedContext: "Global",
     isChord: false,
     action: "app:interrupt",
-    actionDescription: "Interrupt current operation or exit",
+    actionDescription: "현재 작업을 중단하거나 종료합니다.",
   },
   {
-    name: "Arrow Up",
+    name: "위쪽 화살표",
     rawBytes: "\\x1b[A",
     hexBytes: ["1b", "5b", "41"],
     protocol: "Legacy VT220 (CSI sequence)",
@@ -131,7 +131,7 @@ const presets: KeyPreset[] = [
     matchedContext: "Chat",
     isChord: false,
     action: "history:previous",
-    actionDescription: "Navigate to previous history entry",
+    actionDescription: "이전 기록 항목으로 이동",
   },
   {
     name: "Ctrl+Up",
@@ -142,7 +142,7 @@ const presets: KeyPreset[] = [
     matchedContext: "Scroll",
     isChord: false,
     action: "scroll:pageUp",
-    actionDescription: "Scroll up one page",
+    actionDescription: "한 페이지 위로 스크롤",
   },
   {
     name: "Escape",
@@ -153,7 +153,7 @@ const presets: KeyPreset[] = [
     matchedContext: "Chat",
     isChord: false,
     action: "chat:cancel",
-    actionDescription: "Cancel current input or operation",
+    actionDescription: "현재 입력 또는 작업 취소",
   },
   {
     name: "Ctrl+X Ctrl+K",
@@ -169,7 +169,7 @@ const presets: KeyPreset[] = [
       parsedKey: { key: "k", ctrl: true, shift: false, meta: false },
     },
     action: "chat:killAgents",
-    actionDescription: "Terminate all running sub-agents",
+    actionDescription: "실행 중인 모든 하위 에이전트 종료",
   },
   {
     name: "Ctrl+R",
@@ -180,7 +180,7 @@ const presets: KeyPreset[] = [
     matchedContext: "Global",
     isChord: false,
     action: "history:search",
-    actionDescription: "Open reverse history search",
+    actionDescription: "역이력 검색 열기",
   },
 ];
 
@@ -391,7 +391,7 @@ export default function KeyParsingPipeline({ className }: Props) {
               fontWeight: 600,
             }}
           >
-            Key Parsing Pipeline
+            키 파싱 파이프라인
           </span>
           <span
             style={{
@@ -399,7 +399,7 @@ export default function KeyParsingPipeline({ className }: Props) {
               color: colors.textSecondary,
             }}
           >
-            Chapter 14 -- Input & Interaction
+            14장 -- 입력과 상호작용
           </span>
         </div>
         {(selectedPreset || activeStageIndex >= 0) && (
@@ -416,7 +416,7 @@ export default function KeyParsingPipeline({ className }: Props) {
               cursor: "pointer",
             }}
           >
-            Reset
+            재설정
           </button>
         )}
       </div>
@@ -439,7 +439,7 @@ export default function KeyParsingPipeline({ className }: Props) {
             marginBottom: 8,
           }}
         >
-          Press a key (or pick a preset):
+          키를 누르거나 사전 설정을 선택하세요.
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {presets.map((preset) => (
@@ -480,7 +480,7 @@ export default function KeyParsingPipeline({ className }: Props) {
                     opacity: 0.6,
                   }}
                 >
-                  (chord)
+                  (코드)
                 </span>
               )}
             </button>
@@ -599,7 +599,7 @@ export default function KeyParsingPipeline({ className }: Props) {
                       transition: "color 0.3s",
                     }}
                   >
-                    Stage {index + 1}
+                    무대 {index + 1}
                   </div>
 
                   {/* Stage label */}
@@ -760,7 +760,7 @@ export default function KeyParsingPipeline({ className }: Props) {
               marginBottom: 10,
             }}
           >
-            16 Keybinding Contexts
+            16가지 키바인딩 컨텍스트
           </div>
           <div
             style={{
@@ -831,7 +831,7 @@ export default function KeyParsingPipeline({ className }: Props) {
                   marginBottom: 6,
                 }}
               >
-                Action Dispatched
+                조치가 전달됨
               </div>
               <div
                 style={{
@@ -868,13 +868,13 @@ export default function KeyParsingPipeline({ className }: Props) {
                 }}
               >
                 <div>
-                  <span style={{ color: colors.text }}>Raw:</span>{" "}
+                  <span style={{ color: colors.text }}>원시:</span>{" "}
                   {selectedPreset.rawBytes}
                   {selectedPreset.chordSecond &&
                     ` + ${selectedPreset.chordSecond.rawBytes}`}
                 </div>
                 <div>
-                  <span style={{ color: colors.text }}>Hex:</span>{" "}
+                  <span style={{ color: colors.text }}>16진수:</span>{" "}
                   {selectedPreset.hexBytes
                     .map((h) => `0x${h}`)
                     .join(" ")}
@@ -882,7 +882,7 @@ export default function KeyParsingPipeline({ className }: Props) {
                     ` + ${selectedPreset.chordSecond.hexBytes.map((h) => `0x${h}`).join(" ")}`}
                 </div>
                 <div>
-                  <span style={{ color: colors.text }}>Parsed:</span>{" "}
+                  <span style={{ color: colors.text }}>구문 분석됨:</span>{" "}
                   {formatModifiers(selectedPreset.parsedKey)}
                   {selectedPreset.chordSecond &&
                     ` -> ${formatModifiers(selectedPreset.chordSecond.parsedKey)}`}

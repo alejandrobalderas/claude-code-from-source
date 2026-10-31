@@ -33,89 +33,89 @@ const memoryTypeColors: Record<MemoryType, { color: string; bg: string; label: s
   user: {
     color: "#60a5fa",
     bg: "rgba(96, 165, 250, 0.12)",
-    label: "User",
+    label: "사용자",
   },
   feedback: {
     color: "#d97757",
     bg: "rgba(217, 119, 87, 0.12)",
-    label: "Feedback",
+    label: "피드백",
   },
   project: {
     color: "#4ade80",
     bg: "rgba(74, 222, 128, 0.12)",
-    label: "Project",
+    label: "프로젝트",
   },
   reference: {
     color: "#a78bfa",
     bg: "rgba(167, 139, 250, 0.12)",
-    label: "Reference",
+    label: "참고자료",
   },
 };
 
 const queryPresets: QueryPreset[] = [
   {
-    query: "How do I set up the database?",
+    query: "데이터베이스를 어떻게 설정하나요?",
     memories: [
       {
         filename: "feedback_testing.md",
-        name: "Testing Policy",
-        description: "Integration tests must hit real DB, not mocks",
+        name: "테스트 정책",
+        description: "통합 테스트는 모의 데이터베이스가 아닌 실제 DB에 도달해야 합니다.",
         type: "feedback",
         age: "3 days",
         selected: true,
       },
       {
         filename: "reference_drizzle.md",
-        name: "Drizzle Setup",
-        description: "Drizzle ORM config, migration commands, studio URL",
+        name: "이슬비 설정",
+        description: "Drizzle ORM 구성, 마이그레이션 명령, 스튜디오 URL",
         type: "reference",
         age: "2 weeks",
         selected: true,
       },
       {
         filename: "user_role.md",
-        name: "Developer Role",
-        description: "Senior backend engineer, prefers concise explanations",
+        name: "개발자 역할",
+        description: "수석 백엔드 엔지니어는 간결한 설명을 선호합니다.",
         type: "user",
         age: "1 month",
         selected: false,
       },
       {
         filename: "project_migration.md",
-        name: "DB Migration",
-        description: "Currently migrating from Prisma to Drizzle ORM",
+        name: "DB 마이그레이션",
+        description: "현재 Prisma에서 Drizzle ORM으로 마이그레이션 중입니다.",
         type: "project",
         age: "5 days",
         selected: true,
       },
       {
         filename: "feedback_schemas.md",
-        name: "Schema Conventions",
-        description: "Always use camelCase columns, snake_case table names",
+        name: "스키마 규칙",
+        description: "항상 camelCase 열, snake_case 테이블 이름을 사용하십시오.",
         type: "feedback",
         age: "2 weeks",
         selected: false,
       },
       {
         filename: "reference_aws.md",
-        name: "AWS Config",
-        description: "RDS instance details, connection strings, IAM roles",
+        name: "AWS 구성",
+        description: "RDS 인스턴스 세부 정보, 연결 문자열, IAM 역할",
         type: "reference",
         age: "3 weeks",
         selected: false,
       },
       {
         filename: "project_sprint.md",
-        name: "Current Sprint",
-        description: "Auth module refactor, deadline March 15",
+        name: "현재 스프린트",
+        description: "인증 모듈 리팩터링, 마감일 3월 15일",
         type: "project",
         age: "1 week",
         selected: false,
       },
       {
         filename: "feedback_env.md",
-        name: "Env Variables",
-        description: "Never commit .env files, use vault for secrets",
+        name: "환경 변수",
+        description: ".env 파일을 커밋하지 말고 비밀을 위해 볼트를 사용하세요",
         type: "feedback",
         age: "6 days",
         selected: false,
@@ -123,68 +123,68 @@ const queryPresets: QueryPreset[] = [
     ],
   },
   {
-    query: "What's the coding style?",
+    query: "코딩 스타일은 무엇입니까?",
     memories: [
       {
         filename: "feedback_style.md",
-        name: "Code Style",
-        description: "Use Biome for formatting, no semicolons, 2-space indent",
+        name: "코드 스타일",
+        description: "서식 지정에 Biome 사용, 세미콜론 없음, 2칸 들여쓰기",
         type: "feedback",
         age: "2 days",
         selected: true,
       },
       {
         filename: "feedback_testing.md",
-        name: "Testing Policy",
-        description: "Integration tests must hit real DB, not mocks",
+        name: "테스트 정책",
+        description: "통합 테스트는 모의 데이터베이스가 아닌 실제 DB에 도달해야 합니다.",
         type: "feedback",
         age: "3 days",
         selected: true,
       },
       {
         filename: "feedback_naming.md",
-        name: "Naming Conventions",
-        description: "camelCase for functions, PascalCase for components/types",
+        name: "명명 규칙",
+        description: "함수의 경우 camelCase, 구성요소/유형의 경우 PascalCase",
         type: "feedback",
         age: "1 week",
         selected: true,
       },
       {
         filename: "user_role.md",
-        name: "Developer Role",
-        description: "Senior backend engineer, prefers concise explanations",
+        name: "개발자 역할",
+        description: "수석 백엔드 엔지니어는 간결한 설명을 선호합니다.",
         type: "user",
         age: "1 month",
         selected: false,
       },
       {
         filename: "reference_drizzle.md",
-        name: "Drizzle Setup",
-        description: "Drizzle ORM config, migration commands, studio URL",
+        name: "이슬비 설정",
+        description: "Drizzle ORM 구성, 마이그레이션 명령, 스튜디오 URL",
         type: "reference",
         age: "2 weeks",
         selected: false,
       },
       {
         filename: "project_migration.md",
-        name: "DB Migration",
-        description: "Currently migrating from Prisma to Drizzle ORM",
+        name: "DB 마이그레이션",
+        description: "현재 Prisma에서 Drizzle ORM으로 마이그레이션 중입니다.",
         type: "project",
         age: "5 days",
         selected: false,
       },
       {
         filename: "feedback_schemas.md",
-        name: "Schema Conventions",
-        description: "Always use camelCase columns, snake_case table names",
+        name: "스키마 규칙",
+        description: "항상 camelCase 열, snake_case 테이블 이름을 사용하십시오.",
         type: "feedback",
         age: "2 weeks",
         selected: true,
       },
       {
         filename: "feedback_env.md",
-        name: "Env Variables",
-        description: "Never commit .env files, use vault for secrets",
+        name: "환경 변수",
+        description: ".env 파일을 커밋하지 말고 비밀을 위해 볼트를 사용하세요",
         type: "feedback",
         age: "6 days",
         selected: false,
@@ -192,68 +192,68 @@ const queryPresets: QueryPreset[] = [
     ],
   },
   {
-    query: "Who is working on auth?",
+    query: "누가 인증 작업을 하고 있나요?",
     memories: [
       {
         filename: "project_sprint.md",
-        name: "Current Sprint",
-        description: "Auth module refactor, deadline March 15",
+        name: "현재 스프린트",
+        description: "인증 모듈 리팩터링, 마감일 3월 15일",
         type: "project",
         age: "1 week",
         selected: true,
       },
       {
         filename: "user_role.md",
-        name: "Developer Role",
-        description: "Senior backend engineer, prefers concise explanations",
+        name: "개발자 역할",
+        description: "수석 백엔드 엔지니어는 간결한 설명을 선호합니다.",
         type: "user",
         age: "1 month",
         selected: true,
       },
       {
         filename: "project_team.md",
-        name: "Team Assignments",
-        description: "Alex on auth, Sara on billing, Dev on frontend",
+        name: "팀 과제",
+        description: "Alex는 인증, Sara는 청구, Dev는 프런트엔드",
         type: "project",
         age: "4 days",
         selected: true,
       },
       {
         filename: "reference_linear.md",
-        name: "Linear Board",
-        description: "Project tracker URL, sprint board, backlog link",
+        name: "선형 보드",
+        description: "프로젝트 트래커 URL, 스프린트 보드, 백로그 링크",
         type: "reference",
         age: "3 weeks",
         selected: false,
       },
       {
         filename: "feedback_testing.md",
-        name: "Testing Policy",
-        description: "Integration tests must hit real DB, not mocks",
+        name: "테스트 정책",
+        description: "통합 테스트는 모의 데이터베이스가 아닌 실제 DB에 도달해야 합니다.",
         type: "feedback",
         age: "3 days",
         selected: false,
       },
       {
         filename: "reference_drizzle.md",
-        name: "Drizzle Setup",
-        description: "Drizzle ORM config, migration commands, studio URL",
+        name: "이슬비 설정",
+        description: "Drizzle ORM 구성, 마이그레이션 명령, 스튜디오 URL",
         type: "reference",
         age: "2 weeks",
         selected: false,
       },
       {
         filename: "feedback_schemas.md",
-        name: "Schema Conventions",
-        description: "Always use camelCase columns, snake_case table names",
+        name: "스키마 규칙",
+        description: "항상 camelCase 열, snake_case 테이블 이름을 사용하십시오.",
         type: "feedback",
         age: "2 weeks",
         selected: false,
       },
       {
         filename: "project_migration.md",
-        name: "DB Migration",
-        description: "Currently migrating from Prisma to Drizzle ORM",
+        name: "DB 마이그레이션",
+        description: "현재 Prisma에서 Drizzle ORM으로 마이그레이션 중입니다.",
         type: "project",
         age: "5 days",
         selected: false,
@@ -269,28 +269,28 @@ const pipelineStages: {
 }[] = [
   {
     id: "prefetch",
-    label: "Prefetch fires",
-    description: "Async, parallel to user query processing",
+    label: "프리페치 실행",
+    description: "비동기식, 사용자 쿼리 처리와 병렬",
   },
   {
     id: "manifest",
-    label: "Build manifest",
-    description: "scanMemoryFiles reads all .md files, parses frontmatter (30 lines max)",
+    label: "매니페스트 빌드",
+    description: "scanMemoryFiles는 모든 .md 파일을 읽고 머리말을 구문 분석합니다(최대 30줄)",
   },
   {
     id: "evaluate",
-    label: "Sonnet evaluates",
-    description: "Side-query receives manifest + user query + recently-used tools",
+    label: "소네트가 평가",
+    description: "사이드 쿼리는 매니페스트 + 사용자 쿼리 + 최근에 사용한 도구를 수신합니다.",
   },
   {
     id: "select",
-    label: "Select relevant",
-    description: "Sonnet returns up to 5 filenames via structured JSON output",
+    label: "관련 선택",
+    description: "Sonnet은 구조화된 JSON 출력을 통해 최대 5개의 파일 이름을 반환합니다.",
   },
   {
     id: "inject",
-    label: "Inject with staleness",
-    description: "Selected memories attached with age warnings for stale content",
+    label: "부실하게 주입",
+    description: "오래된 콘텐츠에 대한 연령 경고가 첨부된 선택된 추억",
   },
 ];
 
@@ -425,7 +425,7 @@ export default function MemoryRecall({ className }: Props) {
             marginRight: 4,
           }}
         >
-          Query:
+          쿼리:
         </div>
         {queryPresets.map((preset, i) => (
           <button
@@ -468,7 +468,7 @@ export default function MemoryRecall({ className }: Props) {
             transition: "background 0.2s",
           }}
         >
-          {isAnimating ? "Reset" : "Run Recall"}
+          {isAnimating ? "재설정" : "리콜 실행"}
         </button>
       </div>
 
@@ -492,7 +492,7 @@ export default function MemoryRecall({ className }: Props) {
             color: colors.textSecondary,
           }}
         >
-          &gt;
+          &amp;amp;gt;
         </span>
         <span
           style={{
@@ -618,7 +618,7 @@ export default function MemoryRecall({ className }: Props) {
               letterSpacing: "0.05em",
             }}
           >
-            Memory Manifest ({currentPreset.memories.length} files)
+            메모리 매니페스트({currentPreset.memories.length} 파일)
           </div>
 
           {/* Memory type legend */}
@@ -842,7 +842,7 @@ export default function MemoryRecall({ className }: Props) {
                   marginBottom: 4,
                 }}
               >
-                {selectedCount} memories recalled
+                {selectedCount} 기억이 떠올랐다
               </div>
               <div
                 style={{
@@ -851,10 +851,10 @@ export default function MemoryRecall({ className }: Props) {
                   lineHeight: 1.5,
                 }}
               >
-                Selected memories injected as relevant_memories attachment with
-                staleness warnings. Memories older than yesterday include age
-                caveat: "Before recommending from memory, verify against current
-                code."
+                선택한 추억을 관련 메모리 첨부 파일로 삽입했습니다.
+                부실 경고. 어제보다 오래된 추억에는 나이도 포함됩니다.
+                경고: &quot;메모리에서 추천하기 전에 현재 버전과 비교하여 확인하세요.
+                코드.&quot;
               </div>
             </motion.div>
           )}

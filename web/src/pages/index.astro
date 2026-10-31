@@ -9,8 +9,8 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 ---
 
 <BaseLayout
-  title="Claude Code from Source — Architecture, Patterns & Internals"
-  description="A technical book analyzing the architecture of Anthropic's AI coding agent. 18 chapters, 400 pages, reverse-engineered from source maps. No source code — only transferable patterns."
+  title="소스로 살펴보는 Claude Code — 아키텍처, 패턴, 내부 구조"
+  description="Anthropic AI 코딩 에이전트의 아키텍처를 분석한 기술 서적의 한국어판입니다. 소스 맵에서 살펴본 설계 패턴을 18개 장, 인쇄본 기준 약 400쪽으로 정리했습니다."
 >
   <Header />
 
@@ -20,21 +20,21 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <div class="text-center mb-20">
       <img
         src={`${base}cover.jpg`}
-        alt="Claude Code from Source — Book Cover"
+        alt="소스로 살펴보는 Claude Code 책 표지"
         class="mx-auto w-64 md:w-72 rounded-lg shadow-lg mb-10"
       />
       <h1 class="text-3xl md:text-4xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-6 leading-tight">
-        How Anthropic built the most widely used<br class="hidden md:inline" /> AI coding agent
+        Anthropic은 널리 쓰이는 AI 코딩 에이전트를<br class="hidden md:inline" /> 어떻게 만들었을까
       </h1>
       <p class="text-lg text-[var(--color-secondary)] dark:text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed mb-6">
-        When Claude Code shipped on npm, the source maps came with it. We read every file. This book distills the architecture, design decisions, and transferable patterns into
-        <span class="text-[var(--color-terracotta)] font-medium">18 chapters</span> you can learn from and apply to your own systems.
+        npm에 배포된 Claude Code의 소스 맵을 바탕으로 모든 파일을 분석했습니다. 이 책은 아키텍처와 설계 결정, 자신의 시스템에 적용할 수 있는 패턴을
+        <span class="text-[var(--color-terracotta)] font-medium">18개 장</span>에 담았습니다.
       </p>
       <a
         href={`${base}${chapters[0].slug}/`}
         class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-terracotta)] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
       >
-        Start reading
+        읽기 시작
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
         </svg>
@@ -44,16 +44,16 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <!-- What You'll Learn -->
     <section class="mb-20">
       <h2 class="text-2xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-8">
-        What you'll learn
+        무엇을 배울 것인가
       </h2>
       <div class="grid md:grid-cols-2 gap-6">
         {[
-          { title: 'The agent loop', text: 'How an async generator drives the entire system — streaming model output, executing tools, recovering from errors, and compressing context across 4 layers.' },
-          { title: 'Tool execution at scale', text: 'A 14-step pipeline from model request to tool result. Permission resolution, speculative execution, concurrent batching by safety classification.' },
-          { title: 'Multi-agent orchestration', text: 'How sub-agents share prompt cache prefixes to cut costs by 95%. Fork agents, coordinator mode, swarm teams with mailbox messaging.' },
-          { title: 'Memory without a database', text: 'File-based memory with an LLM-powered recall system. Four memory types, staleness warnings, and a Sonnet side-query that beats embedding search.' },
-          { title: 'Performance engineering', text: 'Startup in 240ms via parallel I/O. Slot reservation saving context in 99% of requests. Bitmap pre-filters for fuzzy search. Every millisecond accounted for.' },
-          { title: 'Extensibility and security', text: 'Two-phase skill loading (metadata at startup, content on demand). 27 lifecycle hooks with config snapshots frozen at startup to prevent injection.' },
+          { title: "에이전트 루프", text: "비동기 생성기가 전체 시스템을 구동하는 방법(스트리밍 모델 출력, 도구 실행, 오류 복구, 4개 계층에 걸친 컨텍스트 압축)" },
+          { title: "대규모 도구 실행", text: "모델 요청부터 도구 결과까지 14단계 파이프라인. 권한 해결, 추측 실행, 안전 분류별 동시 일괄 처리." },
+          { title: "다중 에이전트 오케스트레이션", text: "하위 에이전트가 프롬프트 캐시 접두부를 공유해 비용을 95% 절감하는 방법. 포크 에이전트, 조정자 모드, 사서함으로 메시지를 교환하는 에이전트 군집." },
+          { title: "데이터베이스가 없는 메모리", text: "LLM으로 관련 기억을 찾는 파일 기반 메모리. 4가지 메모리 유형, 오래된 정보에 대한 경고, 임베딩 검색을 대체하는 Sonnet 별도 질의." },
+          { title: "성능 엔지니어링", text: "병렬 I/O로 240ms 만에 시작하기. 요청의 99%에서 컨텍스트 공간을 절약하는 슬롯 예약. 퍼지 검색을 위한 비트맵 사전 필터까지 살펴봅니다." },
+          { title: "확장성과 보안", text: "시작 시에는 메타데이터만, 호출 시에는 본문을 불러오는 2단계 스킬 로딩. 설정을 시작 시 고정해 주입 공격을 막는 27개 수명 주기 훅." },
         ].map(({ title, text }) => (
           <div class="p-5 rounded-lg border border-[var(--color-border)] dark:border-[#333]">
             <h3 class="font-semibold text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-2">{title}</h3>
@@ -66,10 +66,10 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <!-- Architecture Explorer -->
     <section class="mb-20">
       <h2 class="text-2xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-3">
-        Explore the architecture
+        아키텍처 살펴보기
       </h2>
       <p class="text-sm text-[var(--color-muted)] mb-6">
-        Six core abstractions power Claude Code. Drag nodes to rearrange, hover for details, click to read the chapter.
+        6가지 핵심 추상화가 Claude Code를 강화합니다. 노드를 드래그하여 재정렬하고, 마우스를 올려 자세한 내용을 확인하고, 클릭하여 장을 읽어보세요.
       </p>
       <ArchitectureExplorer client:only="react" className="w-full" />
     </section>
@@ -77,26 +77,26 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <!-- Who This Is For -->
     <section class="mb-20">
       <h2 class="text-2xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-6">
-        Who this is for
+        이것은 누구를 위한 것인가
       </h2>
       <div class="space-y-4 text-[var(--color-secondary)] dark:text-[var(--color-muted)]">
-        <p><strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">Engineers building agentic systems.</strong> Every chapter ends with "Apply This" — 5 transferable patterns with concrete adaptation advice. Steal the architecture, skip the mistakes.</p>
-        <p><strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">Technical leaders evaluating architectures.</strong> Follow the narrative without reading every code block. Understand why decisions were made, not just what was built.</p>
-        <p><strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">Anyone curious about how production AI tools work.</strong> Claude Code is used by hundreds of thousands of developers. This is how it works under the hood.</p>
+        <p><strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">에이전트 시스템을 구축하는 엔지니어.</strong> 각 장은 다른 시스템에 적용할 수 있는 패턴 5가지를 정리한 ‘직접 적용하기’로 마무리합니다. 설계의 장점을 배우고 시행착오를 줄여보세요.</p>
+        <p><strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">아키텍처를 평가하는 기술 리더.</strong> 모든 코드 블록을 읽지 않고 설명을 따르십시오. 무엇이 결정되었는지가 아니라 왜 결정이 내려졌는지 이해하세요.</p>
+        <p><strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">프로덕션 AI 도구가 어떻게 작동하는지 궁금한 사람.</strong> Claude Code는 수십만 명의 개발자가 사용하고 있습니다. 이 책은 그 내부 구조를 살펴봅니다.</p>
       </div>
     </section>
 
     <!-- Table of Contents -->
     <section class="mb-20">
       <h2 class="text-2xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-8">
-        Table of contents
+        목차
       </h2>
       {parts.map((part) => {
         const partChapters = chapters.filter(c => part.chapters.includes(c.number));
         return (
           <div class="mb-10">
             <div class="flex items-baseline gap-3 mb-1">
-              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-terracotta)]">Part {part.number}</span>
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-terracotta)]">제{part.number}부</span>
               <h3 class="text-lg font-bold text-[var(--color-charcoal)] dark:text-[var(--color-cream)] font-[var(--font-serif)]">{part.title}</h3>
             </div>
             <p class="text-sm italic text-[var(--color-muted)] mb-4">{part.epigraph}</p>
@@ -125,21 +125,21 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <!-- How This Was Made -->
     <section class="mb-20">
       <h2 class="text-2xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-6">
-        How this book was made
+        이 책은 어떻게 만들어졌나
       </h2>
       <div class="space-y-4 text-[var(--color-secondary)] dark:text-[var(--color-muted)] leading-relaxed">
         <p>
-          The source was extracted from npm source maps — the <code>.js.map</code> files that shipped with Claude Code contained a <code>sourcesContent</code> field with the full original TypeScript. Nearly two thousand files comprising the complete architecture.
+          소스는 npm 소스 맵에서 추출했습니다. Claude Code와 함께 배포된 <code>.js.map</code> 파일의 <code>sourcesContent</code> 필드에는 원본 TypeScript 전체가 들어 있었습니다. 전체 아키텍처를 구성하는 약 2,000개의 파일입니다.
         </p>
         <p>
-          <strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">36 AI agents</strong> analyzed and wrote the entire book in four phases:
+          <strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">36개의 AI 에이전트</strong>가 전체 책을 네 단계로 분석하고 집필했습니다.
         </p>
         <div class="grid sm:grid-cols-2 gap-4 my-6">
           {[
-            { phase: 'Exploration', detail: '6 parallel agents read every file in the source tree' },
-            { phase: 'Analysis', detail: '12 agents wrote 494KB of raw technical documentation' },
-            { phase: 'Writing', detail: '15 agents rewrote everything from scratch as narrative chapters' },
-            { phase: 'Review & Revision', detail: '3 reviewers produced 900 lines of feedback; 3 agents applied all fixes' },
+            { phase: '탐색', detail: "6개의 병렬 에이전트가 소스 트리의 모든 파일을 읽습니다." },
+            { phase: '분석', detail: "12명의 에이전트가 494KB의 원시 기술 문서를 작성했습니다." },
+            { phase: '집필', detail: "15명의 에이전트가 모든 것을 처음부터 이야기 장으로 다시 썼습니다." },
+            { phase: '검토 및 수정', detail: "3명의 리뷰어가 900줄의 피드백을 작성했습니다. 3명의 에이전트가 모든 수정 사항을 적용했습니다." },
           ].map(({ phase, detail }) => (
             <div class="flex gap-3 items-start p-4 rounded-lg bg-[var(--color-beige)]/50 dark:bg-[var(--color-dark-surface)]/50">
               <span class="text-[var(--color-terracotta)] font-semibold text-sm shrink-0">{phase}</span>
@@ -148,7 +148,7 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
           ))}
         </div>
         <p>
-          The entire process — from source extraction to final revised book — took approximately <strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">6 hours</strong>. A final audit pass ensured no verbatim source code remained — every code block was rewritten as pseudocode with different variable names.
+          소스 추출부터 최종 수정본 완성까지 걸린 시간은 약 <strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">6시간</strong>입니다. 최종 감사 통과를 통해 문자 그대로의 소스 코드가 남지 않았음을 확인했습니다. 모든 코드 블록은 서로 다른 변수 이름을 가진 의사 코드로 다시 작성되었습니다.
         </p>
       </div>
     </section>
@@ -156,21 +156,21 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <!-- 10 Patterns -->
     <section class="mb-20">
       <h2 class="text-2xl font-bold font-[var(--font-serif)] text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-3">
-        The 10 patterns that make it work
+        성공을 이끄는 10가지 패턴
       </h2>
-      <p class="text-[var(--color-muted)] mb-6">If you read nothing else, these are the architectural bets that define Claude Code.</p>
+      <p class="text-[var(--color-muted)] mb-6">Claude Code의 아키텍처를 이해하는 데 핵심이 되는 10가지 설계 패턴입니다.</p>
       <div class="space-y-4">
         {[
-          { name: 'AsyncGenerator as agent loop', desc: 'yields Messages, typed Terminal return, natural backpressure and cancellation' },
-          { name: 'Speculative tool execution', desc: 'start read-only tools during model streaming, before the response completes' },
-          { name: 'Concurrent-safe batching', desc: 'partition tools by safety, run reads in parallel, serialize writes' },
-          { name: 'Fork agents for cache sharing', desc: 'parallel children share byte-identical prompt prefixes, saving ~95% input tokens' },
-          { name: '4-layer context compression', desc: 'snip, microcompact, collapse, autocompact — each lighter than the next' },
-          { name: 'File-based memory with LLM recall', desc: 'Sonnet side-query selects relevant memories, not keyword matching' },
-          { name: 'Two-phase skill loading', desc: 'frontmatter only at startup, full content on invocation' },
-          { name: 'Sticky latches for cache stability', desc: 'once a beta header is sent, never unset mid-session' },
-          { name: 'Slot reservation', desc: '8K default output cap, escalate to 64K on hit (saves context in 99% of requests)' },
-          { name: 'Hook config snapshot', desc: 'freeze at startup to prevent runtime injection attacks' },
+          { name: "AsyncGenerator 기반 에이전트 루프", desc: "Message를 순차적으로 내보내고, 타입이 지정된 Terminal 값을 반환합니다. 역압과 취소를 자연스럽게 처리합니다." },
+          { name: "도구 추측 실행", desc: "모델이 응답을 스트리밍하는 동안, 응답이 끝나기 전에 읽기 전용 도구를 실행합니다." },
+          { name: "동시 실행 안전성을 고려한 일괄 처리", desc: "안전성에 따라 도구를 나누고, 읽기는 병렬로 실행하며 쓰기는 순차적으로 처리합니다." },
+          { name: "캐시 공유를 위한 포크 에이전트", desc: "병렬로 실행되는 하위 에이전트들이 바이트 단위로 동일한 프롬프트 접두부를 공유해 입력 토큰을 약 95% 절감합니다." },
+          { name: "4계층 컨텍스트 압축", desc: "snip, microcompact, collapse, autocompact 순서로 적용합니다. 앞 단계일수록 더 가볍게 처리합니다." },
+          { name: "LLM으로 기억을 검색하는 파일 기반 메모리", desc: "키워드를 대조하는 대신, Sonnet에 별도 질의를 보내 관련 기억을 선택합니다." },
+          { name: "2단계 스킬 로딩", desc: "시작 시에는 프런트매터 메타데이터만 읽고, 실제 호출 시 전체 내용을 불러옵니다." },
+          { name: "캐시 안정성을 위한 고정 래치", desc: "베타 헤더를 한 번 전송하면 세션 도중에는 해제하지 않습니다." },
+          { name: "슬롯 예약", desc: "기본 출력 한도를 8K로 설정하고, 한도에 도달하면 64K로 늘립니다. 이를 통해 요청의 99%에서 컨텍스트 공간을 절약합니다." },
+          { name: "훅 설정 스냅샷", desc: "시작 시 설정을 고정해 실행 중 주입 공격을 방지합니다." },
         ].map((p, i) => (
           <div class="flex gap-4 items-start">
             <span class="text-sm font-mono text-[var(--color-terracotta)] font-bold mt-1 w-6 shrink-0 text-right">{i + 1}</span>
@@ -186,18 +186,20 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
     <!-- Disclaimer -->
     <section class="mb-12 p-6 rounded-lg border border-[var(--color-border)] dark:border-[#333] bg-[var(--color-beige)]/50 dark:bg-[var(--color-dark-surface)]/50">
       <p class="text-sm text-[var(--color-secondary)] dark:text-[var(--color-muted)] leading-relaxed">
-        <strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">Purely educational.</strong> This book contains no source code from Claude Code — every code block is original pseudocode written to illustrate architectural patterns. The goal is to help engineers understand how production AI agents are built, not to reproduce proprietary software. The "NO'REILLY" cover is a parody/meme for illustrative purposes only — no affiliation with O'Reilly Media.
+        <strong class="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">순전히 교육적입니다.</strong> 이 책에는 Claude Code의 소스 코드가 포함되어 있지 않습니다. 모든 코드 블록은 아키텍처 패턴을 설명하기 위해 작성된 원본 의사코드입니다. 목표는 독점 소프트웨어를 재생산하는 것이 아니라 엔지니어가 프로덕션 AI 에이전트가 구축되는 방식을 이해하도록 돕는 것입니다. &quot;NO&#x27;REILLY&quot; 표지는 설명 목적으로만 패러디/밈이며 O&#x27;Reilly Media와 관련이 없습니다.
       </p>
     </section>
+
+    <p class="text-center text-sm text-[var(--color-muted)] mb-6">한국어 본문과 다이어그램 설명에는 기계 번역이 사용되어 추가 교정이 필요할 수 있습니다. 코드와 기술 식별자는 원문을 유지했습니다.</p>
 
     <!-- Footer -->
     <footer class="text-center text-sm text-[var(--color-muted)] border-t border-[var(--color-border)] dark:border-[#333] pt-8 pb-12">
       <p>
-        An independent educational analysis. Not affiliated with, endorsed by, or sponsored by
+        독립적으로 제작한 교육용 분석 자료이며, 다음 기업과 제휴 관계가 없고 승인이나 후원을 받지 않았습니다:
         <a href="https://anthropic.com" class="text-[var(--color-terracotta)] hover:underline">Anthropic</a>.
       </p>
       <p class="mt-2">
-        <a href="https://github.com/alejandrobalderas/claude-code-from-source" class="text-[var(--color-terracotta)] hover:underline">GitHub</a>
+        <a href="https://github.com/kywood/claude-code-from-source" class="text-[var(--color-terracotta)] hover:underline">GitHub</a>
       </p>
     </footer>
   </main>

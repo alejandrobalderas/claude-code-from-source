@@ -51,8 +51,8 @@ interface Step {
 const steps: Step[] = [
   {
     number: 1,
-    title: "Startup",
-    description: "Config read from disk and snapshot frozen in memory",
+    title: "시작",
+    description: "디스크에서 구성 읽기 및 메모리에 고정된 스냅샷",
     icon: "\u{1F512}",
     iconBg: "#22c55e22",
     iconColor: "#22c55e",
@@ -60,8 +60,8 @@ const steps: Step[] = [
   },
   {
     number: 2,
-    title: "Runtime",
-    description: "Attacker modifies config file on disk",
+    title: "런타임",
+    description: "공격자가 디스크의 구성 파일을 수정합니다.",
     icon: "\u{26A0}\u{FE0F}",
     iconBg: "#ef444422",
     iconColor: "#ef4444",
@@ -69,8 +69,8 @@ const steps: Step[] = [
   },
   {
     number: 3,
-    title: "Hook Fires",
-    description: "Reads from frozen snapshot, NOT disk \u2014 attack fails",
+    title: "훅 화재",
+    description: "디스크가 아닌 고정된 스냅샷에서 읽기 — 공격 실패",
     icon: "\u{1F6E1}\u{FE0F}",
     iconBg: "#22c55e22",
     iconColor: "#22c55e",
@@ -183,7 +183,7 @@ export default function HookSnapshotSequence({
           fontFamily: "var(--font-mono)",
         }}
       >
-        Snapshot Security Model
+        스냅샷 보안 모델
       </motion.div>
 
       {steps.map((step, i) => (
@@ -239,7 +239,7 @@ export default function HookSnapshotSequence({
                   fontFamily: "var(--font-mono)",
                 }}
               >
-                STEP {step.number}
+                단계 {step.number}
               </span>
             </div>
 
@@ -322,10 +322,10 @@ export default function HookSnapshotSequence({
                       opacity: 0.6,
                     }}
                   >
-                    disk config
+                    디스크 구성
                   </span>
                   <span style={{ color: "#22c55e", fontWeight: 600 }}>
-                    frozen snapshot
+                    고정된 스냅샷
                   </span>
                 </div>
               )}

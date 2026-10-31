@@ -23,75 +23,75 @@ interface ParallelOp {
 const phases: Phase[] = [
   {
     id: "fast-path",
-    label: "Fast-path check",
+    label: "빠른 경로 확인",
     startMs: 0,
     endMs: 5,
-    description: "Check for --version, --help",
+    description: "--version, --help를 확인하세요.",
     details:
-      "If matched, respond and exit immediately. No module loading, no I/O. This is why `claude --version` returns instantly.",
+      "일치하면 즉시 응답하고 종료합니다. 모듈 로딩이나 I/O가 없습니다. 이것이 `claude --version`이 즉시 반환되는 이유입니다.",
   },
   {
     id: "module-loading",
-    label: "Module loading",
+    label: "모듈 로딩",
     startMs: 0,
     endMs: 80,
-    description: "Import all TypeScript modules",
+    description: "모든 TypeScript 모듈 가져오기",
     details:
-      "Module-level side effects fire I/O during evaluation. This is the key insight: I/O overlaps with import resolution.",
+      "모듈 수준의 부작용은 평가 중에 I/O를 실행합니다. 이것이 핵심 통찰력입니다. I/O가 가져오기 해결과 겹칩니다.",
   },
   {
     id: "init",
-    label: "init()",
+    label: "초기화()",
     startMs: 80,
     endMs: 95,
-    description: "Parse args, resolve config",
+    description: "인수 구문 분석, 구성 해결",
     details:
-      "Establish trust boundary. Determine session type (REPL vs one-shot). Config is frozen after this phase.",
+      "신뢰 경계를 설정합니다. 세션 유형(REPL 대 원샷)을 결정합니다. 이 단계 후에는 구성이 동결됩니다.",
   },
   {
     id: "setup",
-    label: "setup()",
+    label: "설정()",
     startMs: 95,
     endMs: 130,
-    description: "Load commands, agents, hooks, plugins",
+    description: "로드 명령, 에이전트, 훅, 플러그인",
     details:
-      "Parallel I/O for git status and CLAUDE.md reads. Results from module-level I/O are awaited here — they're already done.",
+      "git 상태 및 CLAUDE.md 읽기를 위한 병렬 I/O입니다. 모듈 수준 I/O의 결과가 여기에서 기다리고 있습니다. 이미 완료되었습니다.",
   },
   {
     id: "first-call",
-    label: "First API call",
+    label: "첫 번째 API 호출",
     startMs: 130,
     endMs: 240,
-    description: "Pre-warmed TCP+TLS connection",
+    description: "미리 준비된 TCP+TLS 연결",
     details:
-      "System prompt construction and first request to the model. TCP+TLS handshake already completed during module loading.",
+      "시스템 신속한 구축 및 모델에 대한 최초 요청. 모듈 로딩 중에 TCP+TLS 핸드셰이크가 이미 완료되었습니다.",
   },
 ];
 
 const parallelOps: ParallelOp[] = [
   {
     id: "git-status",
-    label: "git status",
+    label: "자식 상태",
     startMs: 10,
     endMs: 60,
     description:
-      "Subprocess spawned during module evaluation. Result cached and awaited in setup().",
+      "모듈 평가 중에 생성된 하위 프로세스입니다. 결과가 캐시되어 setup()에서 대기됩니다.",
   },
   {
     id: "claude-md",
-    label: "CLAUDE.md read",
+    label: "CLAUDE.md 읽기",
     startMs: 15,
     endMs: 40,
     description:
-      "File read fired as module-level side effect. Contents used for system prompt construction.",
+      "모듈 수준의 부작용으로 파일 읽기가 발생했습니다. 시스템 프롬프트 구축에 사용되는 컨텐츠입니다.",
   },
   {
     id: "tcp-tls",
-    label: "TCP+TLS preconnect",
+    label: "TCP+TLS 사전 연결",
     startMs: 20,
     endMs: 100,
     description:
-      "Connection to Anthropic API pre-warmed during module loading. Ready before first API call.",
+      "모듈 로딩 중에 미리 예열된 Anthropic API에 대한 연결입니다. 첫 번째 API 호출 전에 준비되었습니다.",
   },
 ];
 
@@ -266,7 +266,7 @@ export default function BootstrapTimeline({ className }: Props) {
             color: colors.textSecondary,
           }}
         >
-          Sequential: <span style={{ textDecoration: "line-through" }}>~{SEQUENTIAL_MS}ms</span>
+          순차: <span style={{ textDecoration: "line-through" }}>~{SEQUENTIAL_MS}ms</span>
         </span>
         <span
           style={{
@@ -278,9 +278,9 @@ export default function BootstrapTimeline({ className }: Props) {
             fontWeight: 600,
           }}
         >
-          Parallel: ~{TOTAL_MS}ms{" "}
+          병렬: ~{TOTAL_MS}ms{" "}
           <span style={{ fontWeight: 400, opacity: 0.8 }}>
-            ({Math.round((1 - TOTAL_MS / SEQUENTIAL_MS) * 100)}% faster)
+            ({Math.round((1 - TOTAL_MS / SEQUENTIAL_MS) * 100)}% 더 빠름)
           </span>
         </span>
       </div>
@@ -340,7 +340,7 @@ export default function BootstrapTimeline({ className }: Props) {
             textTransform="uppercase"
             letterSpacing={1}
           >
-            PHASES
+            단계
           </text>
 
           {/* Phase bars */}
@@ -421,7 +421,7 @@ export default function BootstrapTimeline({ className }: Props) {
             textTransform="uppercase"
             letterSpacing={1}
           >
-            PARALLEL I/O
+            병렬 I/O
           </text>
 
           {/* Parallel operation bars */}
@@ -576,7 +576,7 @@ export default function BootstrapTimeline({ className }: Props) {
             transition: "opacity 0.2s",
           }}
         >
-          Play
+          플레이
         </button>
         <button
           onClick={reset}
@@ -591,7 +591,7 @@ export default function BootstrapTimeline({ className }: Props) {
             cursor: "pointer",
           }}
         >
-          Reset
+          재설정
         </button>
       </div>
 
@@ -677,7 +677,7 @@ export default function BootstrapTimeline({ className }: Props) {
               opacity: 0.85,
             }}
           />
-          Pipeline phase
+          파이프라인 단계
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span
@@ -689,9 +689,9 @@ export default function BootstrapTimeline({ className }: Props) {
               display: "inline-block",
             }}
           />
-          Parallel I/O (overlapping)
+          병렬 I/O(중복)
         </span>
-        <span>Hover bars for details</span>
+        <span>자세한 내용을 보려면 막대를 가리키세요.</span>
       </div>
     </div>
   );

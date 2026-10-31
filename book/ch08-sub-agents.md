@@ -1,54 +1,62 @@
-# Chapter 8: Spawning Sub-Agents
+<a id="chapter-8-spawning-sub-agents"></a>
 
-## The Multiplication of Intelligence
+# 제8장: 하위 에이전트 생성
 
-A single agent is powerful. It can read files, edit code, run tests, search the web, and reason about the results. But there is a hard ceiling on what one agent can do in a single conversation: the context window fills up, the task branches in directions that demand different capabilities, and the serial nature of tool execution becomes a bottleneck. The solution is not a bigger model. It is more agents.
+<a id="the-multiplication-of-intelligence"></a>
 
-Claude Code's sub-agent system lets the model request help. When the parent agent encounters a task that would benefit from delegation -- a codebase search that should not pollute the main conversation, a verification pass that demands adversarial thinking, a set of independent edits that could run in parallel -- it calls the `Agent` tool. That call spawns a child: a fully independent agent with its own conversation loop, its own tool set, its own permission boundary, and its own abort controller. The child does its work and returns a result. The parent never sees the child's internal reasoning, only the final output.
+## 지능의 증식
 
-This is not a convenience feature. It is the architectural foundation for everything from parallel file exploration to coordinator-worker hierarchies to multi-agent swarm teams. And it all flows through two files: `AgentTool.tsx`, which defines the model-facing interface, and `runAgent.ts`, which implements the lifecycle.
+단일 에이전트는 강력합니다. 파일을 읽고, 코드를 편집하고, 테스트를 실행하고, 웹을 검색하고, 결과를 추론할 수 있습니다. 그러나 단일 대화에서 한 에이전트가 수행할 수 있는 작업에는 엄격한 상한선이 있습니다. 즉, 컨텍스트 창이 가득 차고 작업이 다른 기능을 요구하는 방향으로 분기되며 도구 실행의 연속적인 특성으로 인해 병목 현상이 발생합니다. 해결책은 더 큰 모델이 아닙니다. 더 많은 에이전트입니다.
 
-The design challenge is significant. A sub-agent needs enough context to do its job but not so much that it wastes tokens on irrelevant information. It needs permission boundaries that are strict enough for safety but flexible enough for utility. It needs lifecycle management that cleans up every resource it touches without requiring the caller to remember what to clean up. And all of this must work for a spectrum of agent types -- from a cheap, fast, read-only Haiku searcher to an expensive, thorough, Opus-powered verification agent running adversarial tests in the background.
+Claude Code의 하위 에이전트 시스템을 통해 모델이 도움을 요청할 수 있습니다. 상위 에이전트가 위임을 통해 이익을 얻을 수 있는 작업(주 대화를 오염시키지 않아야 하는 코드베이스 검색, 적대적 사고를 요구하는 확인 패스, 병렬로 실행할 수 있는 일련의 독립적인 편집)을 발견하면 `Agent` 도구를 호출합니다. 해당 호출은 자체 대화 루프, 자체 도구 세트, 자체 권한 경계 및 자체 중단 컨트롤러를 갖춘 완전히 독립적인 에이전트인 하위 항목을 생성합니다. 아이는 작업을 수행하고 결과를 반환합니다. 부모는 아이의 내부 추론을 결코 볼 수 없으며 최종 결과만 볼 수 있습니다.
 
-This chapter traces the path from the model's "I need help" to a fully operational child agent. We will examine the tool definition that the model sees, the fifteen-step lifecycle that creates the execution environment, the six built-in agent types and what each optimizes for, the frontmatter system that lets users define custom agents, and the design principles that emerge from all of it.
+이는 편리한 기능이 아닙니다. 이는 병렬 파일 탐색부터 코디네이터-작업자 계층, 다중 에이전트 집단 팀에 이르기까지 모든 것을 위한 아키텍처 기반입니다. 그리고 이 모든 것은 모델 지향 인터페이스를 정의하는 `AgentTool.tsx`과 수명 주기를 구현하는 `runAgent.ts`이라는 두 파일을 통해 흐릅니다.
 
-A note on terminology: throughout this chapter, "parent" refers to the agent that calls the `Agent` tool, and "child" refers to the agent that is spawned. The parent is usually (but not always) the top-level REPL agent. In coordinator mode, the coordinator spawns workers, which are children. In nested scenarios, a child can itself spawn grandchildren -- the same lifecycle applies recursively.
+디자인 과제는 중요합니다. 하위 에이전트는 작업을 수행하는 데 충분한 컨텍스트가 필요하지만 관련 없는 정보에 토큰을 낭비할 정도로 많은 컨텍스트가 필요하지는 않습니다. 안전을 위해서는 엄격하지만 유틸리티를 위해서는 유연한 권한 경계가 필요합니다. 호출자가 정리할 항목을 기억하지 않고도 접촉하는 모든 리소스를 정리하는 수명 주기 관리가 필요합니다. 그리고 이 모든 것은 저렴하고 빠른 읽기 전용 Haiku 검색기부터 백그라운드에서 적대적 테스트를 실행하는 비싸고 철저한 Opus 기반 검증 에이전트에 이르기까지 다양한 에이전트 유형에서 작동해야 합니다.
 
-The orchestration layer spans approximately 40 files across `tools/AgentTool/`, `tasks/`, `coordinator/`, `tools/SendMessageTool/`, and `utils/swarm/`. This chapter focuses on the spawning mechanics -- the AgentTool definition and the runAgent lifecycle. The next chapter covers the runtime: progress tracking, result retrieval, and multi-agent coordination patterns.
+이 장에서는 모델의 "도움이 필요합니다"부터 완전히 작동하는 하위 에이전트까지의 경로를 추적합니다. 모델이 보는 도구 정의, 실행 환경을 생성하는 15단계 라이프사이클, 6가지 기본 제공 에이전트 유형 및 각각의 최적화 대상, 사용자가 사용자 정의 에이전트를 정의할 수 있는 서문 시스템, 그리고 그 모든 것에서 나타나는 설계 원칙을 검토합니다.
+
+용어에 대한 참고 사항: 이 장 전체에서 "상위"는 `Agent` 도구를 호출하는 에이전트를 나타내고 "하위"는 생성된 에이전트를 나타냅니다. 상위는 일반적으로(항상 그런 것은 아님) 최상위 REPL 에이전트입니다. 코디네이터 모드에서 코디네이터는 자식인 워커를 생성합니다. 중첩된 시나리오에서는 자식이 손자를 직접 생성할 수 있습니다. 동일한 수명 주기가 재귀적으로 적용됩니다.
+
+오케스트레이션 계층은 `tools/AgentTool/`, `tasks/`, `coordinator/`, `tools/SendMessageTool/` 및 `utils/swarm/`에 걸쳐 약 40개의 파일에 걸쳐 있습니다. 이 장에서는 생성 메커니즘(AgentTool 정의 및 runAgent 수명 주기)에 중점을 둡니다. 다음 장에서는 진행 상황 추적, 결과 검색 및 다중 에이전트 조정 패턴과 같은 런타임을 다룹니다.
 
 ---
 
-## The AgentTool Definition
+<a id="the-agenttool-definition"></a>
 
-The `AgentTool` is registered under the name `"Agent"` with a legacy alias `"Task"` for backward compatibility with older transcripts, permission rules, and hook configurations. It is built with the standard `buildTool()` factory, but its schema is more dynamic than any other tool in the system.
+## AgentTool 정의
 
-### The Input Schema
+`AgentTool`은 이전 기록, 권한 규칙 및 훅 구성과의 이전 버전과의 호환성을 위해 레거시 별칭 `"Task"`을 사용하여 `"Agent"`이라는 이름으로 등록됩니다. 이는 표준 `buildTool()` 팩토리로 구축되었지만 해당 스키마는 시스템의 다른 도구보다 더 동적입니다.
 
-The input schema is constructed lazily via `lazySchema()` -- a pattern we saw in Chapter 6 that defers zod compilation until first use. There are two layers: a base schema and a full schema that adds multi-agent and isolation parameters.
+<a id="the-input-schema"></a>
 
-The base fields are always present:
+### 입력 스키마
 
-| Field | Type | Required | Purpose |
+입력 스키마는 `lazySchema()`을 통해 느리게 구성됩니다. 이 패턴은 처음 사용할 때까지 zod 컴파일을 연기하는 6장에서 본 패턴입니다. 기본 스키마와 다중 에이전트 및 격리 매개변수를 추가하는 전체 스키마라는 두 가지 계층이 있습니다.
+
+기본 필드는 항상 존재합니다.
+
+| 필드 | 유형 | 필수 | 목적 |
 |-------|------|----------|---------|
-| `description` | `string` | Yes | Short 3-5 word summary of the task |
-| `prompt` | `string` | Yes | The full task description for the agent |
-| `subagent_type` | `string` | No | Which specialized agent to use |
-| `model` | `enum('sonnet','opus','haiku')` | No | Model override for this agent |
-| `run_in_background` | `boolean` | No | Launch asynchronously |
+| `description` | `string` | 예 | 작업에 대한 짧은 3~5단어 요약 |
+| `prompt` | `string` | 예 | 에이전트에 대한 전체 작업 설명 |
+| `subagent_type` | `string` | 아니요 | 어떤 전문 에이전트를 사용해야합니까? |
+| `model` | `enum('sonnet','opus','haiku')` | 아니요 | 이 에이전트의 모델 재정의 |
+| `run_in_background` | `boolean` | 아니요 | 비동기식으로 시작 |
 
-The full schema adds multi-agent parameters (when swarm features are active) and isolation controls:
+전체 스키마는 다중 에이전트 매개변수(군집 기능이 활성화된 경우) 및 격리 제어를 추가합니다.
 
-| Field | Type | Purpose |
+| 필드 | 유형 | 목적 |
 |-------|------|---------|
-| `name` | `string` | Makes the agent addressable via `SendMessage({to: name})` |
-| `team_name` | `string` | Team context for spawning |
-| `mode` | `PermissionMode` | Permission mode for spawned teammate |
-| `isolation` | `enum('worktree','remote')` | Filesystem isolation strategy |
-| `cwd` | `string` | Absolute path override for working directory |
+| `name` | `string` | `SendMessage({to: name})`을 통해 에이전트의 주소를 지정할 수 있도록 합니다. |
+| `team_name` | `string` | 생성을 위한 팀 컨텍스트 |
+| `mode` | `PermissionMode` | 생성된 팀원에 대한 권한 모드 |
+| `isolation` | `enum('worktree','remote')` | 파일 시스템 격리 전략 |
+| `cwd` | `string` | 작업 디렉터리에 대한 절대 경로 재정의 |
 
-The multi-agent fields enable the swarm pattern covered in Chapter 9: named agents that can send messages to each other via `SendMessage({to: name})` while running concurrently. The isolation fields enable filesystem safety: worktree isolation creates a temporary git worktree so the agent operates on a copy of the repository, preventing conflicting edits when multiple agents work on the same codebase simultaneously.
+다중 에이전트 필드는 9장: 동시에 실행되는 동안 `SendMessage({to: name})`을 통해 서로에게 메시지를 보낼 수 있는 명명된 에이전트에서 다룬 스웜 패턴을 활성화합니다. 격리 필드는 파일 시스템 안전을 가능하게 합니다. 작업 트리 격리는 에이전트가 저장소 복사본에서 작동하도록 임시 git 작업 트리를 생성하여 여러 에이전트가 동일한 코드베이스에서 동시에 작업할 때 편집 내용의 충돌을 방지합니다.
 
-What makes this schema unusual is that it is **dynamically shaped by feature flags**:
+이 스키마를 특이한 점은 **기능 플래그에 의해 동적으로 형성**된다는 것입니다.
 
 ```typescript
 // Pseudocode — illustrates the feature-gated schema pattern
@@ -60,49 +68,57 @@ inputSchema = lazySchema(() => {
 })
 ```
 
-When the fork experiment is active, `run_in_background` disappears from the schema entirely because all spawns are forced async under that path. When background tasks are disabled (via `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`), the field is also stripped. When the KAIROS feature flag is off, `cwd` is omitted. The model never sees fields it cannot use.
+포크 실험이 활성화되면 모든 생성이 해당 경로에서 강제로 비동기화되므로 `run_in_background`이 스키마에서 완전히 사라집니다. 백그라운드 작업이 비활성화되면(`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`을 통해) 필드도 제거됩니다. KAIROS 기능 플래그가 꺼지면 `cwd`이 생략됩니다. 모델은 사용할 수 없는 필드를 볼 수 없습니다.
 
-This is a subtle but important design choice. The schema is not just validation -- it is the model's instruction manual. Every field in the schema is described in the tool definition that the model reads. Removing fields the model should not use is more effective than adding "do not use this field" to the prompt. The model cannot misuse what it cannot see.
+이것은 미묘하지만 중요한 디자인 선택입니다. 스키마는 단순한 검증이 아니라 모델의 사용 설명서입니다. 스키마의 모든 필드는 모델이 읽는 도구 정의에 설명되어 있습니다. 모델이 사용하지 말아야 할 필드를 제거하는 것이 프롬프트에 "이 필드를 사용하지 마십시오"를 추가하는 것보다 더 효과적입니다. 모델은 볼 수 없는 것을 오용할 수 없습니다.
 
-### The Output Schema
+<a id="the-output-schema"></a>
 
-The output is a discriminated union with two public variants:
+### 출력 스키마
 
-- `{ status: 'completed', prompt, ...AgentToolResult }` -- synchronous completion with the agent's final output
-- `{ status: 'async_launched', agentId, description, prompt, outputFile }` -- background launch acknowledgment
+출력은 두 가지 공개 변형이 있는 구별된 공용체입니다.
 
-Two additional internal variants (`TeammateSpawnedOutput` and `RemoteLaunchedOutput`) exist but are excluded from the exported schema to enable dead code elimination in external builds. The bundler strips these variants and their associated code paths when the corresponding feature flags are disabled, keeping the distributed binary smaller.
+- `{ status: 'completed', prompt, ...AgentToolResult }` -- 에이전트의 최종 출력과 동기 완료
+- `{ status: 'async_launched', agentId, description, prompt, outputFile }` -- 백그라운드 실행 승인
 
-The `async_launched` variant is notable for what it includes: the `outputFile` path where the agent's results will be written when it completes. This lets the parent (or any other consumer) poll or watch the file for results, providing a filesystem-based communication channel that survives process restarts.
+두 가지 추가 내부 변형(`TeammateSpawnedOutput` 및 `RemoteLaunchedOutput`)이 존재하지만 외부 빌드에서 데드 코드 제거를 활성화하기 위해 내보낸 스키마에서 제외됩니다. 번들러는 해당 기능 플래그가 비활성화되면 이러한 변형과 ​​관련 코드 경로를 제거하여 배포된 바이너리를 더 작게 유지합니다.
 
-### The Dynamic Prompt
+`async_launched` 변형은 에이전트가 완료될 때 에이전트 결과가 기록되는 `outputFile` 경로를 포함한다는 점에서 주목할 만합니다. 이를 통해 상위(또는 다른 소비자)는 파일의 결과를 폴링하거나 감시할 수 있으며 프로세스를 다시 시작해도 지속되는 파일 시스템 기반 통신 채널을 제공합니다.
 
-The `AgentTool` prompt is generated by `getPrompt()` and is context-sensitive. It adapts based on available agents (listed inline or as an attachment to avoid busting prompt cache), whether fork is active (adds "When to fork" guidance), whether the session is in coordinator mode (slim prompt since the coordinator system prompt already covers usage), and subscription tier. Non-pro users get a note about launching multiple agents concurrently.
+<a id="the-dynamic-prompt"></a>
 
-The attachment-based agent list is worth highlighting. The codebase comments reference "approximately 10.2% of fleet cache_creation tokens" being caused by dynamic tool descriptions. Moving the agent list from the tool description to an attachment message keeps the tool description static, so connecting an MCP server or loading a plugin does not bust the prompt cache for every subsequent API call.
+### 동적 프롬프트
 
-This is a pattern worth internalizing for any system that uses tool definitions with dynamic content. The Anthropic API caches the prompt prefix -- system prompt, tool definitions, and conversation history -- and reuses the cached computation for subsequent requests that share the same prefix. If the tool definition changes between API calls (because an agent was added or an MCP server connected), the entire cache is invalidated. Moving volatile content from the tool definition (which is part of the cached prefix) to an attachment message (which is appended after the cached portion) preserves the cache while still delivering the information to the model.
+`AgentTool` 프롬프트는 `getPrompt()`에 의해 생성되며 상황에 따라 다릅니다. 이는 사용 가능한 에이전트(프롬프트 캐시 무효화를 방지하기 위해 인라인 또는 첨부 파일로 나열), 포크가 활성 상태인지("포크할 시기" 지침 추가), 세션이 코디네이터 모드에 있는지 여부(코디네이터 시스템 프롬프트가 이미 사용량을 다루기 때문에 슬림 프롬프트) 및 구독 계층을 기반으로 조정됩니다. Pro가 아닌 사용자에게는 여러 에이전트를 동시에 시작하는 방법에 대한 참고 사항이 표시됩니다.
 
-With the tool definition understood, we can now trace what happens when the model actually calls it.
+첨부 파일 기반 에이전트 목록은 강조할 가치가 있습니다. 코드베이스 주석은 동적 도구 설명으로 인해 발생하는 "플릿 캐시_생성 토큰의 약 10.2%"를 참조합니다. 도구 설명에서 첨부 메시지로 에이전트 목록을 이동하면 도구 설명이 정적으로 유지되므로 MCP 서버를 연결하거나 플러그인을 로드해도 후속 API 호출마다 프롬프트 캐시가 중단되지 않습니다.
 
-### Feature Gating
+이는 동적 콘텐츠가 포함된 도구 정의를 사용하는 모든 시스템에 대해 내부화할 가치가 있는 패턴입니다. Anthropic API는 프롬프트 접두사(시스템 프롬프트, 도구 정의 및 대화 기록)를 캐시하고 동일한 접두사를 공유하는 후속 요청에 대해 캐시된 계산을 재사용합니다. API 호출 사이에 도구 정의가 변경되면(에이전트가 추가되었거나 MCP 서버가 연결되었기 때문에) 전체 캐시가 무효화됩니다. 임시 콘텐츠를 도구 정의(캐시된 접두사의 일부)에서 첨부 메시지(캐시된 부분 뒤에 추가됨)로 이동하면 정보를 모델에 전달하는 동시에 캐시가 보존됩니다.
 
-The sub-agent system has the most complex feature gating in the codebase. At least twelve feature flags and GrowthBook experiments control which agents are available, which parameters appear in the schema, and which code paths are taken:
+도구 정의를 이해했으므로 이제 모델이 실제로 이를 호출할 때 어떤 일이 발생하는지 추적할 수 있습니다.
 
-| Feature Gate | Controls |
+<a id="feature-gating"></a>
+
+### 기능 게이팅
+
+하위 에이전트 시스템은 코드베이스에서 가장 복잡한 기능 게이팅을 가지고 있습니다. 최소 12개의 기능 플래그와 GrowthBook 실험은 사용 가능한 에이전트, 스키마에 나타나는 매개변수, 사용되는 코드 경로를 제어합니다.
+
+| 기능 게이트 | 컨트롤 |
 |-------------|----------|
-| `FORK_SUBAGENT` | Fork agent path |
-| `BUILTIN_EXPLORE_PLAN_AGENTS` | Explore and Plan agents |
-| `VERIFICATION_AGENT` | Verification agent |
-| `KAIROS` | `cwd` override, assistant force-async |
-| `TRANSCRIPT_CLASSIFIER` | Handoff classification, `auto` mode override |
-| `PROACTIVE` | Proactive module integration |
+| `FORK_SUBAGENT` | 포크 에이전트 경로 |
+| `BUILTIN_EXPLORE_PLAN_AGENTS` | 에이전트 탐색 및 계획 |
+| `VERIFICATION_AGENT` | 검증대행 |
+| `KAIROS` | `cwd` 재정의, 보조 강제 비동기화 |
+| `TRANSCRIPT_CLASSIFIER` | 핸드오프 분류, `auto` 모드 재정의 |
+| `PROACTIVE` | 사전 예방적 모듈 통합 |
 
-Each gate uses `feature()` from Bun's dead code elimination system (compile-time) or `getFeatureValue_CACHED_MAY_BE_STALE()` from GrowthBook (runtime A/B testing). The compile-time gates are string-replaced during the build -- when `FORK_SUBAGENT` is `'ant'`, the entire fork code path is included; when it is `'external'`, it may be excluded entirely. The GrowthBook gates allow live experimentation: the `tengu_amber_stoat` experiment can A/B test whether removing Explore and Plan agents changes user behavior, without shipping a new binary.
+각 게이트는 Bun의 데드 코드 제거 시스템(컴파일 타임)의 `feature()` 또는 GrowthBook(런타임 A/B 테스트)의 `getFeatureValue_CACHED_MAY_BE_STALE()`을 사용합니다. 컴파일 타임 게이트는 빌드 중에 문자열로 대체됩니다. `FORK_SUBAGENT`이 `'ant'`이면 전체 포크 코드 경로가 포함됩니다. `'external'`인 경우 전체 제외될 수 있습니다. GrowthBook 게이트를 사용하면 실시간 실험이 가능합니다. `tengu_amber_stoat` 실험은 새 바이너리를 제공하지 않고도 탐색 및 계획 에이전트를 제거하여 사용자 행동을 변경하는지 여부를 A/B 테스트할 수 있습니다.
 
-### The call() Decision Tree
+<a id="the-call-decision-tree"></a>
 
-Before `runAgent()` is ever invoked, the `call()` method in `AgentTool.tsx` routes the request through a decision tree that determines *what kind* of agent to spawn and *how* to spawn it:
+### call() 결정 트리
+
+`runAgent()`이 호출되기 전에 `AgentTool.tsx`의 `call()` 메서드는 생성할 에이전트의 *종류*와 에이전트 생성 방법*을 결정하는 결정 트리를 통해 요청을 라우팅합니다.
 
 ```
 1. Is this a teammate spawn? (team_name + name both set)
@@ -140,19 +156,21 @@ Before `runAgent()` is ever invoked, the `call()` method in `AgentTool.tsx` rout
 10. Execute (async -> registerAsyncAgent + void lifecycle; sync -> iterate runAgent)
 ```
 
-Steps 1 through 6 are pure routing -- no agent has been created yet. The actual lifecycle begins at `runAgent()`, which the sync path iterates directly and the async path wraps in `runAsyncAgentLifecycle()`.
+1~6단계는 순수 라우팅입니다. 아직 에이전트가 생성되지 않았습니다. 실제 수명 주기는 `runAgent()`에서 시작되며, 동기화 경로는 직접 반복되고 비동기 경로는 `runAsyncAgentLifecycle()`에서 래핑됩니다.
 
-The routing is done in `call()` rather than `runAgent()` for a reason: `runAgent()` is a pure lifecycle function that does not know about teammates, remote agents, or the fork experiment. It receives a resolved agent definition and executes it. The decision of *which* definition to resolve, *how* to isolate the agent, and *whether* to run synchronously or asynchronously belongs to the layer above. This separation keeps `runAgent()` testable and reusable -- it is called from both the normal AgentTool path and from the async lifecycle wrapper when resuming a backgrounded agent.
+라우팅은 `runAgent()`이 아닌 `call()`에서 수행됩니다. `runAgent()`은 팀원, 원격 에이전트 또는 포크 실험에 대해 알지 못하는 순수한 수명 주기 기능입니다. 해결된 에이전트 정의를 수신하고 이를 실행합니다. 해결할 *정의*, 에이전트를 격리하는 *방법*, 동기식으로 실행할 것인지 비동기적으로 실행할 것인지*에 대한 결정은 위 계층에 속합니다. 이러한 분리는 `runAgent()`을 테스트 및 재사용 가능하게 유지합니다. 이는 백그라운드 에이전트를 재개할 때 일반 AgentTool 경로와 비동기 수명 주기 래퍼 모두에서 호출됩니다.
 
-The fork guard in step 3 deserves attention. Fork children keep the `Agent` tool in their pool (for cache-identical tool definitions with the parent), but recursive forking would be pathological. Two guards prevent it: `querySource === 'agent:builtin:fork'` (set on the child's context options, survives autocompact) and `isInForkChild(messages)` (scans conversation history for the `<fork-boilerplate>` tag as a fallback). Belt and suspenders -- the primary guard is fast and reliable; the fallback catches edge cases where querySource was not threaded.
+3단계의 포크 가드는 주목할 만합니다. 포크 하위 항목은 `Agent` 도구를 자신의 풀에 유지하지만(상위 항목과 캐시가 동일한 도구 정의를 위해) 재귀적 포크는 병리적입니다. 두 명의 가드가 이를 방지합니다: `querySource === 'agent:builtin:fork'`(하위 컨텍스트 옵션에 설정, 자동 압축 유지) 및 `isInForkChild(messages)`(대체로 `<fork-boilerplate>` 태그에 대한 대화 기록을 검사). 벨트와 멜빵 - 기본 가드는 빠르고 안정적입니다. 폴백은 querySource가 스레드되지 않은 극단적인 경우를 포착합니다.
 
 ---
 
-## The runAgent Lifecycle
+<a id="the-runagent-lifecycle"></a>
 
-`runAgent()` in `runAgent.ts` is an async generator that drives a sub-agent's entire lifecycle. It yields `Message` objects as the agent works. Every sub-agent -- fork, built-in, custom, coordinator worker -- flows through this single function. The function is approximately 400 lines, and every line exists for a reason.
+## runAgent 수명주기
 
-The function signature reveals the complexity of the problem:
+`runAgent.ts`의 `runAgent()`은 하위 에이전트의 전체 수명 주기를 구동하는 비동기 생성기입니다. 에이전트가 작동하면 `Message` 개체가 생성됩니다. 모든 하위 에이전트(포크, 내장, 사용자 정의, 코디네이터 작업자)는 이 단일 기능을 통해 흐릅니다. 이 기능은 약 400줄인데, 모든 줄에는 이유가 있습니다.
+
+함수 서명은 문제의 복잡성을 드러냅니다.
 
 ```typescript
 export async function* runAgent({
@@ -177,13 +195,15 @@ export async function* runAgent({
 }: { ... }): AsyncGenerator<Message, void>
 ```
 
-Seventeen parameters. Each one represents a dimension of variation that the lifecycle must handle. This is not over-engineering -- it is the natural consequence of a single function serving fork agents, built-in agents, custom agents, sync agents, async agents, worktree-isolated agents, and coordinator workers. The alternative would be seven different lifecycle functions with duplicated logic, which is worse.
+17개의 매개변수. 각각은 수명주기가 처리해야 하는 변형의 차원을 나타냅니다. 이는 과도한 엔지니어링이 아닙니다. 이는 포크 에이전트, 기본 제공 에이전트, 사용자 지정 에이전트, 동기화 에이전트, 비동기 에이전트, 작업 트리 격리 에이전트 및 코디네이터 작업자를 제공하는 단일 기능의 자연스러운 결과입니다. 대안은 중복된 논리를 갖춘 7개의 서로 다른 수명 주기 기능이 될 것이며 이는 더 나쁩니다.
 
-The `override` object is particularly important -- it is the escape hatch for fork agents and resumed agents that need to inject pre-computed values (system prompt, abort controller, agent ID) into the lifecycle without re-deriving them.
+`override` 객체는 특히 중요합니다. 미리 계산된 값(시스템 프롬프트, 중단 컨트롤러, 에이전트 ID)을 다시 파생시키지 않고 수명 주기에 주입해야 하는 포크 에이전트 및 재개된 에이전트를 위한 탈출구입니다.
 
-Here are the fifteen steps.
+다음은 15단계입니다.
 
-### Step 1: Model Resolution
+<a id="step-1-model-resolution"></a>
+
+### 1단계: 모델 해상도
 
 ```typescript
 const resolvedAgentModel = getAgentModel(
@@ -194,23 +214,27 @@ const resolvedAgentModel = getAgentModel(
 )
 ```
 
-The resolution chain is: **caller override > agent definition > parent model > default**. The `getAgentModel()` function handles special values like `'inherit'` (use whatever the parent uses) and GrowthBook-gated overrides for specific agent types. The Explore agent, for example, defaults to Haiku for external users -- the cheapest and fastest model, appropriate for a read-only search specialist that runs 34 million times per week.
+해결 체인은 **호출자 재정의 > 에이전트 정의 > 상위 모델 > 기본값**입니다. `getAgentModel()` 함수는 `'inherit'`(부모가 사용하는 모든 것을 사용) 및 특정 에이전트 유형에 대한 GrowthBook 제어 재정의와 같은 특수 값을 처리합니다. 예를 들어 Explore 에이전트는 외부 사용자를 위해 기본적으로 Haiku를 사용합니다. 이는 가장 저렴하고 빠른 모델로 주당 3,400만 번 실행되는 읽기 전용 검색 전문가에게 적합합니다.
 
-Why this order matters: the caller (the parent model) can override the agent definition's preference by passing a `model` parameter in the tool call. This lets the parent promote a normally-cheap agent to a more capable model for a particularly complex search, or demote an expensive agent when the task is simple. But the agent definition's model is the default, not the parent's -- a Haiku Explore agent should not accidentally inherit the parent's Opus model just because no one specified otherwise.
+이 순서가 중요한 이유: 호출자(상위 모델)는 도구 호출에 `model` 매개변수를 전달하여 에이전트 정의의 기본 설정을 재정의할 수 있습니다. 이를 통해 부모는 특히 복잡한 검색을 위해 일반적으로 저렴한 에이전트를 보다 유능한 모델로 승격하거나 작업이 단순할 때 값비싼 에이전트를 강등할 수 있습니다. 그러나 에이전트 정의의 모델은 상위 모델이 아닌 기본값입니다. Haiku Explore 에이전트는 달리 지정하지 않았기 때문에 실수로 상위 Opus 모델을 상속해서는 안 됩니다.
 
-Understanding the model resolution chain is important because it establishes a design principle that recurs throughout the lifecycle: **explicit overrides beat declarations, declarations beat inheritance, inheritance beats defaults.** This same principle governs permission modes, abort controllers, and system prompts. The consistency makes the system predictable -- once you understand one resolution chain, you understand them all.
+모델 결정 체인을 이해하는 것은 라이프사이클 전반에 걸쳐 반복되는 설계 원칙(**명시적 재정의가 비트 선언보다 우선, 선언이 상속보다 우선, 상속이 기본값보다 우선**)을 설정하기 때문에 중요합니다. 이와 동일한 원칙이 권한 모드, 중단 컨트롤러 및 시스템 프롬프트에 적용됩니다. 일관성은 시스템을 예측 가능하게 만듭니다. 하나의 해결 체인을 이해하면 모든 것을 이해하게 됩니다.
 
-### Step 2: Agent ID Creation
+<a id="step-2-agent-id-creation"></a>
+
+### 2단계: 에이전트 ID 생성
 
 ```typescript
 const agentId = override?.agentId ? override.agentId : createAgentId()
 ```
 
-Agent IDs follow the pattern `agent-<hex>` where the hex part is derived from `crypto.randomUUID()`. The branded type `AgentId` prevents accidental string confusion at the type level. The override path exists for resumed agents that need to keep their original ID for transcript continuity.
+에이전트 ID는 16진수 부분이 `crypto.randomUUID()`에서 파생되는 `agent-<hex>` 패턴을 따릅니다. 브랜드 유형 `AgentId`은 유형 수준에서 실수로 문자열이 혼동되는 것을 방지합니다. 대화 내용 연속성을 위해 원래 ID를 유지해야 하는 재개된 상담사를 위한 재정의 경로가 존재합니다.
 
-### Step 3: Context Preparation
+<a id="step-3-context-preparation"></a>
 
-Fork agents and fresh agents diverge here:
+### 3단계: 상황 준비
+
+포크 에이전트와 신규 에이전트는 여기서 갈라집니다.
 
 ```typescript
 const contextMessages: Message[] = forkContextMessages
@@ -223,13 +247,15 @@ const agentReadFileState = forkContextMessages !== undefined
   : createFileStateCacheWithSizeLimit(READ_FILE_STATE_CACHE_SIZE)
 ```
 
-For fork agents, the parent's entire conversation history is cloned into `contextMessages`. But there is a critical filter: `filterIncompleteToolCalls()` strips any `tool_use` blocks that lack matching `tool_result` blocks. Without this filter, the API would reject the malformed conversation. This happens when the parent is mid-tool-execution at the moment of forking -- the tool_use has been emitted but the result has not arrived yet.
+포크 에이전트의 경우 상위의 전체 대화 기록이 `contextMessages`에 복제됩니다. 그러나 중요한 필터가 있습니다. `filterIncompleteToolCalls()`은 일치하는 `tool_result` 블록이 없는 `tool_use` 블록을 제거합니다. 이 필터가 없으면 API는 잘못된 대화를 거부합니다. 이는 분기 시점에 상위 도구 실행이 중간에 있을 때 발생합니다. 즉, tool_use가 방출되었지만 결과가 아직 도착하지 않았습니다.
 
-The file state cache follows the same fork-or-fresh pattern. Fork children get a clone of the parent's cache (they already "know" which files have been read). Fresh agents start empty. The clone is a shallow copy -- file content strings are shared via reference, not duplicated. This matters for memory: a fork child with a 50-file cache does not duplicate 50 file contents, it duplicates 50 pointers. The LRU eviction behavior is independent -- each cache evicts based on its own access pattern.
+파일 상태 캐시는 동일한 포크 또는 새로 만들기 패턴을 따릅니다. Fork 자식은 부모 캐시의 복제본을 얻습니다(어떤 파일을 읽었는지 이미 "알고 있습니다"). 새로운 에이전트는 비어 있는 상태로 시작됩니다. 복제본은 얕은 복사본입니다. 파일 내용 문자열은 복제되지 않고 참조를 통해 공유됩니다. 이는 메모리에 중요합니다. 50개 파일 캐시를 가진 포크 자식은 50개 파일 내용을 복제하지 않고 50개 포인터를 복제합니다. LRU 제거 동작은 독립적입니다. 즉, 각 캐시는 자체 액세스 패턴을 기반으로 제거됩니다.
 
-### Step 4: CLAUDE.md Stripping
+<a id="step-4-claudemd-stripping"></a>
 
-Read-only agents like Explore and Plan have `omitClaudeMd: true` in their definitions:
+### 4단계: CLAUDE.md 스트리핑
+
+Explore 및 Plan과 같은 읽기 전용 에이전트의 정의에는 `omitClaudeMd: true`이 있습니다.
 
 ```typescript
 const shouldOmitClaudeMd =
@@ -242,15 +268,17 @@ const resolvedUserContext = shouldOmitClaudeMd
   : baseUserContext
 ```
 
-CLAUDE.md files contain project-specific instructions about commit messages, PR conventions, lint rules, and coding standards. A read-only search agent does not need any of this -- it cannot commit, cannot create PRs, cannot edit files. The parent agent has full context and will interpret the search results. Dropping CLAUDE.md here saves billions of tokens per week across the fleet -- an aggregate cost reduction that justifies the added complexity of conditional context injection.
+CLAUDE.md 파일에는 커밋 메시지, PR 규칙, 린트 규칙 및 코딩 표준에 대한 프로젝트별 지침이 포함되어 있습니다. 읽기 전용 검색 에이전트에는 이 중 어떤 것도 필요하지 않습니다. 즉, 커밋할 수 없고 PR을 만들 수 없으며 파일을 편집할 수 없습니다. 상위 에이전트는 전체 컨텍스트를 갖고 있으며 검색 결과를 해석합니다. 여기에 CLAUDE.md를 삭제하면 전체 전체에서 매주 수십억 개의 토큰이 절약됩니다. 이는 조건부 컨텍스트 주입의 추가 복잡성을 정당화하는 총 비용 절감입니다.
 
-Similarly, Explore and Plan agents have `gitStatus` stripped from system context. The git status snapshot taken at session start can be up to 40KB and is explicitly labeled as stale. If these agents need git information, they can run `git status` themselves and get fresh data.
+마찬가지로 Explore 및 Plan 에이전트에는 시스템 컨텍스트에서 `gitStatus`이 제거되었습니다. 세션 시작 시 생성된 git 상태 스냅샷은 최대 40KB까지 가능하며 명시적으로 오래된 것으로 표시됩니다. 이러한 에이전트에 git 정보가 필요한 경우 `git status`을 직접 실행하여 최신 데이터를 얻을 수 있습니다.
 
-These are not premature optimizations. At 34 million Explore spawns per week, every unnecessary token compounds into measurable cost. The kill-switch (`tengu_slim_subagent_claudemd`) defaults to true but can be flipped via GrowthBook if the stripping causes regressions.
+이는 조기 최적화가 아닙니다. 매주 3,400만 개의 Explore가 생성되므로 모든 불필요한 토큰이 측정 가능한 비용으로 합산됩니다. 킬 스위치(`tengu_slim_subagent_claudemd`)의 기본값은 true이지만 스트리핑으로 인해 회귀가 발생하는 경우 GrowthBook을 통해 뒤집을 수 있습니다.
 
-### Step 5: Permission Isolation
+<a id="step-5-permission-isolation"></a>
 
-This is the most intricate step. Each agent gets a custom `getAppState()` wrapper that overlays its permission configuration onto the parent's state:
+### 5단계: 권한 격리
+
+이것은 가장 복잡한 단계입니다. 각 에이전트는 권한 구성을 상위 상태에 오버레이하는 사용자 정의 `getAppState()` 래퍼를 가져옵니다.
 
 ```typescript
 const agentGetAppState = () => {
@@ -294,17 +322,19 @@ const agentGetAppState = () => {
 }
 ```
 
-There are four distinct concerns layered together:
+네 가지 뚜렷한 우려 사항이 함께 겹겹이 쌓여 있습니다.
 
-**Permission mode cascade.** If the parent is in `bypassPermissions`, `acceptEdits`, or `auto` mode, the parent's mode always wins -- the agent definition cannot weaken it. Otherwise, the agent definition's `permissionMode` is applied. This prevents a custom agent from downgrading security when the user has explicitly set a permissive mode for the session.
+**권한 모드 계단식.** 상위가 `bypassPermissions`, `acceptEdits` 또는 `auto` 모드에 있는 경우 상위 모드가 항상 승리합니다. 에이전트 정의는 이를 약화시킬 수 없습니다. 그렇지 않으면 에이전트 정의의 `permissionMode`이 적용됩니다. 이렇게 하면 사용자가 세션에 대해 허용 모드를 명시적으로 설정한 경우 사용자 지정 에이전트가 보안을 다운그레이드하는 것을 방지할 수 있습니다.
 
-**Prompt avoidance.** Background agents cannot show permission dialogs -- there is no terminal attached. So `shouldAvoidPermissionPrompts` is set to `true`, which causes the permission system to auto-deny rather than block. The exception is `bubble` mode: these agents surface prompts to the parent's terminal, so they can always show prompts regardless of sync/async status.
+**프롬프트 방지.** 백그라운드 에이전트는 권한 대화 상자를 표시할 수 없습니다. 연결된 터미널이 없습니다. 따라서 `shouldAvoidPermissionPrompts`이 `true`으로 설정되어 권한 시스템이 차단되지 않고 자동 거부됩니다. `bubble` 모드는 예외입니다. 이러한 에이전트는 상위 터미널에 프롬프트를 표시하므로 동기화/비동기 상태에 관계없이 항상 프롬프트를 표시할 수 있습니다.
 
-**Automated check ordering.** Background agents that *can* show prompts (bubble mode) set `awaitAutomatedChecksBeforeDialog`. This means the classifier and permission hooks run first; the user is only interrupted if automated resolution fails. For background work, waiting an extra second for the classifier is fine -- the user should not be interrupted unnecessarily.
+**자동 확인 순서.** 프롬프트(버블 모드)를 *표시할 수* 있는 백그라운드 에이전트는 `awaitAutomatedChecksBeforeDialog`을 설정합니다. 이는 분류자와 권한 훅가 먼저 실행됨을 의미합니다. 자동 해결이 실패하는 경우에만 사용자가 중단됩니다. 백그라운드 작업의 경우 분류자를 위해 추가로 몇 초를 기다리는 것이 좋습니다. 사용자가 불필요하게 중단되어서는 안 됩니다.
 
-**Tool permission scoping.** When `allowedTools` is provided, it replaces the session-level allow rules entirely. This prevents parent approvals from leaking through to scoped agents. But SDK-level permissions (from `--allowedTools` CLI flag) are preserved -- those represent the embedding application's explicit security policy and should apply everywhere.
+**도구 권한 범위 지정.** `allowedTools`이 제공되면 세션 수준 허용 규칙을 완전히 대체합니다. 이렇게 하면 상위 승인이 범위가 지정된 에이전트로 유출되는 것을 방지할 수 있습니다. 그러나 SDK 수준 권한(`--allowedTools` CLI 플래그의)은 유지됩니다. 이는 내장 애플리케이션의 명시적인 보안 정책을 나타내며 모든 곳에 적용되어야 합니다.
 
-### Step 6: Tool Resolution
+<a id="step-6-tool-resolution"></a>
+
+### 6단계: 도구 해결
 
 ```typescript
 const resolvedTools = useExactTools
@@ -312,17 +342,19 @@ const resolvedTools = useExactTools
   : resolveAgentTools(agentDefinition, availableTools, isAsync).resolvedTools
 ```
 
-Fork agents use `useExactTools: true`, which passes the parent's tool array through unchanged. This is not just convenience -- it is a cache optimization. Different tool definitions serialize differently (different permission modes produce different tool metadata), and any divergence in the tool block busts the prompt cache. Fork children need byte-identical prefixes.
+포크 에이전트는 상위 도구 배열을 변경 없이 전달하는 `useExactTools: true`을 사용합니다. 이는 단순한 편의성이 아니라 캐시 최적화입니다. 다양한 도구 정의는 다르게 직렬화되며(다양한 권한 모드는 다양한 도구 메타데이터를 생성함) 도구 블록에 차이가 있으면 프롬프트 캐시가 파괴됩니다. 포크 하위 항목에는 바이트가 동일한 접두사가 필요합니다.
 
-For normal agents, `resolveAgentTools()` applies a layered filter:
-- `tools: ['*']` means all tools; `tools: ['Read', 'Bash']` means only those
-- `disallowedTools: ['Agent', 'FileEdit']` removes those from the pool
-- Built-in agents and custom agents have different base disallowed tool sets
-- Async agents get filtered through `ASYNC_AGENT_ALLOWED_TOOLS`
+일반 에이전트의 경우 `resolveAgentTools()`은 계층화된 필터를 적용합니다.
+- `tools: ['*']`은 모든 도구를 의미합니다. `tools: ['Read', 'Bash']`은 다음을 의미합니다.
+- `disallowedTools: ['Agent', 'FileEdit']`은 풀에서 해당 항목을 제거합니다.
+- 기본 제공 에이전트와 사용자 지정 에이전트에는 서로 다른 기본 허용되지 않는 도구 세트가 있습니다.
+- 비동기 에이전트는 `ASYNC_AGENT_ALLOWED_TOOLS`을 통해 필터링됩니다.
 
-The result is that each agent type sees exactly the tools it should have. The Explore agent cannot call FileEdit. The Verification agent cannot call Agent (no recursive spawning from a verifier). Custom agents have a more restrictive default deny list than built-ins.
+결과적으로 각 에이전트 유형에는 있어야 할 도구가 정확히 표시됩니다. Explore 에이전트는 FileEdit을 호출할 수 없습니다. 검증 에이전트는 에이전트를 호출할 수 없습니다(검증기에서 반복적으로 생성되지 않음). 사용자 지정 에이전트에는 기본 제공되는 것보다 더 제한적인 기본 거부 목록이 있습니다.
 
-### Step 7: System Prompt
+<a id="step-7-system-prompt"></a>
+
+### 7단계: 시스템 프롬프트
 
 ```typescript
 const agentSystemPrompt = override?.systemPrompt
@@ -335,11 +367,13 @@ const agentSystemPrompt = override?.systemPrompt
     )
 ```
 
-Fork agents receive the parent's pre-rendered system prompt via `override.systemPrompt`. This is threaded from `toolUseContext.renderedSystemPrompt` -- the exact bytes the parent used in its last API call. Recomputing the system prompt via `getSystemPrompt()` could diverge. GrowthBook features might have transitioned from cold to warm between the parent's call and the child's. A single byte difference in the system prompt busts the entire prompt cache prefix.
+포크 에이전트는 `override.systemPrompt`을 통해 상위의 사전 렌더링된 시스템 프롬프트를 받습니다. 이는 `toolUseContext.renderedSystemPrompt`(마지막 API 호출에서 상위 항목이 사용한 정확한 바이트)에서 스레드됩니다. `getSystemPrompt()`을 통해 시스템 프롬프트를 다시 계산하면 다를 수 있습니다. GrowthBook 기능은 부모의 통화와 자녀의 통화 사이에 차가운 상태에서 따뜻한 상태로 전환되었을 수 있습니다. 시스템 프롬프트의 단일 바이트 차이로 인해 전체 프롬프트 캐시 접두사가 무효화됩니다.
 
-For normal agents, `getAgentSystemPrompt()` calls the agent definition's `getSystemPrompt()` function, then enhances with environment details -- absolute paths, emoji guidance (Claude tends to over-use emojis in certain contexts), and model-specific instructions.
+일반 에이전트의 경우 `getAgentSystemPrompt()`은 에이전트 정의의 `getSystemPrompt()` 함수를 호출한 다음 절대 경로, 이모티콘 지침(Claude는 특정 상황에서 이모티콘을 과도하게 사용하는 경향이 있음) 및 모델별 지침과 같은 환경 세부 정보로 향상됩니다.
 
-### Step 8: Abort Controller Isolation
+<a id="step-8-abort-controller-isolation"></a>
+
+### 8단계: 컨트롤러 격리 중단
 
 ```typescript
 const agentAbortController = override?.abortController
@@ -349,15 +383,17 @@ const agentAbortController = override?.abortController
     : toolUseContext.abortController
 ```
 
-Three lines, three behaviors:
+세 줄, 세 가지 동작:
 
-- **Override**: Used when resuming a backgrounded agent or for special lifecycle management. Takes precedence.
-- **Async agents get a new, unlinked controller.** When the user presses Escape, the parent's abort controller fires. Async agents should survive this -- they are background work that the user chose to delegate. Their independent controller means they keep running.
-- **Sync agents share the parent's controller.** Escape kills both. The child is blocking the parent; if the user wants to stop, they want to stop everything.
+- **재정의**: 백그라운드 에이전트를 재개할 때 또는 특수 수명 주기 관리에 사용됩니다. 우선합니다.
+- **비동기 에이전트는 연결되지 않은 새로운 컨트롤러를 얻습니다.** 사용자가 Esc 키를 누르면 상위의 중단 컨트롤러가 실행됩니다. 비동기 에이전트는 이 상황에서 살아남아야 합니다. 이는 사용자가 위임하기로 선택한 백그라운드 작업입니다. 독립된 컨트롤러는 계속 작동한다는 것을 의미합니다.
+- **동기화 에이전트는 상위 컨트롤러를 공유합니다.** Escape는 둘 다 종료합니다. 아이가 부모를 차단하고 있습니다. 사용자가 중지하고 싶다면 모든 것을 중지하고 싶어합니다.
 
-This is one of those decisions that seems obvious in retrospect but would be catastrophic if wrong. An async agent that aborts when the parent aborts would lose all its work every time the user pressed Escape to ask a follow-up question. A sync agent that ignored the parent's abort would leave the user staring at a frozen terminal.
+이것은 돌이켜보면 분명해 보이지만 잘못되면 재앙이 될 결정 중 하나입니다. 상위 에이전트가 중단될 때 중단되는 비동기 에이전트는 사용자가 후속 질문을 하기 위해 Esc 키를 누를 때마다 모든 작업을 잃게 됩니다. 상위 중단을 무시한 동기화 에이전트는 사용자가 정지된 터미널을 바라보게 만듭니다.
 
-### Step 9: Hook Registration
+<a id="step-9-hook-registration"></a>
+
+### 9단계: 훅 등록
 
 ```typescript
 if (agentDefinition.hooks && hooksAllowedForThisAgent) {
@@ -368,13 +404,15 @@ if (agentDefinition.hooks && hooksAllowedForThisAgent) {
 }
 ```
 
-Agent definitions can declare their own hooks (PreToolUse, PostToolUse, etc.) in frontmatter. These hooks are scoped to the agent's lifecycle via the `agentId` -- they only fire for this agent's tool calls, and they are automatically cleaned up in the `finally` block when the agent terminates.
+에이전트 정의는 프론트매터에서 자체 훅(PreToolUse, PostToolUse 등)를 선언할 수 있습니다. 이러한 훅은 `agentId`을 통해 에이전트의 수명 주기로 범위가 지정됩니다. 이 훅은 이 에이전트의 도구 호출에 대해서만 실행되며 에이전트가 종료되면 `finally` 블록에서 자동으로 정리됩니다.
 
-The `isAgent: true` flag (the final `true` parameter) converts `Stop` hooks to `SubagentStop` hooks. Sub-agents trigger `SubagentStop`, not `Stop`, so the conversion ensures the hooks fire at the right event.
+`isAgent: true` 플래그(최종 `true` 매개변수)는 `Stop` 훅을 `SubagentStop` 훅로 변환합니다. 하위 에이전트는 `Stop`이 아닌 `SubagentStop`을 트리거하므로 변환을 통해 훅가 올바른 이벤트에서 실행됩니다.
 
-Security matters here. When `strictPluginOnlyCustomization` is active for hooks, only plugin, built-in, and policy-settings agent hooks are registered. User-controlled agents (from `.claude/agents/`) have their hooks silently skipped. This prevents a malicious or misconfigured agent definition from injecting hooks that bypass security controls.
+여기서 보안이 중요합니다. `strictPluginOnlyCustomization`이 훅에 대해 활성화되면 플러그인, 내장 및 정책 설정 에이전트 훅만 등록됩니다. 사용자 제어 에이전트(`.claude/agents/`에서)는 훅을 자동으로 건너뛰었습니다. 이렇게 하면 악의적이거나 잘못 구성된 에이전트 정의가 보안 제어를 우회하는 훅을 삽입하는 것을 방지할 수 있습니다.
 
-### Step 10: Skill Preloading
+<a id="step-10-skill-preloading"></a>
+
+### 10단계: 스킬 사전 로딩
 
 ```typescript
 const skillsToPreload = agentDefinition.skills ?? []
@@ -384,27 +422,31 @@ if (skillsToPreload.length > 0) {
 }
 ```
 
-Agent definitions can specify `skills: ["my-skill"]` in their frontmatter. The resolution tries three strategies: exact match, prefix with the agent's plugin name (e.g., `"my-skill"` becomes `"plugin:my-skill"`), and suffix match on `":skillName"` for plugin-namespaced skills. The three-strategy resolution ensures that skill references work regardless of whether the agent author used the fully-qualified name, the short name, or the plugin-relative name.
+에이전트 정의는 머리말에 `skills: ["my-skill"]`을 지정할 수 있습니다. 해결 방법에서는 정확히 일치, 에이전트 플러그인 이름 접두사(예: `"my-skill"`이 `"plugin:my-skill"`이 됨), 플러그인 네임스페이스 기술에 대한 `":skillName"`의 접미사 일치라는 세 가지 전략을 시도합니다. 3가지 전략 해결 방법은 에이전트 작성자가 정규화된 이름, 짧은 이름 또는 플러그인 상대 이름을 사용했는지 여부에 관계없이 기술 참조가 작동하도록 보장합니다.
 
-Loaded skills become user messages prepended to the agent's conversation. This means the agent "reads" its skill instructions before seeing the task prompt -- the same mechanism used for slash commands in the main REPL, repurposed for automated skill injection. The skill content is loaded concurrently via `Promise.all()` to minimize startup latency when multiple skills are specified.
+로드된 스킬은 에이전트의 대화 앞에 추가되는 사용자 메시지가 됩니다. 이는 에이전트가 작업 프롬프트를 보기 전에 기술 지침을 "읽는" 것을 의미합니다. 이는 자동화된 기술 주입을 위해 용도가 변경된 기본 REPL의 슬래시 명령에 사용되는 것과 동일한 메커니즘입니다. 여러 스킬이 지정된 경우 시작 대기 시간을 최소화하기 위해 스킬 콘텐츠가 `Promise.all()`을 통해 동시에 로드됩니다.
 
-### Step 11: MCP Initialization
+<a id="step-11-mcp-initialization"></a>
+
+### 11단계: MCP 초기화
 
 ```typescript
 const { clients: mergedMcpClients, tools: agentMcpTools, cleanup: mcpCleanup } =
   await initializeAgentMcpServers(agentDefinition, toolUseContext.options.mcpClients)
 ```
 
-Agents can define their own MCP servers in frontmatter, additive to the parent's clients. Two forms are supported:
+에이전트는 상위 클라이언트에 추가로 자체 MCP 서버를 정의할 수 있습니다. 두 가지 양식이 지원됩니다.
 
-- **Reference by name**: `"slack"` looks up an existing MCP config and gets a shared, memoized client
-- **Inline definition**: `{ "my-server": { command: "...", args: [...] } }` creates a new client that is cleaned up when the agent finishes
+- **이름별 참조**: `"slack"`은 기존 MCP 구성을 조회하고 메모된 공유 클라이언트를 가져옵니다.
+- **인라인 정의**: `{ "my-server": { command: "...", args: [...] } }`은 에이전트가 완료되면 정리되는 새 클라이언트를 생성합니다.
 
-Only newly created (inline) clients are cleaned up. Shared clients are memoized at the parent level and persist beyond the agent's lifetime. This distinction prevents an agent from accidentally tearing down an MCP connection that other agents or the parent are still using.
+새로 생성된(인라인) 클라이언트만 정리됩니다. 공유 클라이언트는 상위 수준에서 기억되며 에이전트의 수명 이후에도 지속됩니다. 이러한 구별은 에이전트가 다른 에이전트나 상위 에이전트가 아직 사용하고 있는 MCP 연결을 실수로 중단하는 것을 방지합니다.
 
-The MCP initialization happens *after* hook registration and skill preloading but *before* context creation. This ordering matters: the MCP tools must be merged into the tool pool before `createSubagentContext()` snapshots the tools into the agent's options. Reordering these steps would mean the agent either has no MCP tools or has them but they are not in its tool pool.
+MCP 초기화는 훅 등록 및 스킬 사전 로드 *후*, 컨텍스트 생성 *전*에 발생합니다. 이 순서는 중요합니다. `createSubagentContext()`이 도구를 에이전트 옵션에 스냅샷하기 전에 MCP 도구를 도구 풀에 병합해야 합니다. 이러한 단계의 순서를 바꾸면 에이전트에 MCP 도구가 없거나 MCP 도구가 있지만 도구 풀에 없다는 의미입니다.
 
-### Step 12: Context Creation
+<a id="step-12-context-creation"></a>
+
+### 12단계: 컨텍스트 생성
 
 ```typescript
 const agentToolUseContext = createSubagentContext(toolUseContext, {
@@ -423,28 +465,30 @@ const agentToolUseContext = createSubagentContext(toolUseContext, {
 })
 ```
 
-`createSubagentContext()` in `utils/forkedAgent.ts` assembles the new `ToolUseContext`. The key isolation decisions:
+`utils/forkedAgent.ts`의 `createSubagentContext()`은 새로운 `ToolUseContext`을 어셈블합니다. 주요 격리 결정:
 
-- **Sync agents share `setAppState`** with the parent. State changes (like permission approvals) are immediately visible to both. The user sees one coherent state.
-- **Async agents get isolated `setAppState`**. The parent's copy is a no-op for the child's writes. But `setAppStateForTasks` reaches the root store -- the child can still update task state (progress, completion) that the UI observes.
-- **Both share `setResponseLength`** for response metrics tracking.
-- **Fork agents inherit `thinkingConfig`** for cache-identical API requests. Normal agents get `{ type: 'disabled' }` -- thinking (extended reasoning tokens) is disabled to control output costs. The parent pays for thinking; the children execute.
+- **동기화 에이전트는 `setAppState`**을 상위 에이전트와 공유합니다. 상태 변경(예: 권한 승인)은 두 사람 모두에게 즉시 표시됩니다. 사용자는 하나의 일관된 상태를 봅니다.
+- **비동기 에이전트는 격리된 `setAppState`**입니다. 상위 사본은 하위 항목의 쓰기에 대해 작동하지 않습니다. 그러나 `setAppStateForTasks`은 루트 저장소에 도달합니다. 즉, 자식은 UI가 관찰하는 작업 상태(진행, 완료)를 계속 업데이트할 수 있습니다.
+- **둘 다 응답 측정항목 추적을 위해 `setResponseLength`**을 공유합니다.
+- **포크 에이전트는 캐시와 동일한 API 요청에 대해 `thinkingConfig`**을 상속합니다. 일반 에이전트는 `{ type: 'disabled' }`을 얻습니다. 출력 비용을 제어하기 위해 사고(확장 추론 토큰)가 비활성화됩니다. 부모는 생각에 대한 비용을 지불합니다. 아이들은 처형한다.
 
-The `createSubagentContext()` function is worth examining for what it *isolates* versus what it *shares*. The isolation boundary is not all-or-nothing -- it is a carefully chosen set of shared and isolated channels:
+`createSubagentContext()` 함수는 무엇을 *격리*하는지, 무엇을 *공유*하는지 조사해 볼 가치가 있습니다. 격리 경계는 전부 아니면 전무가 아닙니다. 이는 신중하게 선택된 공유 및 격리 채널 집합입니다.
 
-| Concern | Sync Agent | Async Agent |
+| 우려 | 동기화 에이전트 | 비동기 에이전트 |
 |---------|-----------|-------------|
-| `setAppState` | Shared (parent sees changes) | Isolated (parent's copy is no-op) |
-| `setAppStateForTasks` | Shared | Shared (task state must reach root) |
-| `setResponseLength` | Shared | Shared (metrics need global view) |
-| `readFileState` | Own cache | Own cache |
-| `abortController` | Parent's | Independent |
-| `thinkingConfig` | Fork: inherited / Normal: disabled | Fork: inherited / Normal: disabled |
-| `messages` | Own array | Own array |
+| `setAppState` | 공유됨(부모님이 변경 사항을 확인함) | 격리됨(상위 사본은 작동하지 않음) |
+| `setAppStateForTasks` | 공유됨 | 공유됨(작업 상태가 루트에 도달해야 함) |
+| `setResponseLength` | 공유됨 | 공유(메트릭에는 전역 보기가 필요함) |
+| `readFileState` | 자체 캐시 | 자체 캐시 |
+| `abortController` | 부모의 | 독립 |
+| `thinkingConfig` | 포크: 상속됨 / 일반: 비활성화됨 | 포크: 상속됨 / 일반: 비활성화됨 |
+| `messages` | 자체 배열 | 자체 배열 |
 
-The asymmetry between `setAppState` (isolated for async) and `setAppStateForTasks` (always shared) is a key design decision. An async agent cannot push state changes to the parent's reactive store -- that would cause the parent's UI to jump unexpectedly. But the agent must still be able to update the global task registry, because that is how the parent knows the background agent has completed. The split channel solves both requirements.
+`setAppState`(비동기용으로 격리됨)과 `setAppStateForTasks`(항상 공유됨) 간의 비대칭성은 핵심 설계 결정입니다. 비동기 에이전트는 상태 변경 사항을 상위 반응 저장소에 푸시할 수 없습니다. 이로 인해 상위 UI가 예기치 않게 점프하게 됩니다. 그러나 에이전트는 여전히 전역 작업 레지스트리를 업데이트할 수 있어야 합니다. 왜냐하면 그렇게 해야 상위 에이전트가 백그라운드 에이전트가 완료되었음을 알 수 있기 때문입니다. 분할 채널은 두 가지 요구 사항을 모두 해결합니다.
 
-### Step 13: Cache-Safe Params Callback
+<a id="step-13-cache-safe-params-callback"></a>
+
+### 13단계: 캐시 안전 매개변수 콜백
 
 ```typescript
 if (onCacheSafeParams) {
@@ -458,9 +502,11 @@ if (onCacheSafeParams) {
 }
 ```
 
-This callback is consumed by background summarization. When an async agent is running, the summarization service can fork the agent's conversation -- using these exact params to construct a cache-identical prefix -- and generate periodic progress summaries without disturbing the main conversation. The params are "cache-safe" because they produce the same API request prefix the agent is using, maximizing cache hits.
+이 콜백은 백그라운드 요약에 사용됩니다. 비동기 에이전트가 실행 중일 때 요약 서비스는 정확한 매개변수를 사용하여 캐시와 동일한 접두사를 구성하는 등 에이전트의 대화를 분기하고 기본 대화를 방해하지 않고 주기적인 진행 요약을 생성할 수 있습니다. 매개변수는 에이전트가 사용하는 것과 동일한 API 요청 접두사를 생성하여 캐시 적중을 최대화하므로 "캐시 안전"합니다.
 
-### Step 14: The Query Loop
+<a id="step-14-the-query-loop"></a>
+
+### 14단계: 쿼리 루프
 
 ```typescript
 try {
@@ -482,13 +528,15 @@ try {
 }
 ```
 
-The same `query()` function from Chapter 3 drives the sub-agent's conversation. The sub-agent's messages are yielded back to the caller -- either `AgentTool.call()` for sync agents (which iterates the generator inline) or `runAsyncAgentLifecycle()` for async agents (which consumes the generator in a detached async context).
+3장의 동일한 `query()` 함수가 하위 에이전트의 대화를 구동합니다. 하위 에이전트의 메시지는 호출자에게 다시 생성됩니다. 동기화 에이전트의 경우 `AgentTool.call()`(생성기를 인라인으로 반복) 또는 비동기 에이전트의 경우 `runAsyncAgentLifecycle()`(분리된 비동기 컨텍스트에서 생성기를 사용)입니다.
 
-Each yielded message is recorded to a sidechain transcript via `recordSidechainTranscript()` -- an append-only JSONL file per agent. This enables resume: if the session is interrupted, the agent can be reconstructed from its transcript. The recording is `O(1)` per message, appending only the new message with a reference to the previous UUID for chain continuity.
+생성된 각 메시지는 에이전트당 추가 전용 JSONL 파일인 `recordSidechainTranscript()`을 통해 사이드체인 기록에 기록됩니다. 이를 통해 재개가 가능해집니다. 세션이 중단되면 해당 기록에서 에이전트를 재구성할 수 있습니다. 기록은 메시지당 `O(1)`이며, 체인 연속성을 위해 이전 UUID를 참조하여 새 메시지만 추가합니다.
 
-### Step 15: Cleanup
+<a id="step-15-cleanup"></a>
 
-The `finally` block runs on normal completion, abort, or error. It is the most comprehensive cleanup sequence in the codebase:
+### 15단계: 정리
+
+`finally` 블록은 정상 완료, 중단 또는 오류 시 실행됩니다. 이는 코드베이스에서 가장 포괄적인 정리 순서입니다.
 
 ```typescript
 finally {
@@ -507,15 +555,17 @@ finally {
 }
 ```
 
-Every subsystem the agent touched during its lifetime gets cleaned up. MCP connections, hooks, cache tracking, file state, perfetto tracing, todo entries, and orphaned shell processes. The comment about "whale sessions" spawning hundreds of agents is telling -- without this cleanup, each agent would leave small leaks that accumulate into measurable memory pressure over long sessions.
+에이전트가 수명 동안 접촉한 모든 하위 시스템이 정리됩니다. MCP 연결, 훅, 캐시 추적, 파일 상태, perfetto 추적, 할 일 항목 및 고아 쉘 프로세스. 수백 개의 에이전트를 생성하는 "고래 세션"에 대한 설명은 이러한 정리가 없으면 각 에이전트가 긴 세션에 걸쳐 측정 가능한 메모리 부족으로 축적되는 작은 누수를 남길 것이라고 말하고 있습니다.
 
-The `initialMessages.length = 0` line is a manual GC hint. For fork agents, `initialMessages` contains the parent's entire conversation history. Setting the length to zero releases those references so the garbage collector can reclaim the memory. In a session with a 200K-token context that spawns five fork children, that is a megabyte of duplicated message objects per child.
+`initialMessages.length = 0` 라인은 수동 GC 힌트입니다. 포크 에이전트의 경우 `initialMessages`에는 상위의 전체 대화 기록이 포함됩니다. 길이를 0으로 설정하면 해당 참조가 해제되어 가비지 수집기가 메모리를 회수할 수 있습니다. 5개의 포크 하위 항목을 생성하는 200K 토큰 컨텍스트가 있는 세션에서 이는 하위 항목당 1MB의 중복된 메시지 개체에 해당합니다.
 
-There is a lesson here about resource management in long-running agent systems. Each of the cleanup steps addresses a different kind of leak: MCP connections (file descriptors), hooks (memory in the app state store), file state caches (in-memory file content), Perfetto registrations (tracing metadata), todo entries (reactive state keys), and shell processes (OS-level processes). An agent interacts with many subsystems during its lifetime, and each subsystem must be notified when the agent is done. The `finally` block is the single place where all these notifications happen, and the generator protocol guarantees it runs. This is why the generator-based architecture is not just a convenience -- it is a correctness requirement.
+장기 실행 에이전트 시스템의 리소스 관리에 대한 교훈이 있습니다. 각 정리 단계에서는 MCP 연결(파일 설명자), 훅(앱 상태 저장소의 메모리), 파일 상태 캐시(메모리 내 파일 콘텐츠), Perfetto 등록(메타데이터 추적), 할 일 항목(반응 상태 키) 및 셸 프로세스(OS 수준 프로세스) 등 다양한 종류의 누출을 해결합니다. 에이전트는 수명 동안 많은 하위 시스템과 상호 작용하며 에이전트가 완료되면 각 하위 시스템에 알림을 보내야 합니다. `finally` 블록은 이러한 모든 알림이 발생하는 단일 장소이며 생성기 프로토콜은 알림이 실행되도록 보장합니다. 이것이 생성기 기반 아키텍처가 단순한 편의성이 아닌 정확성 요구 사항인 이유입니다.
 
-### The Generator Chain
+<a id="the-generator-chain"></a>
 
-Before examining the built-in agent types, it is worth stepping back to see the structural pattern that makes all of this work. The entire sub-agent system is built on async generators. The chain flows:
+### 발전기 체인
+
+내장된 에이전트 유형을 검토하기 전에 이 모든 작업을 수행하는 구조적 패턴을 살펴보는 것이 좋습니다. 전체 하위 에이전트 시스템은 비동기 생성기를 기반으로 구축되었습니다. 체인 흐름은 다음과 같습니다.
 
 ```mermaid
 graph TD
@@ -545,77 +595,93 @@ graph TD
     end
 ```
 
-This generator-based architecture enables four critical capabilities:
+이 생성기 기반 아키텍처는 다음과 같은 네 가지 중요한 기능을 지원합니다.
 
-**Streaming.** Messages flow through the system incrementally. The parent (or the async lifecycle wrapper) can observe each message as it is produced -- updating progress indicators, forwarding metrics, recording transcripts -- without buffering the entire conversation.
+**스트리밍.** 메시지는 시스템을 통해 점진적으로 흐릅니다. 상위(또는 비동기 수명 주기 래퍼)는 전체 대화를 버퍼링하지 않고도 각 메시지가 생성되는 대로 진행률 표시기 업데이트, 메트릭 전달, 기록 기록 등을 관찰할 수 있습니다.
 
-**Cancellation.** Returning the async iterator triggers the `finally` block in `runAgent()`. The fifteen-step cleanup runs regardless of whether the agent completed normally, was aborted by the user, or threw an error. JavaScript's async generator protocol guarantees this.
+**취소.** 비동기 반복자를 반환하면 `runAgent()`의 `finally` 블록이 트리거됩니다. 15단계 정리는 에이전트가 정상적으로 완료되었는지, 사용자에 의해 중단되었는지, 오류가 발생했는지에 관계없이 실행됩니다. JavaScript의 비동기 생성기 프로토콜은 이를 보장합니다.
 
-**Backgrounding.** A sync agent that is taking too long can be backgrounded mid-execution. The iterator is handed off from the foreground (where `AgentTool.call()` is iterating it) to an async context (where `runAsyncAgentLifecycle()` takes over). The agent does not restart -- it continues from where it was.
+**백그라운드 중.** 시간이 너무 오래 걸리는 동기화 에이전트는 실행 중에 백그라운드로 처리될 수 있습니다. 반복자는 전경(`AgentTool.call()`이 반복하는 위치)에서 비동기 컨텍스트(`runAsyncAgentLifecycle()`이 인계받는 위치)로 전달됩니다. 에이전트는 다시 시작되지 않고 원래 위치부터 계속됩니다.
 
-**Progress tracking.** Each yielded message is an observation point. The async lifecycle wrapper uses these observation points to update the task state machine, compute progress percentages, and generate notifications when the agent completes.
+**진행 상황 추적.** 생성된 각 메시지는 관찰 지점입니다. 비동기 수명 주기 래퍼는 이러한 관찰 지점을 사용하여 작업 상태 시스템을 업데이트하고, 진행률을 계산하고, 에이전트가 완료될 때 알림을 생성합니다.
 
 ---
 
-## Built-In Agent Types
+<a id="built-in-agent-types"></a>
 
-Built-in agents are registered via `getBuiltInAgents()` in `builtInAgents.ts`. The registry is dynamic -- which agents are available depends on feature flags, GrowthBook experiments, and the session's entrypoint type. Six built-in agents ship with the system, each optimized for a specific class of work.
+## 내장 에이전트 유형
 
-### General-Purpose
+내장 에이전트는 `builtInAgents.ts`의 `getBuiltInAgents()`을 통해 등록됩니다. 레지스트리는 동적입니다. 사용 가능한 에이전트는 기능 플래그, GrowthBook 실험 및 세션의 진입점 유형에 따라 다릅니다. 6개의 기본 제공 에이전트가 시스템과 함께 제공되며 각 에이전트는 특정 작업 클래스에 최적화되어 있습니다.
 
-The default agent when `subagent_type` is omitted and fork is not active. Full tool access, no CLAUDE.md omission, model determined by `getDefaultSubagentModel()`. Its system prompt positions it as a completion-oriented worker: "Complete the task fully -- don't gold-plate, but don't leave it half-done." It includes guidelines for search strategy (broad first, then narrow) and file creation discipline (never create files unless the task requires it).
+<a id="general-purpose"></a>
 
-This is the workhorse. When the model does not know what kind of agent it needs, it gets a general-purpose agent that can do everything the parent can do, minus spawning its own sub-agents. The "minus spawning" restriction is important: without it, a general-purpose child could spawn its own children, which could spawn theirs, creating an exponential fan-out that burns through API budget in seconds. The `Agent` tool is in the default disallowed list for good reason.
+### 범용
 
-### Explore
+`subagent_type`이 생략되고 포크가 활성화되지 않은 경우의 기본 에이전트입니다. 전체 도구 액세스, CLAUDE.md 누락 없음, `getDefaultSubagentModel()`에 의해 ​​결정된 모델. 시스템 프롬프트는 이를 완료 지향적 작업자로 지정합니다. "작업을 완전히 완료하세요. 금도금하지 말고 반만 남겨두지 마세요." 여기에는 검색 전략(넓은 순서, 좁은 순서) 및 파일 생성 규칙(작업에 필요한 경우가 아니면 파일을 생성하지 않음)에 대한 지침이 포함되어 있습니다.
 
-A read-only search specialist. Uses Haiku (the cheapest, fastest model). Omits CLAUDE.md and git status. Has `FileEdit`, `FileWrite`, `NotebookEdit`, and `Agent` removed from its tool pool, enforced at both the tooling level and via a `=== CRITICAL: READ-ONLY MODE ===` section in its system prompt.
+이것이 바로 일꾼입니다. 모델이 어떤 종류의 에이전트가 필요한지 알지 못하는 경우 자체 하위 에이전트 생성을 제외하고 상위 에이전트가 수행할 수 있는 모든 작업을 수행할 수 있는 범용 에이전트를 얻습니다. "마이너스 생성" 제한이 중요합니다. 이 제한이 없으면 범용 하위 항목이 자신의 하위 항목을 생성할 수 있고, 이 하위 항목이 자신의 하위 항목을 생성하여 몇 초 만에 API 예산을 소진하는 기하급수적인 팬아웃을 생성할 수 있습니다. `Agent` 도구는 정당한 이유로 기본 허용되지 않는 목록에 있습니다.
 
-The Explore agent is the most aggressively optimized built-in because it is the most frequently spawned -- 34 million times per week across the fleet. It is marked as a one-shot agent (`ONE_SHOT_BUILTIN_AGENT_TYPES`), which means the agentId, SendMessage instructions, and usage trailer are skipped from its prompt, saving approximately 135 characters per invocation. At 34 million invocations, those 135 characters add up to roughly 4.6 billion characters per week of saved prompt tokens.
+<a id="explore"></a>
 
-Availability is gated by the `BUILTIN_EXPLORE_PLAN_AGENTS` feature flag AND the `tengu_amber_stoat` GrowthBook experiment, which A/B tests the impact of removing these specialized agents.
+### 탐색
 
-### Plan
+읽기 전용 검색 전문가입니다. Haiku(가장 저렴하고 빠른 모델)를 사용합니다. CLAUDE.md 및 git 상태를 생략합니다. `FileEdit`, `FileWrite`, `NotebookEdit` 및 `Agent`이 도구 풀에서 제거되었으며 도구 수준과 시스템 프롬프트의 `=== CRITICAL: READ-ONLY MODE ===` 섹션을 통해 시행되었습니다.
 
-A software architect agent. Same read-only tool set as Explore but uses `'inherit'` for its model (same capability as the parent). Its system prompt guides it through a structured four-step process: Understand Requirements, Explore Thoroughly, Design Solution, Detail the Plan. It must end with a "Critical Files for Implementation" list.
+Explore 에이전트는 가장 자주 생성되므로(플릿 전체에서 주당 3,400만 번) 가장 공격적으로 최적화된 기본 제공 에이전트입니다. 이는 원샷 에이전트(`ONE_SHOT_BUILTIN_AGENT_TYPES`)로 표시됩니다. 이는 에이전트 ID, SendMessage 명령 및 사용 예고편이 프롬프트에서 건너뛰어 호출당 약 135자를 저장함을 의미합니다. 3,400만 번의 호출에서 해당 135자의 추가로 저장된 프롬프트 토큰은 주당 약 46억 자에 이릅니다.
 
-The Plan agent inherits the parent's model because architecture requires the same reasoning capability as implementation. You do not want a Haiku-class model making design decisions that an Opus-class model will have to execute. The model mismatch would produce plans that the executing agent cannot follow -- or worse, plans that sound plausible but are subtly wrong in ways that only a more capable model would catch.
+가용성은 `BUILTIN_EXPLORE_PLAN_AGENTS` 기능 플래그와 A/B가 이러한 특수 에이전트 제거의 영향을 테스트하는 `tengu_amber_stoat` GrowthBook 실험에 의해 제어됩니다.
 
-Same availability gate as Explore (`BUILTIN_EXPLORE_PLAN_AGENTS` + `tengu_amber_stoat`).
+<a id="plan"></a>
 
-### Verification
+### 계획
 
-The adversarial tester. Read-only tools, `'inherit'` model, always runs in background (`background: true`), displayed in red in the terminal. Its system prompt is the most elaborate of any built-in agent at approximately 130 lines.
+소프트웨어 아키텍트 에이전트. Explore와 동일한 읽기 전용 도구 세트이지만 모델에 `'inherit'`을 사용합니다(상위 도구와 동일한 기능). 시스템 프롬프트는 요구 사항 이해, 철저한 탐색, 솔루션 설계, 계획 세부 사항의 구조화된 4단계 프로세스를 안내합니다. "구현을 위한 중요 파일" 목록으로 끝나야 합니다.
 
-What makes the Verification agent interesting is its anti-avoidance programming. The prompt explicitly lists excuses the model might reach for and instructs it to "recognize them and do the opposite." Every check must include a "Command run" block with actual terminal output -- no hand-waving, no "this should work." The agent must include at least one adversarial probe (concurrency, boundary, idempotency, orphan cleanup). And before reporting a failure, it must check whether the behavior is intentional or handled elsewhere.
+아키텍처에는 구현과 동일한 추론 기능이 필요하기 때문에 계획 에이전트는 상위 모델을 상속합니다. Opus급 모델이 실행해야 하는 설계 결정을 Haiku급 모델이 내리는 것을 원하지 않습니다. 모델 불일치로 인해 실행 중인 에이전트가 따를 수 없는 계획이 생성되거나, 더 나쁜 경우에는 그럴듯해 보이지만 더 유능한 모델만이 잡을 수 있는 방식으로 미묘하게 잘못된 계획이 생성됩니다.
 
-The `criticalSystemReminder_EXPERIMENTAL` field injects a reminder after every tool result, reinforcing that this is verification-only. This is a guardrail against the model drifting from "verify" to "fix" -- a tendency that would undermine the entire purpose of an independent verification pass. Language models have a strong inclination to be helpful, and "helpful" in most contexts means "fix the problem." The Verification agent's entire value proposition depends on resisting that inclination.
+Explore(`BUILTIN_EXPLORE_PLAN_AGENTS` + `tengu_amber_stoat`)와 동일한 가용성 게이트입니다.
 
-The `background: true` flag means the Verification agent always runs asynchronously. The parent does not wait for verification results -- it continues working while the verifier probes in the background. When the verifier finishes, a notification appears with the results. This mirrors how human code review works: the developer does not stop coding while the reviewer reads their PR.
+<a id="verification"></a>
 
-Availability is gated by the `VERIFICATION_AGENT` feature flag AND the `tengu_hive_evidence` GrowthBook experiment.
+### 검증
 
-### Claude Code Guide
+적대적인 테스터. 읽기 전용 도구인 `'inherit'` 모델은 항상 백그라운드(`background: true`)에서 실행되며 터미널에 빨간색으로 표시됩니다. 해당 시스템 프롬프트는 약 130줄로 구성된 내장 에이전트 중 가장 정교합니다.
 
-A documentation-fetching agent for questions about Claude Code itself, the Claude Agent SDK, and the Claude API. Uses Haiku, runs with `dontAsk` permission mode (no user prompts needed -- it only reads documentation), and has two hardcoded documentation URLs.
+검증 에이전트를 흥미롭게 만드는 것은 회피 방지 프로그래밍입니다. 프롬프트에는 모델이 도달할 수 있는 변명을 명시적으로 나열하고 "이를 인식하고 그 반대를 수행"하도록 지시합니다. 모든 검사에는 실제 터미널 출력이 포함된 "명령 실행" 블록이 포함되어야 합니다. 손을 흔들거나 "작동해야 합니다"라는 말은 없습니다. 에이전트에는 하나 이상의 적대적 프로브(동시성, 경계, 멱등성, 고아 정리)가 포함되어야 합니다. 그리고 실패를 보고하기 전에 해당 동작이 의도적인 것인지 아니면 다른 곳에서 처리된 것인지 확인해야 합니다.
 
-Its `getSystemPrompt()` is unique because it receives the `toolUseContext` and dynamically includes context about the project's custom skills, custom agents, configured MCP servers, plugin commands, and user settings. This lets it answer "how do I configure X?" by knowing what is already configured.
+`criticalSystemReminder_EXPERIMENTAL` 필드는 모든 도구 결과 후에 미리 알림을 삽입하여 이것이 검증 전용임을 강조합니다. 이는 "검증"에서 "수정"으로 표류하는 모델에 대한 가드 레일입니다. 이는 독립적인 검증 통과의 전체 목적을 훼손하는 경향입니다. 언어 모델은 도움이 되려는 경향이 강하며 대부분의 상황에서 "도움이 된다"는 것은 "문제를 해결한다"는 의미입니다. 검증 에이전트의 전체 가치 제안은 그러한 성향에 저항하는 데 달려 있습니다.
 
-Excluded when the entrypoint is SDK (TypeScript, Python, or CLI), since SDK users are not asking Claude Code how to use Claude Code. They are building their own tools on top of it.
+`background: true` 플래그는 확인 에이전트가 항상 비동기식으로 실행됨을 의미합니다. 부모는 검증 결과를 기다리지 않습니다. 검증자가 백그라운드에서 조사하는 동안 계속 작동합니다. 검증 프로그램이 완료되면 결과와 함께 알림이 표시됩니다. 이는 사람이 코드를 검토하는 방식을 반영합니다. 즉, 검토자가 PR을 읽는 동안 개발자는 코딩을 중단하지 않습니다.
 
-The Guide agent is an interesting case study in agent design because it is the only built-in agent whose system prompt is dynamic in a way that depends on the user's project. It needs to know what is configured to answer "how do I configure X?" effectively. This makes its `getSystemPrompt()` function more complex than the others, but the trade-off is worth it -- a documentation agent that does not know what the user has already set up gives worse answers than one that does.
+가용성은 `VERIFICATION_AGENT` 기능 플래그와 `tengu_hive_evidence` GrowthBook 실험에 의해 제어됩니다.
 
-### Statusline Setup
+<a id="claude-code-guide"></a>
 
-A specialized agent for configuring the terminal status line. Uses Sonnet, displayed in orange, limited to `Read` and `Edit` tools only. Knows how to convert shell PS1 escape sequences to shell commands, write to `~/.claude/settings.json`, and handle the `statusLine` command's JSON input format.
+### Claude Code 가이드
 
-This is the most narrowly-scoped built-in agent -- it exists because status line configuration is a self-contained domain with specific formatting rules that would clutter a general-purpose agent's context. Always available, no feature gate.
+Claude Code 자체, Claude Agent SDK 및 Claude API에 대한 질문을 위한 문서 가져오기 에이전트입니다. Haiku를 사용하고 `dontAsk` 권한 모드로 실행되며(사용자 프롬프트가 필요하지 않음 - 문서 읽기만 함) 하드코딩된 문서 URL이 2개 있습니다.
 
-The Statusline Setup agent illustrates an important principle: **sometimes a specialized agent is better than a general-purpose agent with more context.** A general-purpose agent given the status line documentation as context would probably configure it correctly. But it would also be more expensive (bigger model), slower (more context to process), and more likely to get confused by the interaction between status line syntax and the task at hand. A dedicated Sonnet agent with Read and Edit tools and a focused system prompt does the job faster, cheaper, and more reliably.
+`getSystemPrompt()`은 `toolUseContext`을 수신하고 프로젝트의 사용자 정의 기술, 사용자 정의 에이전트, 구성된 MCP 서버, 플러그인 명령 및 사용자 설정에 대한 컨텍스트를 동적으로 포함하기 때문에 고유합니다. 이를 통해 "X를 어떻게 구성하나요?"라고 대답할 수 있습니다. 이미 구성된 것이 무엇인지 아는 것입니다.
 
-### The Worker Agent (Coordinator Mode)
+진입점이 SDK(TypeScript, Python 또는 CLI)인 경우 SDK 사용자가 Claude Code 사용 방법을 묻지 않으므로 제외됩니다. 그들은 그 위에 자신만의 도구를 만들고 있습니다.
 
-Not in the `built-in/` directory but loaded dynamically when coordinator mode is active:
+Guide 에이전트는 사용자 프로젝트에 따라 시스템 프롬프트가 동적으로 변하는 유일한 내장 에이전트이기 때문에 에이전트 설계에 있어서 흥미로운 사례 연구입니다. "X를 어떻게 구성하나요?"라는 질문에 대답하려면 무엇이 구성되어 있는지 알아야 합니다. 효과적으로. 이로 인해 `getSystemPrompt()` 기능이 다른 기능보다 더 복잡해지지만 그만한 가치가 있습니다. 사용자가 이미 설정한 내용을 모르는 문서 에이전트는 아는 것보다 더 나쁜 답변을 제공합니다.
+
+<a id="statusline-setup"></a>
+
+### 상태표시줄 설정
+
+터미널 상태 라인을 구성하기 위한 전문 에이전트입니다. 주황색으로 표시되는 Sonnet을 사용하며 `Read` 및 `Edit` 도구로만 제한됩니다. 쉘 PS1 이스케이프 시퀀스를 쉘 명령으로 변환하고, `~/.claude/settings.json`에 쓰고, `statusLine` 명령의 JSON 입력 형식을 처리하는 방법을 알고 있습니다.
+
+이는 가장 좁은 범위의 기본 제공 에이전트입니다. 이는 상태 줄 구성이 범용 에이전트의 컨텍스트를 복잡하게 만드는 특정 형식 지정 규칙이 포함된 자체 포함 도메인이기 때문에 존재합니다. 항상 사용 가능하며 기능 게이트가 없습니다.
+
+Statusline 설정 에이전트는 다음과 같은 중요한 원칙을 보여줍니다. **경우에 따라 특수 에이전트가 더 많은 컨텍스트를 갖춘 범용 에이전트보다 낫습니다.** 상태 라인 문서를 컨텍스트로 제공하는 범용 에이전트는 아마도 이를 올바르게 구성할 것입니다. 그러나 비용이 더 많이 들고(모델이 더 커짐), 속도가 느려지고(처리할 컨텍스트가 더 많음), 상태 줄 구문과 현재 작업 간의 상호 작용으로 인해 혼란스러울 가능성도 더 높습니다. 읽기 및 편집 도구와 집중적인 시스템 프롬프트를 갖춘 전용 Sonnet 에이전트가 작업을 더 빠르고 저렴하며 안정적으로 수행합니다.
+
+<a id="the-worker-agent-coordinator-mode"></a>
+
+### 작업자 에이전트(코디네이터 모드)
+
+`built-in/` 디렉터리에는 없지만 코디네이터 모드가 활성화되면 동적으로 로드됩니다.
 
 ```typescript
 if (isEnvTruthy(process.env.CLAUDE_CODE_COORDINATOR_MODE)) {
@@ -624,19 +690,23 @@ if (isEnvTruthy(process.env.CLAUDE_CODE_COORDINATOR_MODE)) {
 }
 ```
 
-The worker agent replaces all standard built-in agents in coordinator mode. It has a single type `"worker"` and full tool access. This simplification is deliberate -- when a coordinator is orchestrating workers, the coordinator decides what each worker does. The worker does not need the specialization of Explore or Plan; it needs the flexibility to do whatever the coordinator assigns.
+작업자 에이전트는 코디네이터 모드의 모든 표준 기본 제공 에이전트를 대체합니다. 단일 유형 `"worker"`과 전체 도구 액세스 권한이 있습니다. 이러한 단순화는 의도적인 것입니다. 즉, 코디네이터가 작업자를 조정할 때 코디네이터는 각 작업자가 수행하는 작업을 결정합니다. 작업자에게는 탐색 또는 계획의 전문화가 필요하지 않습니다. 코디네이터가 할당하는 모든 작업을 수행하려면 유연성이 필요합니다.
 
 ---
 
-## Fork Agents
+<a id="fork-agents"></a>
 
-Fork agents -- where the child inherits the parent's full conversation history, system prompt, and tool array for prompt cache exploitation -- are the subject of Chapter 9. The fork path triggers when the model omits `subagent_type` from the Agent tool call and the fork experiment is active. Every design decision in the fork system traces back to a single goal: byte-identical API request prefixes across parallel children, enabling 90% cache discounts on shared context.
+## 포크 에이전트
+
+하위가 상위의 전체 대화 기록, 시스템 프롬프트 및 프롬프트 캐시 활용을 위한 도구 배열을 상속하는 포크 에이전트는 9장의 주제입니다. 모델이 에이전트 도구 호출에서 `subagent_type`을 생략하고 포크 실험이 활성화되면 포크 경로가 트리거됩니다. 포크 시스템의 모든 설계 결정은 단일 목표로 추적됩니다. 즉, 병렬 하위 항목에 걸쳐 바이트가 동일한 API 요청 접두사를 사용하여 공유 컨텍스트에서 90% 캐시 할인을 가능하게 합니다.
 
 ---
 
-## Agent Definitions from Frontmatter
+<a id="agent-definitions-from-frontmatter"></a>
 
-Users and plugins can define custom agents by placing markdown files in `.claude/agents/`. The frontmatter schema supports the full range of agent configuration:
+## Frontmatter의 에이전트 정의
+
+사용자와 플러그인은 `.claude/agents/`에 마크다운 파일을 배치하여 사용자 정의 에이전트를 정의할 수 있습니다. Frontmatter 스키마는 모든 범위의 에이전트 구성을 지원합니다.
 
 ```yaml
 ---
@@ -672,82 +742,98 @@ effort: high
 You are a specialized agent for...
 ```
 
-The markdown body becomes the agent's system prompt. The frontmatter fields map directly to the `AgentDefinition` interface that `runAgent()` consumes. The loading pipeline in `loadAgentsDir.ts` validates the frontmatter against `AgentJsonSchema`, resolves the source (user, plugin, or policy), and registers the agent in the available agents list.
+마크다운 본문은 에이전트의 시스템 프롬프트가 됩니다. 머리말 필드는 `runAgent()`이 사용하는 `AgentDefinition` 인터페이스에 직접 매핑됩니다. `loadAgentsDir.ts`의 로딩 파이프라인은 `AgentJsonSchema`에 대해 머리말의 유효성을 검사하고 소스(사용자, 플러그인 또는 정책)를 확인하고 사용 가능한 에이전트 목록에 에이전트를 등록합니다.
 
-Four sources of agent definitions exist, in priority order:
+에이전트 정의의 네 가지 소스는 우선순위에 따라 존재합니다.
 
-1. **Built-in agents** -- hardcoded in TypeScript, always available (subject to feature gates)
-2. **User agents** -- markdown files in `.claude/agents/`
-3. **Plugin agents** -- loaded via `loadPluginAgents()`
-4. **Policy agents** -- loaded via organizational policy settings
+1. **내장 에이전트** -- TypeScript로 하드코딩되어 항상 사용 가능(기능 게이트에 따라 다름)
+2. **사용자 에이전트** -- `.claude/agents/`의 마크다운 파일
+3. **플러그인 에이전트** -- `loadPluginAgents()`을 통해 로드됨
+4. **정책 에이전트** -- 조직 정책 설정을 통해 로드됨
 
-When the model calls `Agent` with a `subagent_type`, the system resolves the name against this combined list, filtering by permission rules (deny rules for `Agent(AgentName)`) and by `allowedAgentTypes` from the tool spec. If the requested agent type is not found or is denied, the tool call fails with an error.
+모델이 `subagent_type`을 사용하여 `Agent`을 호출하면 시스템은 권한 규칙(`Agent(AgentName)`에 대한 거부 규칙) 및 도구 사양의 `allowedAgentTypes`을 기준으로 필터링하여 이 결합 목록에 대해 이름을 확인합니다. 요청한 에이전트 유형을 찾을 수 없거나 거부되면 도구 호출이 오류와 함께 실패합니다.
 
-This design means that organizations can ship custom agents via plugins (a code review agent, a security audit agent, a deployment agent) and have them appear seamlessly alongside the built-in agents. The model sees them in the same list, with the same interface, and delegates to them the same way.
+이 설계는 조직이 플러그인(코드 검토 에이전트, 보안 감사 에이전트, 배포 에이전트)을 통해 사용자 지정 에이전트를 제공하고 기본 제공 에이전트와 함께 원활하게 표시되도록 할 수 있음을 의미합니다. 모델은 동일한 인터페이스를 사용하여 동일한 목록에서 이를 확인하고 동일한 방식으로 위임합니다.
 
-The power of frontmatter-defined agents is that they require zero TypeScript. A team lead who wants a "PR review" agent writes a markdown file with the right frontmatter, drops it in `.claude/agents/`, and it appears in every team member's agent list on their next session. The system prompt is the markdown body. The tool restrictions, model preference, and permission mode are declared in YAML. The `runAgent()` lifecycle handles everything else -- the same fifteen steps, the same cleanup, the same isolation guarantees.
+Frontmatter 정의 에이전트의 장점은 TypeScript가 필요하지 않다는 것입니다. "PR 검토" 에이전트를 원하는 팀 리더는 올바른 머리말이 포함된 마크다운 파일을 작성하고 이를 `.claude/agents/`에 넣습니다. 그러면 다음 세션에서 모든 팀 구성원의 에이전트 목록에 나타납니다. 시스템 프롬프트는 마크다운 본문입니다. 도구 제한 사항, 모델 기본 설정 및 권한 모드는 YAML에 선언됩니다. `runAgent()` 수명 주기는 동일한 15단계, 동일한 정리, 동일한 격리 보장 등 다른 모든 것을 처리합니다.
 
-This also means that agent definitions are version-controlled alongside the codebase. A repository can ship agents tailored to its architecture, conventions, and tooling. The agents evolve with the code. When the team adopts a new testing framework, the verification agent's prompt is updated in the same commit that adds the framework dependency.
+이는 또한 에이전트 정의가 코드베이스와 함께 버전 제어된다는 것을 의미합니다. 저장소는 아키텍처, 규칙 및 도구에 맞게 조정된 에이전트를 제공할 수 있습니다. 에이전트는 코드와 함께 진화합니다. 팀이 새로운 테스트 프레임워크를 채택하면 프레임워크 종속성을 추가하는 동일한 커밋에서 확인 에이전트의 프롬프트가 업데이트됩니다.
 
-There is one important security consideration: the trust boundary. User agents (from `.claude/agents/`) are user-controlled -- their hooks, MCP servers, and tool configurations are subject to `strictPluginOnlyCustomization` restrictions when those policies are active. Plugin agents and policy agents are admin-trusted and bypass these restrictions. Built-in agents are part of the Claude Code binary itself. The system tracks the `source` of each agent definition precisely so that security policies can distinguish between "the user wrote this" and "the organization approved this."
+한 가지 중요한 보안 고려 사항이 있는데 바로 신뢰 경계입니다. 사용자 에이전트(`.claude/agents/`)는 사용자가 제어합니다. 해당 정책이 활성화되면 해당 훅, MCP 서버 및 도구 구성에 `strictPluginOnlyCustomization` 제한이 적용됩니다. 플러그인 에이전트와 정책 에이전트는 관리자가 신뢰할 수 있으며 이러한 제한을 우회합니다. 내장 에이전트는 Claude Code 바이너리 자체의 일부입니다. 시스템은 각 에이전트 정의의 `source`을 정확하게 추적하여 보안 정책이 "사용자가 이것을 작성했습니다"와 "조직이 이것을 승인했습니다"를 구별할 수 있습니다.
 
-The `source` field is not just metadata -- it gates real behavior. When a plugin-only policy is active for MCP, user agent frontmatter that declares MCP servers is silently skipped (the MCP connections are not established). When a plugin-only policy is active for hooks, user agent frontmatter hooks are not registered. The agent still runs -- it just runs without the untrusted extensions. This is a principle of graceful degradation: the agent is useful even when its full capabilities are restricted by policy.
+`source` 필드는 단순한 메타데이터가 아니라 실제 동작을 제어합니다. MCP에 대한 플러그인 전용 정책이 활성화되면 MCP 서버를 선언하는 사용자 에이전트 프론트매터가 자동으로 건너뜁니다(MCP 연결이 설정되지 않음). 플러그인 전용 정책이 훅에 대해 활성화되면 사용자 에이전트 프론트매터 훅가 등록되지 않습니다. 에이전트는 계속 실행됩니다. 즉, 신뢰할 수 없는 확장 프로그램 없이 실행됩니다. 이는 단계적 성능 저하의 원칙입니다. 에이전트는 전체 기능이 정책에 의해 제한되는 경우에도 유용합니다.
 
 ---
 
-## Apply This: Designing Agent Types
+<a id="apply-this-designing-agent-types"></a>
 
-The built-in agents demonstrate a pattern language for agent design. If you are building a system that spawns sub-agents -- whether using Claude Code's AgentTool directly or designing your own multi-agent architecture -- the design space breaks down into five dimensions.
+## 적용: 에이전트 유형 설계
 
-### Dimension 1: What Can It See?
+기본 제공 에이전트는 에이전트 설계를 위한 패턴 언어를 보여줍니다. Claude Code의 AgentTool을 직접 사용하든 자체 다중 에이전트 아키텍처를 설계하든 관계없이 하위 에이전트를 생성하는 시스템을 구축하는 경우 설계 공간은 5개 차원으로 나뉩니다.
 
-The combination of `omitClaudeMd`, git status stripping, and skill preloading controls the agent's awareness. Read-only agents see less (they do not need project conventions). Specialized agents see more (preloaded skills inject domain knowledge).
+<a id="dimension-1-what-can-it-see"></a>
 
-The key insight is that context is not free. Every token in the system prompt, user context, or conversation history costs money and displaces working memory. Claude Code strips CLAUDE.md from Explore agents not because those instructions are harmful, but because they are irrelevant -- and irrelevance at 34 million spawns per week becomes a line item on the infrastructure bill. When designing your own agent types, ask: "What does this agent need to know to do its job?" and strip everything else.
+### 차원 1: 무엇을 볼 수 있는가?
 
-### Dimension 2: What Can It Do?
+`omitClaudeMd`, git 상태 제거 및 스킬 사전 로드의 조합은 에이전트의 인식을 제어합니다. 읽기 전용 에이전트는 더 적게 봅니다(프로젝트 규칙이 필요하지 않음). 전문 에이전트이 더 많은 내용을 볼 수 있습니다(사전 로드된 기술이 도메인 지식을 주입합니다).
 
-The `tools` and `disallowedTools` fields set hard boundaries. The Verification agent cannot edit files. The Explore agent cannot write anything. The General-Purpose agent can do everything except spawn sub-agents of its own.
+핵심 통찰력은 컨텍스트가 자유롭지 않다는 것입니다. 시스템 프롬프트, 사용자 컨텍스트 또는 대화 기록의 모든 토큰은 비용이 들고 작업 메모리를 대체합니다. Claude Code는 해당 지침이 해롭기 때문이 아니라 관련성이 없기 때문에 Explore 에이전트에서 CLAUDE.md를 제거합니다. 주당 3,400만 개 생성이라는 관련성이 인프라 청구서의 항목이 됩니다. 고유한 에이전트 유형을 설계할 때 "이 에이전트가 작업을 수행하려면 무엇을 알아야 합니까?"라고 질문하십시오. 다른 모든 것을 제거하십시오.
 
-Tool restrictions serve two purposes: **safety** (the Verification agent cannot accidentally "fix" what it finds, preserving its independence) and **focus** (an agent with fewer tools spends less time deciding which tool to use). The pattern of combining tool-level restrictions with system prompt guidance (Explore's `=== CRITICAL: READ-ONLY MODE ===`) is defense in depth -- the tools enforce the boundary mechanically, and the prompt explains *why* the boundary exists so the model does not waste turns trying to work around it.
+<a id="dimension-2-what-can-it-do"></a>
 
-### Dimension 3: How Does It Interact with the User?
+### 차원 2: 무엇을 할 수 있나요?
 
-The `permissionMode` and `canShowPermissionPrompts` settings determine whether the agent asks for permission, auto-denies, or bubbles prompts to the parent's terminal. Background agents that cannot interrupt the user must either work within pre-approved boundaries or bubble.
+`tools` 및 `disallowedTools` 필드는 하드 경계를 설정합니다. 인증 에이전트는 파일을 편집할 수 없습니다. Explore 에이전트는 아무 것도 쓸 수 없습니다. 범용 에이전트는 자체 하위 에이전트 생성을 제외한 모든 작업을 수행할 수 있습니다.
 
-The `awaitAutomatedChecksBeforeDialog` setting is a nuance worth understanding. Background agents that *can* show prompts (bubble mode) wait for the classifier and permission hooks to run before interrupting the user. This means the user is only interrupted for genuinely ambiguous permissions -- not for things the automated system could have resolved. In a multi-agent system where five background agents are running simultaneously, this is the difference between a usable interface and a permission-prompt barrage.
+도구 제한은 두 가지 목적으로 사용됩니다. **안전**(인증 에이전트는 독립성을 유지하면서 찾은 내용을 실수로 "수정"할 수 없음) 및 **집중**(도구가 적은 에이전트는 사용할 도구를 결정하는 데 더 적은 시간을 소비함)입니다. 도구 수준 제한과 시스템 프롬프트 지침(Explore의 `=== CRITICAL: READ-ONLY MODE ===`)을 결합하는 패턴은 심층적인 방어입니다. 도구는 경계를 기계적으로 적용하고 프롬프트는 경계가 존재하는 *이유*를 설명하므로 모델은 경계를 해결하려는 노력을 낭비하지 않습니다.
 
-### Dimension 4: How Does It Relate to the Parent?
+<a id="dimension-3-how-does-it-interact-with-the-user"></a>
 
-Sync agents block the parent and share its state. Async agents run independently with their own abort controller. Fork agents inherit the full conversation context. The choice shapes both the user experience (does the parent wait?) and the system behavior (does Escape kill the child?).
+### 차원 3: 사용자와 어떻게 상호작용하는가?
 
-The abort controller decision in Step 8 crystallizes this: sync agents share the parent's controller (Escape kills both), async agents get their own (Escape leaves them running). Fork agents go further -- they inherit the parent's system prompt, tool array, and message history to maximize prompt cache sharing. Each relationship type has a clear use case: sync for sequential delegation ("do this then I'll continue"), async for parallel work ("do this while I do something else"), and fork for context-heavy delegation ("you know everything I know, now go handle this part").
+`permissionMode` 및 `canShowPermissionPrompts` 설정은 에이전트가 권한을 요청할지, 자동 거부할지, 부모 터미널에 메시지를 표시할지 결정합니다. 사용자를 방해할 수 없는 백그라운드 에이전트는 사전 승인된 경계 또는 버블 내에서 작업해야 합니다.
 
-### Dimension 5: How Expensive Is It?
+`awaitAutomatedChecksBeforeDialog` 설정은 이해할만한 뉘앙스입니다. 프롬프트를 *표시할 수* 있는(버블 모드) 백그라운드 에이전트는 사용자를 방해하기 전에 분류자와 권한 훅가 실행될 때까지 기다립니다. 이는 자동화된 시스템이 해결할 수 있는 문제가 아닌 실제로 모호한 권한에 대해서만 사용자가 중단된다는 것을 의미합니다. 5개의 백그라운드 에이전트가 동시에 실행되는 다중 에이전트 시스템에서 이것이 사용 가능한 인터페이스와 권한 프롬프트 공세의 차이입니다.
 
-The model choice, thinking config, and context size all contribute to cost. Haiku for cheap read-only work. Sonnet for moderate tasks. Inherit-from-parent for tasks requiring the parent's reasoning capability. Thinking is disabled for non-fork agents to control output token costs -- the parent pays for reasoning; the children execute.
+<a id="dimension-4-how-does-it-relate-to-the-parent"></a>
 
-The economic dimension is often an afterthought in multi-agent system design, but it is central to Claude Code's architecture. An Explore agent that used Opus instead of Haiku would work fine for any individual invocation. But at 34 million invocations per week, the model choice is a multiplicative cost factor. The one-shot optimization that saves 135 characters per Explore invocation translates to 4.6 billion characters per week of saved prompt tokens. These are not micro-optimizations -- they are the difference between a viable product and an unaffordable one.
+### 차원 4: 부모와 어떤 관련이 있습니까?
 
-### The Unified Lifecycle
+동기화 에이전트는 상위 항목을 차단하고 해당 상태를 공유합니다. 비동기 에이전트는 자체 중단 컨트롤러를 사용하여 독립적으로 실행됩니다. Fork 에이전트는 전체 대화 컨텍스트를 상속합니다. 선택은 사용자 경험(부모가 기다리는가?)과 시스템 동작(Escape가 자식을 죽이는가?)을 모두 결정합니다.
 
-The `runAgent()` lifecycle implements all five dimensions through its fifteen steps, assembling a unique execution environment for each agent type from the same set of building blocks. The result is a system where spawning a sub-agent is not "run another copy of the parent." It is the creation of a precisely-scoped, resource-controlled, isolated execution context -- tailored to the work at hand, and cleaned up completely when the work is done.
+8단계의 중단 컨트롤러 결정은 이를 구체화합니다. 동기화 에이전트는 상위 컨트롤러를 공유하고(Escape는 둘 다 종료) 비동기 에이전트는 자체 컨트롤러를 얻습니다(Escape는 실행 상태로 유지). 포크 에이전트는 더 나아가 상위 시스템 프롬프트, 도구 배열 및 메시지 기록을 상속하여 프롬프트 캐시 공유를 최대화합니다. 각 관계 유형에는 명확한 사용 사례가 있습니다. 순차 위임을 위한 동기화("이 작업을 수행한 후 계속하겠습니다"), 병렬 작업을 위한 비동기("다른 작업을 수행하는 동안 이 작업을 수행"), 컨텍스트 중심 위임을 위한 포크("내가 아는 모든 것을 알고 있으니 이제 이 부분을 처리하세요")입니다.
 
-The architectural elegance is in the uniformity. Whether the agent is a Haiku-powered read-only searcher or an Opus-powered fork child with full tool access and bubble permissions, it flows through the same fifteen steps. The steps do not branch based on agent type -- they parameterize. Model resolution picks the right model. Context preparation picks the right file state. Permission isolation picks the right mode. The agent type is not encoded in control flow; it is encoded in configuration. And that is what makes the system extensible: adding a new agent type means writing a definition, not modifying the lifecycle.
+<a id="dimension-5-how-expensive-is-it"></a>
 
-### The Design Space Summarized
+### 차원 5: 얼마나 비싼가요?
 
-The six built-in agents cover a spectrum:
+모델 선택, 사고 구성 및 컨텍스트 크기는 모두 비용에 영향을 미칩니다. 저렴한 읽기 전용 작업을 위한 하이쿠. 적당한 작업을 위한 소네트. 부모의 추론 능력이 필요한 작업의 경우 부모로부터 상속됩니다. 출력 토큰 비용을 제어하기 위해 포크가 아닌 에이전트의 경우 사고가 비활성화됩니다. 부모는 추론에 대한 비용을 지불합니다. 아이들은 처형한다.
 
-| Agent | Model | Tools | Context | Sync/Async | Purpose |
+경제적 측면은 다중 에이전트 시스템 설계에서 나중에 고려되는 경우가 많지만 이는 Claude Code 아키텍처의 핵심입니다. Haiku 대신 Opus를 사용한 Explore 에이전트는 모든 개별 호출에 대해 잘 작동합니다. 그러나 주당 호출이 3,400만 건이므로 모델 선택에는 비용이 곱해집니다. Explore 호출당 135자를 저장하는 원샷 최적화는 매주 저장된 프롬프트 토큰을 46억 문자로 변환합니다. 이는 미세한 최적화가 아닙니다. 실행 가능한 제품과 감당할 수 없는 제품의 차이입니다.
+
+<a id="the-unified-lifecycle"></a>
+
+### 통합된 라이프사이클
+
+`runAgent()` 라이프사이클은 15개 단계를 통해 5가지 차원을 모두 구현하여 동일한 빌딩 블록 세트에서 각 에이전트 유형에 대한 고유한 실행 환경을 구성합니다. 결과적으로 하위 에이전트를 생성하는 것이 "상위 에이전트의 다른 복사본 실행"이 아닌 시스템이 됩니다. 이는 정밀하게 범위가 지정되고 리소스가 제어되며 격리된 실행 컨텍스트를 생성하는 것입니다. 즉, 현재 작업에 맞게 조정되고 작업이 완료되면 완전히 정리됩니다.
+
+건축학적 우아함은 통일성에 있습니다. 에이전트가 Haiku 기반의 읽기 전용 검색기이든 전체 도구 액세스 및 버블 권한이 있는 Opus 기반의 포크 하위이든 관계없이 동일한 15단계를 거칩니다. 단계는 에이전트 유형에 따라 분기되지 않으며 매개변수화됩니다. 모델 해상도는 올바른 모델을 선택합니다. 컨텍스트 준비는 올바른 파일 상태를 선택합니다. 권한 격리는 올바른 모드를 선택합니다. 에이전트 유형은 제어 흐름에서 인코딩되지 않습니다. 구성에서 인코딩됩니다. 이것이 시스템을 확장 가능하게 만드는 이유입니다. 새로운 에이전트 유형을 추가한다는 것은 수명주기를 수정하는 것이 아니라 정의를 작성하는 것을 의미합니다.
+
+<a id="the-design-space-summarized"></a>
+
+### 디자인 공간 요약
+
+6개의 기본 제공 에이전트는 다음과 같은 스펙트럼을 포괄합니다.
+
+| 대리인 | 모델 | 도구 | 맥락 | 동기/비동기 | 목적 |
 |-------|-------|-------|---------|------------|---------|
-| General-Purpose | Default | All | Full | Either | Workhorse delegation |
-| Explore | Haiku | Read-only | Stripped | Sync | Fast, cheap search |
-| Plan | Inherit | Read-only | Stripped | Sync | Architecture design |
-| Verification | Inherit | Read-only | Full | Always async | Adversarial testing |
-| Guide | Haiku | Read + Web | Dynamic | Sync | Documentation lookup |
-| Statusline | Sonnet | Read + Edit | Minimal | Sync | Config task |
+| 범용 | 기본값 | 모두 | 전체 | 둘 중 하나 | 일꾼 위임 |
+| 탐색 | 하이쿠 | 읽기 전용 | 벗겨진 | 동기화 | 빠르고 저렴한 검색 |
+| 계획 | 상속 | 읽기 전용 | 벗겨진 | 동기화 | 건축 디자인 |
+| 검증 | 상속 | 읽기 전용 | 전체 | 항상 비동기 | 적대적 테스트 |
+| 가이드 | 하이쿠 | 읽기 + 웹 | 동적 | 동기화 | 문서 조회 |
+| 상태표시줄 | 소네트 | 읽기 + 편집 | 최소한의 | 동기화 | 구성 작업 |
 
-No two agents make the same choices across all five dimensions. Each is optimized for its specific use case. And the `runAgent()` lifecycle handles all of them through the same fifteen steps, parameterized by the agent definition. This is the power of the architecture: the lifecycle is a universal machine, and the agent definitions are the programs that run on it.
+두 명의 에이전트이 다섯 가지 차원 모두에서 동일한 선택을 하지 않습니다. 각각은 특정 사용 사례에 최적화되어 있습니다. 그리고 `runAgent()` 수명 주기는 에이전트 정의에 의해 매개변수화된 동일한 15단계를 통해 모든 항목을 처리합니다. 이것이 아키텍처의 힘입니다. 라이프사이클은 범용 시스템이고 에이전트 정의는 이 시스템에서 실행되는 프로그램입니다.
 
-The next chapter examines fork agents in depth -- the prompt cache exploitation mechanism that makes parallel delegation economically viable. Chapter 10 then follows with the orchestration layer: how async agents report progress through the task state machine, how the parent retrieves results, and how the coordinator pattern orchestrates dozens of agents working toward a single goal. If this chapter was about *creating* agents, Chapter 9 is about making them cheap, and Chapter 10 is about *managing* them.
+다음 장에서는 병렬 위임을 경제적으로 실행 가능하게 만드는 신속한 캐시 활용 메커니즘인 포크 에이전트를 심층적으로 조사합니다. 10장은 그런 다음 오케스트레이션 계층에 대해 설명합니다. 비동기 에이전트가 작업 상태 시스템을 통해 진행 상황을 보고하는 방법, 상위 에이전트가 결과를 검색하는 방법, 코디네이터 패턴이 단일 목표를 위해 작동하는 수십 개의 에이전트를 오케스트레이션하는 방법입니다. 이 장이 에이전트 *만들기*에 관한 것이라면 9장은 에이전트를 저렴하게 만드는 것에 관한 것이고, 10장은 에이전트를 *관리*하는 것에 관한 것입니다.

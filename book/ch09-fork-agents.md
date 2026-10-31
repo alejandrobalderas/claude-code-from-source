@@ -1,54 +1,62 @@
-# Chapter 9: Fork Agents and the Prompt Cache
+<a id="chapter-9-fork-agents-and-the-prompt-cache"></a>
 
-## The Ninety-Five Percent Insight
+# 제9장: 포크 에이전트와 프롬프트 캐시
 
-When a parent agent spawns five child agents in parallel, the overwhelming majority of each child's API request is identical. The system prompt is the same. The tool definitions are the same. The conversation history is the same. The assistant message that triggered the spawns is the same. The only thing that differs is the final directive: "you handle the database migration," "you write the tests," "you update the docs."
+<a id="the-ninety-five-percent-insight"></a>
 
-On a typical fork with a warm conversation, the shared prefix might be 80,000 tokens. The per-child directive might be 200 tokens. That is 99.75% overlap. Anthropic's prompt cache gives a 90% discount on cached input tokens. If you can make those 80,000 tokens hit the cache for children 2 through 5, you just cut the input cost of those four requests by 90%. For the parent, this is the difference between spending $4 and spending $0.50 on the same parallel dispatch.
+## 95%의 통찰력
 
-The catch is that prompt caching is byte-exact. Not "similar enough." Not "semantically equivalent." The bytes must match, character for character, from the first byte of the system prompt through to the last byte before the per-child content diverges. One extra space, one reordered tool definition, one stale feature flag changing a system prompt fragment -- and the cache misses. The entire prefix is reprocessed at full price.
+상위 에이전트가 5개의 하위 에이전트를 병렬로 생성하는 경우 각 하위 API 요청의 압도적인 대부분은 동일합니다. 시스템 프롬프트는 동일합니다. 도구 정의는 동일합니다. 대화 내용은 동일합니다. 스폰을 유발한 보조 메시지는 동일합니다. 유일한 차이점은 "데이터베이스 마이그레이션을 처리합니다", "테스트를 작성합니다", "문서를 업데이트합니다"라는 최종 지시어입니다.
 
-Fork agents are Claude Code's answer to this constraint. They are not just a convenience for "spawn a child with context" -- they are a prompt cache exploitation mechanism disguised as an orchestration feature. Every design decision in the fork system traces back to one question: how do we guarantee byte-identical prefixes across parallel children?
+따뜻한 대화를 나누는 일반적인 포크에서 공유 접두사는 80,000개 토큰일 수 있습니다. 자녀당 지시문은 200개 토큰일 수 있습니다. 99.75% 중복됩니다. Anthropic의 프롬프트 캐시는 캐시된 입력 토큰에 대해 90% 할인을 제공합니다. 80,000개의 토큰이 2~5세 어린이의 캐시에 도달하도록 만들 수 있다면 해당 4개 요청의 입력 비용을 90% 절감할 수 있습니다. 부모의 경우 이는 동일한 병렬 디스패치에 대해 4달러를 지출하는 것과 0.50달러를 지출하는 것의 차이입니다.
 
----
+문제는 프롬프트 캐싱이 바이트 단위로 정확하다는 것입니다. "충분히 비슷하지" 않습니다. "의미상 동일"하지 않습니다. 바이트는 시스템 프롬프트의 첫 번째 바이트부터 하위 항목별 콘텐츠가 분기되기 전의 마지막 바이트까지 문자 대 문자가 일치해야 합니다. 하나의 추가 공간, 하나의 재정렬된 도구 정의, 시스템 프롬프트 조각을 변경하는 하나의 오래된 기능 플래그 및 캐시가 누락됩니다. 전체 접두어가 정가로 재처리됩니다.
 
-## What a Fork Child Inherits
-
-A fork agent inherits four things from its parent, and it inherits them by reference or byte-exact copy, not by recomputation.
-
-**1. The system prompt.** Not regenerated -- threaded. The parent's already-rendered system prompt bytes are passed via `override.systemPrompt`, pulled from `toolUseContext.renderedSystemPrompt`. This is the exact string that was sent in the parent's most recent API call.
-
-**2. The tool definitions.** The fork agent definition declares `tools: ['*']`, but with the `useExactTools` flag set to true, the child receives the parent's assembled tool array directly. No filtering, no reordering, no re-serialization.
-
-**3. The conversation history.** Every message the parent has exchanged with the API -- user turns, assistant turns, tool calls, tool results -- is cloned into the child's context via `forkContextMessages`.
-
-**4. The thinking configuration and model.** The fork definition specifies `model: 'inherit'`, which resolves to the parent's exact model. Same model means same tokenizer, same context window, same cache namespace.
-
-The fork agent definition itself is minimal -- almost a no-op:
-
-The fork agent definition is deliberately minimal -- it inherits everything from the parent. It specifies all tools (`'*'`), inherits the parent's model, uses bubble mode for permissions (so prompts surface in the parent's terminal), and provides a no-op system prompt function that is never actually called -- the real prompt arrives via the override channel, already rendered and byte-stable.
+포크 에이전트는 이러한 제약에 대한 Claude Code의 답변입니다. 이는 "컨텍스트가 있는 하위 생성"을 위한 편리한 기능일 뿐만 아니라 오케스트레이션 기능으로 위장한 신속한 캐시 활용 메커니즘입니다. 포크 시스템의 모든 디자인 결정은 하나의 질문으로 거슬러 올라갑니다. 병렬 자식 간에 바이트가 동일한 접두사를 어떻게 보장합니까?
 
 ---
 
-## The Byte-Identical Prefix Trick
+<a id="what-a-fork-child-inherits"></a>
 
-The API request to Claude has a specific structure: system prompt, then tools, then messages. For the prompt cache to hit, every byte from the start of the request through to some prefix boundary must be identical across requests.
+## 포크 아이가 상속받는 것
 
-Fork agents achieve this by ensuring three layers are frozen:
+포크 에이전트는 부모로부터 네 가지를 상속받으며 재계산이 아닌 참조 또는 정확한 바이트 복사본을 통해 상속합니다.
 
-**Layer 1: System prompt via threading, not recomputation.**
+**1. 시스템 프롬프트.** 재생성되지 않음 - 스레드됨. 상위의 이미 렌더링된 시스템 프롬프트 바이트는 `toolUseContext.renderedSystemPrompt`에서 가져온 `override.systemPrompt`을 통해 전달됩니다. 이는 상위 항목의 가장 최근 API 호출에서 전송된 정확한 문자열입니다.
 
-When the parent agent's system prompt was rendered for its last API call, the result was captured in `toolUseContext.renderedSystemPrompt`. This is the string after all dynamic interpolation -- GrowthBook feature flags, environment details, MCP server descriptions, skill content, CLAUDE.md files. The fork child receives this exact string.
+**2. 도구 정의.** 포크 에이전트 정의는 `tools: ['*']`을 선언하지만 `useExactTools` 플래그가 true로 설정된 경우 하위 항목은 상위 항목의 조립된 도구 배열을 직접 받습니다. 필터링도, 재정렬도, 재직렬화도 없습니다.
 
-Why not just call `getSystemPrompt()` again? Because system prompt generation is not pure. GrowthBook flags transition from cold to warm state as the SDK fetches remote config. A flag that returned `false` during the parent's first turn might return `true` by the time the fork child spins up. If the system prompt includes a conditional block gated by that flag, the re-rendered prompt diverges by even a single character. Cache busted. Full-price reprocessing of 80,000 tokens, times five children.
+**3. 대화 기록.** 부모가 API와 교환한 모든 메시지(사용자 차례, 보조자 차례, 도구 호출, 도구 결과)는 `forkContextMessages`을 통해 하위 컨텍스트에 복제됩니다.
 
-Threading the rendered bytes eliminates this entire class of divergence.
+**4. 사고 구성 및 모델.** 포크 정의는 상위의 정확한 모델을 확인하는 `model: 'inherit'`을 지정합니다. 동일한 모델은 동일한 토크나이저, 동일한 컨텍스트 창, 동일한 캐시 네임스페이스를 의미합니다.
 
-**Layer 2: Tool definitions via exact passthrough.**
+포크 에이전트 정의 자체는 최소화되어 거의 작동하지 않습니다.
 
-Normal sub-agents go through `resolveAgentTools()`, which filters the tool pool based on the agent definition's `tools` and `disallowedTools` arrays, applies permission mode differences, and potentially reorders tools. The resulting serialized tool array would differ from the parent's -- different subset, different order, different permission annotations.
+포크 에이전트 정의는 의도적으로 최소화되었습니다. 즉, 상위 에이전트로부터 모든 것을 상속받습니다. 모든 도구(`'*'`)를 지정하고, 상위 모델을 상속하고, 권한에 버블 모드를 사용하고(따라서 상위 터미널에 프롬프트가 표시됨) 실제로 호출되지 않는 무작동 시스템 프롬프트 기능을 제공합니다. 실제 프롬프트는 이미 렌더링되고 바이트가 안정적인 재정의 채널을 통해 도착합니다.
 
-Fork agents skip this entirely:
+---
+
+<a id="the-byte-identical-prefix-trick"></a>
+
+## 바이트 동일 접두사 트릭
+
+Claude에 대한 API 요청에는 시스템 프롬프트, 도구, 메시지 등의 특정 구조가 있습니다. 프롬프트 캐시가 적중하려면 요청 시작부터 일부 접두사 경계까지의 모든 바이트가 요청 전체에서 동일해야 합니다.
+
+포크 에이전트는 세 개의 레이어가 고정되도록 하여 이를 달성합니다.
+
+**레이어 1: 재계산이 아닌 스레딩을 통한 시스템 프롬프트.**
+
+마지막 API 호출에 대해 상위 에이전트의 시스템 프롬프트가 렌더링되면 결과가 `toolUseContext.renderedSystemPrompt`에 캡처되었습니다. 이는 GrowthBook 기능 플래그, 환경 세부 정보, MCP 서버 설명, 기술 콘텐츠, CLAUDE.md 파일 등 모든 동적 보간 뒤의 문자열입니다. 포크 하위는 이 정확한 문자열을 받습니다.
+
+`getSystemPrompt()`을 다시 호출하면 어떨까요? 시스템 프롬프트 생성이 순수하지 않기 때문입니다. SDK가 원격 구성을 가져올 때 GrowthBook 플래그는 콜드 상태에서 웜 상태로 전환됩니다. 부모의 첫 번째 차례 동안 `false`을 반환한 플래그는 포크 자식이 회전할 때 `true`을 반환할 수 있습니다. 시스템 프롬프트에 해당 플래그로 제어되는 조건부 블록이 포함된 경우 다시 렌더링된 프롬프트는 단일 문자로도 분기됩니다. 캐시가 파열되었습니다. 80,000개의 토큰을 정가로 재처리하며, 이는 5명의 하위 항목에 해당합니다.
+
+렌더링된 바이트를 스레딩하면 이러한 전체 클래스의 차이가 제거됩니다.
+
+**레이어 2: 정확한 통과를 통한 도구 정의.**
+
+일반 하위 에이전트는 에이전트 정의의 `tools` 및 `disallowedTools` 배열을 기반으로 도구 풀을 필터링하고 권한 모드 차이를 적용하며 잠재적으로 도구 순서를 변경하는 `resolveAgentTools()`을 통과합니다. 결과적으로 직렬화된 도구 배열은 상위 항목과 다릅니다(다른 하위 집합, 다른 순서, 다른 권한 주석).
+
+포크 에이전트는 이 과정을 완전히 건너뜁니다.
 
 ```typescript
 const resolvedTools = useExactTools
@@ -56,18 +64,18 @@ const resolvedTools = useExactTools
   : resolveAgentTools(agentDefinition, availableTools, isAsync).resolvedTools
 ```
 
-The `useExactTools` flag is set to true only on the fork path. The child gets the parent's tool pool as-is. Same tools, same order, same serialization. This includes keeping the Agent tool itself in the child's pool, even though the child is forbidden from using it -- removing it would change the tool array and bust the cache.
+`useExactTools` 플래그는 포크 경로에서만 true로 설정됩니다. 자식은 부모의 도구 풀을 있는 그대로 가져옵니다. 동일한 도구, 동일한 순서, 동일한 일련번호입니다. 여기에는 하위가 에이전트 도구를 사용하는 것이 금지된 경우에도 하위 풀에 에이전트 도구 자체를 유지하는 것이 포함됩니다. 이를 제거하면 도구 배열이 변경되고 캐시가 파괴됩니다.
 
-**Layer 3: Message array construction.**
+**계층 3: 메시지 배열 구성.**
 
-This is where `buildForkedMessages()` does its careful work. The function constructs the final two messages that sit between the shared history and the per-child directive:
+`buildForkedMessages()`이 신중한 작업을 수행하는 곳입니다. 이 함수는 공유 기록과 per-child 지시문 사이에 있는 마지막 두 개의 메시지를 구성합니다.
 
-The `buildForkedMessages()` function constructs the final two messages that sit between the shared history and the per-child directive. The algorithm:
+`buildForkedMessages()` 함수는 공유 기록과 하위별 지시문 사이에 있는 마지막 두 개의 메시지를 구성합니다. 알고리즘:
 
-1. Clone the parent's assistant message (preserving all `tool_use` blocks with their original IDs).
-2. For each `tool_use` block, create a `tool_result` with a constant placeholder string (identical across all children).
-3. Build a single user message containing all the placeholder results followed by the per-child directive wrapped in the boilerplate tag.
-4. Return `[clonedAssistantMessage, userMessageWithPlaceholdersAndDirective]`.
+1. 상위의 보조 메시지를 복제합니다(모든 `tool_use` 블록을 원래 ID로 유지).
+2. 각 `tool_use` 블록에 대해 상수 자리 표시자 문자열(모든 하위 항목에서 동일)을 사용하여 `tool_result`을 생성합니다.
+3. 모든 자리 표시자 결과와 상용구 태그에 래핑된 하위 항목별 지시문을 포함하는 단일 사용자 메시지를 작성합니다.
+4. `[clonedAssistantMessage, userMessageWithPlaceholdersAndDirective]`을 반환합니다.
 
 ```typescript
 // Pseudocode — illustrates the message construction
@@ -81,42 +89,46 @@ function buildChildMessages(directive, parentAssistant) {
 }
 ```
 
-The resulting message array for each child looks like:
+각 하위 항목에 대한 결과 메시지 배열은 다음과 같습니다.
 
 ```
 [...shared_history, assistant(all_tool_uses), user(placeholder_results..., directive)]
 ```
 
-Every element before the directive is identical across children. The `FORK_PLACEHOLDER_RESULT` -- a constant string `'Fork started -- processing in background'` -- ensures even the tool result blocks are byte-identical. The `tool_use_id` values are identical because they reference the same assistant message. Only the final text block, containing the per-child directive, varies.
+지시문 앞의 모든 요소는 하위 항목에서 동일합니다. `FORK_PLACEHOLDER_RESULT`(상수 문자열 `'Fork started -- processing in background'`)은 도구 결과 블록도 바이트 동일함을 보장합니다. `tool_use_id` 값은 동일한 보조 메시지를 참조하므로 동일합니다. per-child 지시문을 포함하는 최종 텍스트 블록만 다릅니다.
 
-The cache boundary falls right before that final text block. Everything above it -- potentially tens of thousands of tokens of system prompt, tool definitions, conversation history, and placeholder results -- hits the cache at a 90% discount for every child after the first.
-
----
-
-## The Fork Boilerplate Tag
-
-Each child's directive is wrapped in a boilerplate XML tag that serves two purposes: it instructs the child on how to behave, and it acts as a marker for recursive fork detection.
-
-The boilerplate contains approximately 10 rules. The key ones:
-
-- **Override the parent's forking instruction.** The parent's system prompt says "default to forking" -- the boilerplate explicitly tells the child: "that instruction is for the parent. You ARE the fork. Do NOT spawn sub-agents."
-- **Execute silently, report once.** No conversational text between tool calls. Use tools directly, then produce a structured summary.
-- **Stay within scope.** The child must not expand beyond its directive.
-- **Structured output format.** The response must follow a Scope/Result/Key files/Files changed/Issues template that makes results easy for the parent to parse when multiple children report back simultaneously.
-
-Rule 1 is particularly interesting. The parent's system prompt -- which the fork child inherits verbatim for cache reasons -- contains instructions like "default to forking when you have parallel work." If the child followed that instruction, it would try to fork its own children, creating an infinite recursion of agents. The boilerplate explicitly overrides: "that instruction is for the parent. You ARE the fork."
-
-The structured output format (Scope/Result/Key files/Files changed/Issues) is not decorative. It constrains the child's output to factual reporting, which makes the results easier for the parent to parse and aggregate when five children report back simultaneously.
+캐시 경계는 최종 텍스트 블록 바로 앞에 위치합니다. 그 위에 있는 모든 것(잠재적으로 수만 개의 시스템 프롬프트 토큰, 도구 정의, 대화 기록 및 자리 표시자 결과)은 첫 번째 이후 모든 어린이에 대해 90% 할인된 가격으로 캐시에 저장됩니다.
 
 ---
 
-## Recursive Fork Prevention
+<a id="the-fork-boilerplate-tag"></a>
 
-The fork child keeps the Agent tool in its tool pool. It has to -- removing it would change the serialized tool array and bust the prompt cache. But if the child actually invokes the Agent tool without `subagent_type`, the fork path would trigger again, creating a grandchild fork. This grandchild would inherit an even larger context (parent + child conversation), spawn its own forks, and so on.
+## 포크 보일러플레이트 태그
 
-Two guards prevent this:
+각 하위 항목의 지시문은 두 가지 목적을 제공하는 상용구 XML 태그로 래핑됩니다. 이는 하위 항목에 행동 방법을 지시하고 재귀 포크 감지를 위한 마커 역할을 합니다.
 
-**Primary guard: querySource check.** When a fork child is spawned, its `context.options.querySource` is set to `'agent:builtin:fork'`. The `call()` method checks this before allowing the fork path:
+상용구에는 약 10개의 규칙이 포함되어 있습니다. 핵심 사항:
+
+- **상위의 분기 지침을 재정의합니다.** 상위 시스템 프롬프트에 "분기 기본 설정"이라고 표시되어 있습니다. 상용구에서는 명시적으로 하위 에이전트에게 "해당 명령은 상위를 위한 것입니다. 당신은 포크입니다. 하위 에이전트를 생성하지 마세요."라고 명시합니다.
+- **자동으로 실행하고 한 번 보고합니다.** 도구 호출 사이에 대화 텍스트가 없습니다. 도구를 직접 사용한 다음 구조화된 요약을 생성하세요.
+- **범위 내에서 유지하세요.** 하위 항목은 지시 사항 이상으로 확장되어서는 안 됩니다.
+- **구조화된 출력 형식.** 응답은 여러 하위 항목이 동시에 보고할 때 상위 항목이 결과를 쉽게 구문 분석할 수 있도록 범위/결과/주요 파일/변경된 파일/문제 템플릿을 따라야 합니다.
+
+규칙 1이 특히 흥미롭습니다. 캐시상의 이유로 포크 자식이 그대로 상속하는 부모 시스템 프롬프트에는 "병렬 작업이 있을 때 기본적으로 포크를 수행합니다."와 같은 지침이 포함되어 있습니다. 자식이 해당 지시를 따르면 자신의 자식을 포크하려고 시도하여 에이전트의 무한 재귀가 생성됩니다. 상용구는 "그 명령은 부모를 위한 것입니다. 당신은 포크입니다."를 명시적으로 재정의합니다.
+
+구조화된 출력 형식(범위/결과/키 파일/변경된 파일/문제)은 장식용이 아닙니다. 이는 자녀의 출력을 사실 보고로 제한하므로 5명의 자녀가 동시에 보고할 때 부모가 결과를 더 쉽게 분석하고 집계할 수 있습니다.
+
+---
+
+<a id="recursive-fork-prevention"></a>
+
+## 재귀 포크 방지
+
+포크 하위는 에이전트 도구를 도구 풀에 유지합니다. 이를 제거하면 직렬화된 도구 배열이 변경되고 프롬프트 캐시가 파열됩니다. 그러나 하위 항목이 실제로 `subagent_type` 없이 에이전트 도구를 호출하면 분기 경로가 다시 트리거되어 손자 분기가 생성됩니다. 이 손자는 훨씬 더 큰 컨텍스트(부모 + 자식 대화)를 상속하고 자체 포크 등을 생성합니다.
+
+두 명의 경비원이 이를 방지합니다.
+
+**기본 가드: querySource 확인.** 포크 하위가 생성되면 해당 `context.options.querySource`이 `'agent:builtin:fork'`으로 설정됩니다. `call()` 메소드는 포크 경로를 허용하기 전에 이를 확인합니다.
 
 ```typescript
 // In AgentTool.call():
@@ -128,23 +140,25 @@ if (effectiveType === undefined) {
 }
 ```
 
-This is the fast path. It checks a single string in the options object.
+이것이 빠른 길입니다. 옵션 개체에서 단일 문자열을 확인합니다.
 
-**Fallback guard: message scanning.** Fork prevention uses two guards: the `querySource` tag set at spawn time (the fast path -- a single string comparison), and a fallback that scans message history for the boilerplate XML tag. The fallback exists because the `querySource` survives autocompact, but in edge cases where it was not properly threaded, the message-scanning fallback catches the recursion. It is a belt-and-suspenders approach where the cost of the check (scanning messages) is trivial compared to the cost of accidental recursive forking (runaway API spend).
+**대체 가드: 메시지 검색.** 포크 방지는 생성 시 설정된 `querySource` 태그(빠른 경로 - 단일 문자열 비교)와 상용구 XML 태그에 대한 메시지 기록을 검색하는 대체라는 두 가지 가드를 사용합니다. `querySource`이 자동 압축을 유지하기 때문에 대체가 존재하지만 적절하게 스레드되지 않은 극단적인 경우에는 메시지 검사 대체가 재귀를 포착합니다. 이는 우발적인 재귀 포크 비용(런어웨이 API 지출)에 비해 확인 비용(메시지 스캔)이 미미한 벨트 및 멜빵 접근 방식입니다.
 
-Why the fallback? Because Claude Code has an autocompact feature that rewrites the message array when context gets too long. Autocompact can rewrite message content but preserves the `querySource` in options. In theory, `querySource` alone is sufficient. In practice, the message-scanning fallback catches edge cases where `querySource` was not properly threaded -- a belt-and-suspenders approach where the cost of the check (scanning messages) is trivial compared to the cost of accidental recursive forking (runaway API spend).
+대체 이유는 무엇입니까? Claude Code에는 컨텍스트가 너무 길어지면 메시지 배열을 다시 작성하는 자동 압축 기능이 있기 때문입니다. 자동 압축은 메시지 내용을 다시 쓸 수 있지만 옵션에 `querySource`을 유지합니다. 이론적으로는 `querySource`만으로도 충분합니다. 실제로 메시지 검색 폴백은 `querySource`이 적절하게 스레드되지 않은 극단적인 사례를 포착합니다. 즉, 실수로 인한 재귀 포크 비용(런어웨이 API 지출)에 비해 확인 비용(메시지 검색)이 사소한 벨트 및 멜빵 접근 방식입니다.
 
 ---
 
-## The Sync-to-Async Transition
+<a id="the-sync-to-async-transition"></a>
 
-A fork child starts running in the foreground: its messages stream to the parent's terminal, and the parent blocks waiting for completion. But what if the child is taking too long? Claude Code allows mid-execution backgrounding -- the user (or an auto-timeout) can push a running foreground agent into the background without losing any work.
+## 동기화에서 비동기로의 전환
 
-The mechanism is surprisingly clean:
+포크 하위는 포그라운드에서 실행을 시작합니다. 해당 메시지는 상위 터미널로 스트리밍되고 상위 블록은 완료를 기다립니다. 하지만 아이가 너무 오래 걸린다면 어떨까요? Claude Code는 실행 중간 백그라운드 작업을 허용합니다. 즉, 사용자(또는 자동 시간 초과)는 작업 손실 없이 실행 중인 포그라운드 에이전트를 백그라운드로 푸시할 수 있습니다.
 
-1. When a foreground agent is registered via `registerAgentForeground()`, a background signal promise is created.
+메커니즘은 놀라울 정도로 깨끗합니다.
 
-2. The parent's sync loop races between the agent's message stream and the background signal:
+1. `registerAgentForeground()`을 통해 포그라운드 에이전트가 등록되면 백그라운드 신호 약속이 생성됩니다.
+
+2. 상위의 동기화 루프는 에이전트의 메시지 스트림과 백그라운드 신호 사이를 경합합니다.
 
 ```
 while (true) {
@@ -157,95 +171,105 @@ while (true) {
 }
 ```
 
-3. When the background signal fires, the foreground iterator is gracefully terminated via `iterator.return()`. This triggers the generator's `finally` block, which handles cleanup.
+3. 배경 신호가 실행되면 전경 반복자는 `iterator.return()`을 통해 정상적으로 종료됩니다. 이는 정리를 처리하는 생성기의 `finally` 블록을 트리거합니다.
 
-4. A new `runAgent()` instance is spawned with `isAsync: true`, using the same agent ID and the message history accumulated so far. The agent continues from where it left off, now running in the background.
+4. 동일한 에이전트 ID와 지금까지 누적된 메시지 기록을 사용하여 새로운 `runAgent()` 인스턴스가 `isAsync: true`으로 생성됩니다. 에이전트는 중단된 부분부터 계속 진행되며 이제 백그라운드에서 실행됩니다.
 
-5. The original synchronous `call()` returns `{ status: 'async_launched' }`, and the parent continues its conversation.
+5. 원래 동기 `call()`은 `{ status: 'async_launched' }`을 반환하고 상위는 대화를 계속합니다.
 
-No work is lost because the message history is the agent's state. The sidechain transcript on disk has every message the agent has produced. The new async instance replays from this transcript and picks up where the sync instance stopped.
-
----
-
-## Auto-Backgrounding
-
-When the `CLAUDE_AUTO_BACKGROUND_TASKS` environment variable or the `tengu_auto_background_agents` GrowthBook flag is enabled, foreground agents are automatically backgrounded after 120 seconds:
-
-When enabled via environment variable or feature flag, foreground agents are automatically backgrounded after 120 seconds. When disabled, the function returns 0 (no auto-backgrounding).
-
-This is a UX decision with cost implications. A foreground agent blocks the parent terminal -- the user cannot type, cannot issue new instructions, cannot spawn other agents. Two minutes is long enough for the agent to complete most quick tasks synchronously (where the streaming output is useful feedback), but short enough that long-running tasks do not hold the terminal hostage.
-
-Under the fork experiment, the auto-backgrounding question is moot: all fork spawns are forced async from the start. The `run_in_background` parameter is hidden from the schema entirely. Every fork child runs in the background, reports back via a `<task-notification>` when done, and the parent never blocks.
+메시지 기록이 에이전트의 상태이므로 작업이 손실되지 않습니다. 디스크의 사이드체인 기록에는 에이전트가 생성한 모든 메시지가 있습니다. 새 비동기 인스턴스는 이 기록을 재생하고 동기화 인스턴스가 중지된 위치를 선택합니다.
 
 ---
 
-## When Fork Is NOT Used
+<a id="auto-backgrounding"></a>
 
-Fork is one of several orchestration modes, and it is deliberately excluded in three cases:
+## 자동 배경화
 
-**Coordinator mode.** Coordinator mode and fork mode are mutually exclusive. A coordinator has a structured delegation model: it maintains a plan, assigns tasks to workers with explicit prompts, and tracks progress. Fork's "inherit everything" approach would undermine this. A forked coordinator would inherit the parent coordinator's system prompt (which says "you are the coordinator, delegate work"), and the child would try to orchestrate instead of execute. The `isForkSubagentEnabled()` function checks `isCoordinatorMode()` first and returns false if active.
+`CLAUDE_AUTO_BACKGROUND_TASKS` 환경 변수 또는 `tengu_auto_background_agents` GrowthBook 플래그가 활성화되면 포그라운드 에이전트는 120초 후에 자동으로 백그라운드로 전환됩니다.
 
-**Non-interactive sessions.** SDK and API consumers (`--print` mode, Claude Agent SDK) operate without a terminal. Fork's `permissionMode: 'bubble'` surfaces permission prompts to the parent terminal -- which does not exist in non-interactive mode. Rather than building a separate permission flow, the fork path is simply disabled. SDK consumers use explicit `subagent_type` selection instead.
+환경 변수 또는 기능 플래그를 통해 활성화되면 포그라운드 에이전트는 120초 후에 자동으로 백그라운드로 전환됩니다. 비활성화되면 함수는 0(자동 배경화 없음)을 반환합니다.
 
-**Explicit subagent_type.** When the model specifies a `subagent_type` (e.g., `"Explore"`, `"Plan"`, `"general-purpose"`), the fork path is not triggered. Fork only fires when `subagent_type` is omitted. This lets the model choose between "I want a specialized agent with its own system prompt and tool set" (explicit type) and "I want a context-inheriting clone of myself to handle this in parallel" (omitted type).
+이는 비용에 영향을 미치는 UX 결정입니다. 포그라운드 에이전트는 상위 터미널을 차단합니다. 사용자는 입력할 수 없고, 새로운 명령을 내릴 수 없으며, 다른 에이전트를 생성할 수 없습니다. 2분은 에이전트가 가장 빠른 작업을 동기식으로 완료할 수 있을 만큼 길지만(스트리밍 출력이 유용한 피드백인 경우) 장기 실행 작업이 터미널을 인질로 삼지 않을 만큼 짧습니다.
 
----
-
-## The Economics
-
-Consider a concrete scenario. A developer asks Claude Code to refactor a module. The parent agent analyzes the codebase, forms a plan, and dispatches five fork children in parallel: one to update the database schema, one to rewrite the service layer, one to update the router, one to fix the tests, and one to update the types.
-
-At this point in the conversation, the shared context is substantial:
-- System prompt: ~4,000 tokens
-- Tool definitions (40+ tools): ~12,000 tokens
-- Conversation history (analysis + planning): ~30,000 tokens
-- Assistant message with five tool_use blocks: ~2,000 tokens
-- Placeholder tool results: ~500 tokens
-
-Total shared prefix: ~48,500 tokens. Per-child directive: ~200 tokens.
-
-Without fork (five independent agents, each with fresh context and their own system prompt):
-- Each child processes its own system prompt + tools + task prompt
-- No cache sharing (different system prompts, different tool sets)
-- Cost: 5 x full input processing
-
-With fork (byte-identical prefixes):
-- Child 1: 48,700 tokens at full price (cache miss on first request)
-- Children 2-5: 48,500 tokens at 10% price (cache hit) + 200 tokens at full price each
-- Effective cost for children 2-5: ~4,850 + 200 = ~5,050 tokens equivalent each
-
-The savings scale with context size and child count. For a warm session with 100K tokens of history spawning 8 parallel forks, the cache savings can exceed 90% of what the input tokens would have cost without sharing.
-
-This is why every design decision in the fork system -- the threading instead of recomputation, the exact tool passthrough, the placeholder results, even keeping the Agent tool in the child's pool despite it being forbidden -- optimizes for one thing: byte-identical prefixes. Each decision trades a small amount of elegance or safety for a measurable reduction in API cost.
+포크 실험에서 자동 배경화 질문은 논쟁의 여지가 있습니다. 모든 포크 생성은 처음부터 강제로 비동기화됩니다. `run_in_background` 매개변수는 스키마에서 완전히 숨겨집니다. 모든 포크 자식은 백그라운드에서 실행되고 완료되면 `<task-notification>`을 통해 다시 보고하며 부모는 절대 차단하지 않습니다.
 
 ---
 
-## Design Tensions
+<a id="when-fork-is-not-used"></a>
 
-The fork system makes explicit trade-offs that are worth understanding:
+## 포크를 사용하지 않을 때
 
-**Isolation vs. cache efficiency.** Fork children inherit everything, including conversation history that may be irrelevant to their task. A child rewriting tests does not need the 15 messages where the parent discussed database schema design. But including those messages is what makes the prefix identical. Stripping irrelevant history would save context window space at the cost of busting the cache. The design bet is that cache savings outweigh the context overhead.
+Fork는 여러 오케스트레이션 모드 중 하나이며 다음 세 가지 경우에 의도적으로 제외됩니다.
 
-**Safety vs. cache efficiency.** The Agent tool stays in the fork child's tool pool even though the child must not use it. Removing it would be safer (the child cannot even attempt to fork), but would change the tool array serialization. The boilerplate tag and recursive fork guards are the compensating controls -- runtime prevention instead of static removal.
+**코디네이터 모드.** 코디네이터 모드와 포크 모드는 상호 배타적입니다. 코디네이터는 구조화된 위임 모델을 가지고 있습니다. 즉, 계획을 유지하고 명시적인 프롬프트를 통해 작업자에게 작업을 할당하며 진행 상황을 추적합니다. Fork의 "모든 것을 상속받는" 접근 방식은 이를 약화시킬 것입니다. 분기된 코디네이터는 상위 코디네이터의 시스템 프롬프트("당신은 코디네이터입니다. 작업을 위임합니다")를 상속하고 하위 코디네이터는 실행 대신 조율을 시도합니다. `isForkSubagentEnabled()` 함수는 `isCoordinatorMode()`을 먼저 확인하고 활성화된 경우 false를 반환합니다.
 
-**Simplicity vs. cache efficiency.** The placeholder tool results are a lie. The child sees `'Fork started -- processing in background'` for every tool_use block in the parent's assistant message, regardless of what those tool calls actually did. This is fine because the child's directive tells it what to do -- it does not need accurate tool results from the parent's dispatching turn. But it means the child's conversation history is technically incoherent. The placeholder is chosen for brevity and uniformity, not accuracy.
+**비대화형 세션.** SDK 및 API 소비자(`--print` 모드, Claude Agent SDK)는 터미널 없이 작동합니다. Fork의 `permissionMode: 'bubble'` 표면 권한은 비대화형 모드에서는 존재하지 않는 상위 터미널에 대한 프롬프트를 표시합니다. 별도의 권한 흐름을 구축하는 대신 포크 경로를 간단히 비활성화합니다. SDK 소비자는 대신 명시적인 `subagent_type` 선택을 사용합니다.
 
-Each of these trade-offs reflects the same priority: when you are paying per-token for API calls at scale, byte-identical prefixes are worth contorting the architecture around.
+**명시적 하위 에이전트 유형.** 모델이 `subagent_type`(예: `"Explore"`, `"Plan"`, `"general-purpose"`)을 지정하면 포크 경로가 트리거되지 않습니다. `subagent_type`이 생략된 경우에만 포크가 실행됩니다. 이를 통해 모델은 "자체 시스템 프롬프트 및 도구 세트가 있는 전문 에이전트를 원합니다"(명시적 유형)와 "이를 병렬로 처리하기 위해 컨텍스트 상속 복제본을 원합니다"(생략 유형) 중에서 선택할 수 있습니다.
 
 ---
 
-## Apply This: Designing for Prompt Cache Efficiency
+<a id="the-economics"></a>
 
-The fork agent pattern generalizes beyond Claude Code. Any system that dispatches multiple parallel LLM calls from the same context can benefit from cache-aware request construction. The principles:
+## 경제학
 
-**1. Thread rendered prompts, do not recompute.** If your system prompt includes any dynamic content -- feature flags, timestamps, user preferences, A/B test variants -- capture the rendered result and pass it to children by value. Recomputing risks divergence.
+구체적인 시나리오를 고려해보세요. 개발자가 Claude Code에게 모듈 리팩터링을 요청합니다. 상위 에이전트는 코드베이스를 분석하고 계획을 수립하며 5개의 포크 하위 항목을 병렬로 파견합니다. 하나는 데이터베이스 스키마 업데이트, 하나는 서비스 계층 재작성, 하나는 라우터 업데이트, 하나는 테스트 수정, 다른 하나는 유형 업데이트입니다.
 
-**2. Freeze the tool array.** If your children need different tool sets, you are giving up cache sharing on the tools block. Consider keeping the full tool set and using runtime guards (like the fork boilerplate's "do not use Agent") instead of compile-time removal.
+대화의 이 시점에서 공유된 컨텍스트는 상당합니다.
+- 시스템 프롬프트: ~4,000개 토큰
+- 도구 정의(40개 이상의 도구): ~12,000개 토큰
+- 대화 내역(분석 + 계획): ~30,000 토큰
+- 5개의 tool_use 블록이 포함된 보조 메시지: ~2,000개 토큰
+- 자리표시자 도구 결과: ~500개 토큰
 
-**3. Maximize the shared prefix, minimize the per-child suffix.** Structure your message array so that everything shared comes first and per-child content is appended at the end. Interleaving shared and per-child content fragments the cache boundary.
+총 공유 접두사: ~48,500개 토큰. 자녀당 지시어: ~200개 토큰.
 
-**4. Use constant placeholders for variable content.** When the message structure requires responses to previous tool calls, use identical placeholder strings across all children rather than actual (divergent) results.
+포크가 없는 경우(각각 새로운 컨텍스트와 자체 시스템 프롬프트가 있는 5개의 독립 에이전트):
+- 각 하위는 자체 시스템 프롬프트 + 도구 + 작업 프롬프트를 처리합니다.
+- 캐시 공유 없음(다른 시스템 프롬프트, 다른 도구 세트)
+- 비용: 5 x 전체 입력 처리
 
-**5. Measure the break-even.** Cache sharing has overhead: larger context windows per child (they carry irrelevant history), runtime guards instead of static safety, architectural complexity. Calculate whether your parallelism pattern (how many children, how large the shared prefix) actually saves money after accounting for the extra context tokens.
+포크 사용(바이트 동일 접두사):
+- 하위 1: 정가로 토큰 48,700개(첫 번째 요청 시 캐시 누락)
+- 어린이 2-5세: 10% 가격의 48,500개 토큰(캐시 적중) + 각각 정가의 200개 토큰
+- 2-5세 어린이를 위한 유효 비용: ~4,850 + 200 = 각각 ~5,050 토큰 상당
 
-The fork agent system is, at its core, a prompt cache exploitation engine. It answers a question that every multi-agent system builder eventually faces: when the cache gives you a 90% discount on repeated prefixes, how far will you restructure your architecture to claim that discount? Claude Code's answer is: very far.
+컨텍스트 크기 및 하위 개수를 기준으로 한 절감 규모입니다. 8개의 병렬 포크를 생성하는 100,000개의 기록 토큰이 있는 웜 세션의 경우 캐시 절약은 공유 없이 입력 토큰에 드는 비용의 90%를 초과할 수 있습니다.
+
+이것이 바로 포크 시스템의 모든 설계 결정(재계산 대신 스레딩, 정확한 도구 통과, 자리 표시자 결과, 금지에도 불구하고 하위 풀에 에이전트 도구를 유지하는 것까지 포함)이 한 가지, 즉 바이트 동일 접두사에 최적화되는 이유입니다. 각 결정은 API 비용의 측정 가능한 감소를 위해 약간의 우아함이나 안전성을 교환합니다.
+
+---
+
+<a id="design-tensions"></a>
+
+## 디자인 긴장
+
+포크 시스템은 이해할만한 가치가 있는 명시적인 절충안을 제시합니다.
+
+**격리 대 캐시 효율성.** Fork 하위 항목은 작업과 관련이 없을 수 있는 대화 기록을 포함하여 모든 것을 상속합니다. 자식 재작성 테스트에는 부모가 데이터베이스 스키마 디자인을 논의한 15개의 메시지가 필요하지 않습니다. 그러나 해당 메시지를 포함하면 접두사가 동일해집니다. 관련 없는 기록을 제거하면 캐시를 파괴하는 대신 컨텍스트 창 공간이 절약됩니다. 설계상 내기는 캐시 절감이 컨텍스트 오버헤드보다 크다는 것입니다.
+
+**안전성과 캐시 효율성.** 에이전트 도구는 하위가 사용해서는 안 되는 경우에도 포크 하위 도구 풀에 유지됩니다. 이를 제거하는 것이 더 안전하지만(자식은 포크를 시도할 수도 없음) 도구 배열 직렬화가 변경됩니다. 상용구 태그와 재귀 포크 가드는 보상 제어로서 정적 제거 대신 런타임 방지 기능을 제공합니다.
+
+**단순함 vs. 캐시 효율성.** 자리표시자 도구 결과는 거짓말입니다. 하위 도구 호출이 실제로 수행한 작업에 관계없이 상위 보조 메시지의 모든 tool_use 블록에 대해 `'Fork started -- processing in background'`이 표시됩니다. 자식의 지시문이 무엇을 해야 할지 알려주기 때문에 괜찮습니다. 부모의 파견 차례에서 정확한 도구 결과가 필요하지 않습니다. 그러나 이는 아이의 대화 내역이 기술적으로 일관성이 없다는 것을 의미합니다. 자리 표시자는 정확성이 아닌 간결성과 통일성을 위해 선택됩니다.
+
+이러한 각 장단점은 동일한 우선순위를 반영합니다. 대규모 API 호출에 대해 토큰당 비용을 지불하는 경우 바이트가 동일한 접두사는 아키텍처를 왜곡할 가치가 있습니다.
+
+---
+
+<a id="apply-this-designing-for-prompt-cache-efficiency"></a>
+
+## 적용: 즉각적인 캐시 효율성을 위한 설계
+
+포크 에이전트 패턴은 Claude Code 이상으로 일반화됩니다. 동일한 컨텍스트에서 여러 병렬 LLM 호출을 디스패치하는 모든 시스템은 캐시 인식 요청 구성의 이점을 누릴 수 있습니다. 원칙:
+
+**1. 스레드로 렌더링된 프롬프트는 다시 계산하지 마십시오.** 시스템 프롬프트에 기능 플래그, 타임스탬프, 사용자 기본 설정, A/B 테스트 변형 등 동적 콘텐츠가 포함된 경우 렌더링된 결과를 캡처하여 값으로 하위 항목에 전달합니다. 다시 계산하면 위험이 분산됩니다.
+
+**2. 도구 배열을 고정합니다.** 자녀에게 다른 도구 세트가 필요한 경우 도구 블록에서 캐시 공유를 포기하는 것입니다. 컴파일 시간 제거 대신 전체 도구 세트를 유지하고 런타임 가드(예: 포크 상용구의 "에이전트 사용 안 함")를 사용하는 것이 좋습니다.
+
+**3. 공유 접두사를 최대화하고 하위 항목별 접미사를 최소화합니다.** 공유된 모든 항목이 먼저 나오고 하위 항목별 콘텐츠가 끝에 추가되도록 메시지 배열을 구성합니다. 공유 및 하위 콘텐츠를 인터리빙하면 캐시 경계가 조각화됩니다.
+
+**4. 가변 콘텐츠에는 상수 자리 표시자를 사용합니다.** 메시지 구조에 이전 도구 호출에 대한 응답이 필요한 경우 실제(다양한) 결과보다는 모든 하위 항목에 대해 동일한 자리 표시자 문자열을 사용합니다.
+
+**5. 손익분기점을 측정합니다.** 캐시 공유에는 오버헤드가 있습니다. 즉, 하위당 더 큰 컨텍스트 창(관련 없는 기록을 전달함), 정적 안전 대신 런타임 가드, 아키텍처 복잡성 등이 있습니다. 추가 컨텍스트 토큰을 고려한 후 병렬 처리 패턴(자식 수, 공유 접두사 크기)이 실제로 비용을 절약하는지 여부를 계산합니다.
+
+포크 에이전트 시스템의 핵심은 신속한 캐시 활용 엔진입니다. 이는 모든 다중 에이전트 시스템 빌더가 결국 직면하게 되는 질문에 답합니다. 캐시가 반복되는 접두사에 대해 90% 할인을 제공할 때 해당 할인을 청구하기 위해 아키텍처를 얼마나 재구성할 것입니까? Claude Code의 대답은 매우 멀다는 것입니다.

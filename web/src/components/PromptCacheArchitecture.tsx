@@ -64,50 +64,50 @@ function useAnimatedNumber(value: number, duration = 300) {
 const BASE_SECTIONS: Section[] = [
   {
     id: "system",
-    label: "System identity",
-    sublabel: "CLI identity, code style rules",
+    label: "시스템 아이덴티티",
+    sublabel: "CLI ID, 코드 스타일 규칙",
     tokens: 200,
     region: "stable",
   },
   {
     id: "tools",
-    label: "Tool definitions",
-    sublabel: "Sorted alphabetically for stability",
+    label: "도구 정의",
+    sublabel: "안정성을 위해 알파벳순으로 정렬됨",
     tokens: 5000,
     region: "stable",
   },
   {
     id: "claudemd",
-    label: "CLAUDE.md content",
-    sublabel: "Project instructions, cached",
+    label: "CLAUDE.md 콘텐츠",
+    sublabel: "캐시된 프로젝트 지침",
     tokens: 1000,
     region: "stable",
   },
   {
     id: "memory",
-    label: "Memory files & date",
-    sublabel: "Memoized session date, per-session",
+    label: "메모리 파일 및 날짜",
+    sublabel: "세션별 기억된 세션 날짜",
     tokens: 800,
     region: "semi-stable",
   },
   {
     id: "history",
-    label: "Conversation history",
-    sublabel: "Grows each turn",
+    label: "대화 기록",
+    sublabel: "매 턴마다 성장",
     tokens: 0, // dynamic
     region: "semi-stable",
   },
   {
     id: "context",
-    label: "Current turn context",
-    sublabel: "Latest user message",
+    label: "현재 차례 상황",
+    sublabel: "최근 사용자 메시지",
     tokens: 500,
     region: "volatile",
   },
   {
     id: "results",
-    label: "Tool results",
-    sublabel: "Read/Grep/Bash outputs",
+    label: "도구 결과",
+    sublabel: "읽기/Grep/Bash 출력",
     tokens: 2000,
     region: "volatile",
   },
@@ -361,7 +361,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
               letterSpacing: 1,
             }}
           >
-            Prompt Structure
+            프롬프트 구조
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -406,7 +406,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                           opacity: 0.8,
                         }}
                       >
-                        ephemeral cache (1h TTL)
+                        임시 캐시(1시간 TTL)
                       </span>
                       <div
                         style={{
@@ -552,7 +552,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                           letterSpacing: 0.5,
                         }}
                       >
-                        __DYNAMIC_BOUNDARY__
+                        __동적_경계__
                       </span>
                       <div
                         style={{
@@ -590,7 +590,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   display: "inline-block",
                 }}
               />
-              Cached
+              캐시됨
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span
@@ -602,7 +602,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   display: "inline-block",
                 }}
               />
-              Volatile
+              휘발성
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span
@@ -614,7 +614,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   display: "inline-block",
                 }}
               />
-              Cache boundary
+              캐시 경계
             </span>
           </div>
         </div>
@@ -633,13 +633,13 @@ export default function PromptCacheArchitecture({ className }: Props) {
                 letterSpacing: 1,
               }}
             >
-              Controls
+              컨트롤
             </div>
 
             <div style={{ marginBottom: 14 }}>
               <div style={labelStyle}>
-                <span>Conversation length</span>
-                <span style={valueStyle}>{conversationLength} turns</span>
+                <span>대화 길이</span>
+                <span style={valueStyle}>{conversationLength} 회전</span>
               </div>
               <input
                 type="range"
@@ -720,7 +720,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                     lineHeight: 1.2,
                   }}
                 >
-                  Extended thinking
+                  확장된 사고
                   {thinkingLatched && (
                     <span
                       style={{
@@ -730,7 +730,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                         fontFamily: "var(--font-mono)",
                       }}
                     >
-                      Sticky latch: stays on forever
+                      끈끈한 걸쇠: 영원히 유지됩니다.
                     </span>
                   )}
                 </span>
@@ -785,7 +785,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                     lineHeight: 1.2,
                   }}
                 >
-                  MCP tools mid-session
+                  세션 중간에 MCP 도구
                   <span
                     style={{
                       fontSize: 10,
@@ -794,7 +794,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                       fontFamily: "var(--font-mono)",
                     }}
                   >
-                    {extraTools ? "Cache break! +3K tokens in prefix" : "Toggle to see cache invalidation"}
+                    {extraTools ? "캐시 브레이크! 접두사에 +3K 토큰" : "캐시 무효화를 보려면 전환하세요."}
                   </span>
                 </span>
               </button>
@@ -847,7 +847,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                     fontFamily: "var(--font-serif)",
                   }}
                 >
-                  Beta headers
+                  베타 헤더
                 </span>
               </button>
             </div>
@@ -865,7 +865,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                 letterSpacing: 1,
               }}
             >
-              Cache Hit Rate
+              캐시 적중률
             </div>
             <div
               style={{
@@ -899,7 +899,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   mixBlendMode: cacheHitPercent > 50 ? "normal" : "normal",
                 }}
               >
-                {animCachePercent.toFixed(0)}% cached
+                {animCachePercent.toFixed(0)}% 캐시됨
               </div>
             </div>
           </div>
@@ -922,7 +922,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                 letterSpacing: 1,
               }}
             >
-              Cost This Turn
+              이번 턴의 비용
             </div>
 
             <div
@@ -939,7 +939,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   color: colors.textSecondary,
                 }}
               >
-                With cache
+                캐시 포함
               </span>
               <span
                 style={{
@@ -969,7 +969,7 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   color: colors.textSecondary,
                 }}
               >
-                Without cache
+                캐시 없음
               </span>
               <span
                 style={{
@@ -992,12 +992,12 @@ export default function PromptCacheArchitecture({ className }: Props) {
               }}
             >
               <div>
-                Total: ~{formatTokens(Math.round(animTotalTokens))} tokens
+                총계: ~{formatTokens(Math.round(animTotalTokens))} 토큰
               </div>
               <div style={{ color: colors.green }}>
-                Savings:{" "}
+                절감액:{" "}
                 {((1 - costWithCache / Math.max(costWithoutCache, 0.0001)) * 100).toFixed(0)}%
-                ({formatCost(costWithoutCache - costWithCache)} saved)
+                ({formatCost(costWithoutCache - costWithCache)} 저장됨)
               </div>
             </div>
           </div>
@@ -1022,11 +1022,11 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   lineHeight: 1.5,
                 }}
               >
-                <strong>Sticky latch:</strong> Once extended thinking is
-                enabled, the <code>thinkingClearLatched</code> field stays
-                true. Toggling it off would bust ~60K tokens of cached
-                prompt. The latch sacrifices mid-session toggling to preserve
-                the cache.
+                <strong>끈끈한 걸쇠:</strong> 일단 확장된 사고는
+                활성화된 <code>생각깨끗한걸림</code> 필드 스테이
+                사실. 이 기능을 끄면 캐시된 토큰이 최대 60,000개까지 파괴됩니다.
+                프롬프트. 래치는 보존을 위해 세션 중간 토글을 희생합니다.
+                캐시.
               </motion.div>
             )}
           </AnimatePresence>
@@ -1052,10 +1052,10 @@ export default function PromptCacheArchitecture({ className }: Props) {
                   lineHeight: 1.5,
                 }}
               >
-                <strong>Cache invalidation!</strong> Adding tools mid-session
-                changes the sorted tool list in the stable prefix. Everything
-                after the change point is a cache miss. ~
-                {formatTokens(cachedTokens)} tokens must be reprocessed.
+                <strong>캐시 무효화!</strong> 세션 중간에 도구 추가
+                안정적인 접두사에서 정렬된 도구 목록을 변경합니다. 모든 것
+                변경 지점 이후에는 캐시 미스가 발생합니다. ~
+                {formatTokens(cachedTokens)} 토큰을 다시 처리해야 합니다.
               </motion.div>
             )}
           </AnimatePresence>

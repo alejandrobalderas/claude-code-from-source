@@ -45,46 +45,46 @@ const normalSteps: SequenceStep[] = [
     id: 1,
     from: "loop",
     to: "factory",
-    label: "createStream(messages)",
+    label: "createStream(메시지)",
     description:
-      "The query loop initiates an API call, passing the full message array and configuration.",
+      "쿼리 루프는 API 호출을 시작하여 전체 메시지 배열과 구성을 전달합니다.",
   },
   {
     id: 2,
     from: "factory",
     to: "factory",
-    label: "Provider dispatch",
-    sublabel: "Direct / Bedrock / Vertex",
+    label: "공급자 파견",
+    sublabel: "직접 / 기반암 / 정점",
     description:
-      "Client factory selects the provider via environment variables. All four SDKs are cast to a uniform Anthropic interface.",
+      "클라이언트 팩토리는 환경 변수를 통해 공급자를 선택합니다. 4개의 SDK는 모두 균일한 Anthropic 인터페이스로 캐스팅되었습니다.",
   },
   {
     id: 3,
     from: "factory",
     to: "api",
-    label: "Headers + system prompt",
-    sublabel: "beta headers, sticky latches, cache_control",
+    label: "헤더 + 시스템 프롬프트",
+    sublabel: "베타 헤더, 고정 래치, 캐시 제어",
     description:
-      "Beta headers assembled with sticky latches (once set to true, never reverts). System prompt split at the dynamic boundary for optimal caching.",
+      "끈끈한 래치로 조립된 베타 헤더(한 번 true로 설정되면 되돌릴 수 없음) 최적의 캐싱을 위해 동적 경계에서 시스템 프롬프트 분할.",
   },
   {
     id: 4,
     from: "api",
     to: "cache",
-    label: "Cache prefix check",
-    sublabel: "50-70K token prefix",
+    label: "캐시 접두사 확인",
+    sublabel: "50-70K 토큰 접두사",
     description:
-      "Server checks if the stable prompt prefix matches a cached entry. Static sections get global scope; dynamic sections get per-session scope.",
+      "서버는 안정적인 프롬프트 접두사가 캐시된 항목과 일치하는지 확인합니다. 정적 섹션은 전역 범위를 갖습니다. 동적 섹션은 세션별 범위를 갖습니다.",
     highlight: "cache",
   },
   {
     id: 5,
     from: "cache",
     to: "api",
-    label: "Cache HIT",
-    sublabel: "Saved ~$0.12 on 60K tokens",
+    label: "캐시 적중",
+    sublabel: "60,000개 토큰에서 ~$0.12 절약",
     description:
-      "Cache hit on the static prefix. The server skips reprocessing 50-70K tokens of system prompt and early conversation history.",
+      "정적 접두사에 캐시 적중이 발생했습니다. 서버는 시스템 프롬프트 및 초기 대화 기록의 50-70K 토큰 재처리를 건너뜁니다.",
     highlight: "cache",
     tokens: 0,
   },
@@ -92,20 +92,20 @@ const normalSteps: SequenceStep[] = [
     id: 6,
     from: "api",
     to: "loop",
-    label: "SSE stream begins",
-    sublabel: "Raw Stream<BetaRawMessageStreamEvent>",
+    label: "SSE 스트림이 시작됩니다",
+    sublabel: "원시 스트림<BetaRawMessageStreamEvent>",
     description:
-      "Response streams back as server-sent events. Uses raw SSE (not SDK's BetaMessageStream) to avoid O(n\u00B2) partial JSON parsing.",
+      "응답은 서버에서 보낸 이벤트로 다시 스트리밍됩니다. O(n²) 부분 JSON 구문 분석을 방지하기 위해 원시 SSE(SDK의 BetaMessageStream 아님)를 사용합니다.",
     tokens: 0,
   },
   {
     id: 7,
     from: "loop",
     to: "loop",
-    label: "Idle watchdog: 90s",
-    sublabel: "Resets on each chunk",
+    label: "유휴 워치독: 90초",
+    sublabel: "각 청크에서 재설정",
     description:
-      "A setTimeout resets on every received chunk. If no chunks arrive for 90 seconds, the stream is aborted and a non-streaming fallback fires.",
+      "setTimeout은 수신된 모든 청크에서 재설정됩니다. 90초 동안 청크가 도착하지 않으면 스트림이 중단되고 비스트리밍 대체가 실행됩니다.",
     highlight: "watchdog",
     tokens: 847,
   },
@@ -113,30 +113,30 @@ const normalSteps: SequenceStep[] = [
     id: 8,
     from: "api",
     to: "loop",
-    label: "Tokens streaming...",
-    sublabel: "content_block_delta events",
+    label: "토큰 스트리밍...",
+    sublabel: "content_block_delta 이벤트",
     description:
-      "Text and tool_use blocks arrive incrementally. The streaming executor can start concurrency-safe tools before the response completes.",
+      "텍스트 및 tool_use 블록은 증분적으로 도착합니다. 스트리밍 실행자는 응답이 완료되기 전에 동시성이 안전한 도구를 시작할 수 있습니다.",
     tokens: 2431,
   },
   {
     id: 9,
     from: "api",
     to: "loop",
-    label: "Stream complete",
-    sublabel: "message_stop event",
+    label: "스트림 완료",
+    sublabel: "message_stop 이벤트",
     description:
-      "The final SSE event arrives. Response is parsed into an AssistantMessage with text blocks and tool_use blocks.",
+      "마지막 SSE 이벤트가 시작됩니다. 응답은 텍스트 블록과 tool_use 블록이 있는 AssistantMessage로 구문 분석됩니다.",
     tokens: 3892,
   },
   {
     id: 10,
     from: "loop",
     to: "loop",
-    label: "Response parsed",
-    sublabel: "AssistantMessage + tool_use blocks",
+    label: "응답이 구문 분석되었습니다.",
+    sublabel: "AssistantMessage + tool_use 블록",
     description:
-      "The loop processes the complete response: extracts tool calls, updates state, checks for errors, and prepares for the next iteration.",
+      "루프는 전체 응답을 처리합니다. 즉, 도구 호출을 추출하고, 상태를 업데이트하고, 오류를 확인하고, 다음 반복을 준비합니다.",
     tokens: 3892,
   },
 ];
@@ -147,10 +147,10 @@ const errorSteps: SequenceStep[] = [
     id: 7,
     from: "api",
     to: "loop",
-    label: "529 Overloaded",
-    sublabel: "Server at capacity",
+    label: "529 과부하",
+    sublabel: "용량이 부족한 서버",
     description:
-      "The API returns a 529 status. The withRetry() generator yields a SystemAPIErrorMessage so the UI can show retry status.",
+      "API는 529 상태를 반환합니다. withRetry() 생성기는 UI가 재시도 상태를 표시할 수 있도록 SystemAPIErrorMessage를 생성합니다.",
     highlight: "error",
     tokens: 0,
   },
@@ -158,10 +158,10 @@ const errorSteps: SequenceStep[] = [
     id: 8,
     from: "loop",
     to: "loop",
-    label: "Backoff: 1s",
-    sublabel: "Attempt 1 of 3",
+    label: "백오프: 1초",
+    sublabel: "3개 중 1개 시도",
     description:
-      "Exponential backoff begins. The retry progress appears as a natural part of the event stream, not a side-channel notification.",
+      "지수 백오프가 시작됩니다. 재시도 진행 상황은 사이드 채널 알림이 아닌 이벤트 스트림의 자연스러운 부분으로 나타납니다.",
     highlight: "retry",
     tokens: 0,
   },
@@ -169,10 +169,10 @@ const errorSteps: SequenceStep[] = [
     id: 9,
     from: "loop",
     to: "api",
-    label: "Retry request",
-    sublabel: "Same parameters",
+    label: "재시도 요청",
+    sublabel: "동일한 매개변수",
     description:
-      "The request is resent with identical parameters. Optionally downgrades fast mode on 529.",
+      "요청이 동일한 매개변수로 다시 전송됩니다. 선택적으로 529에서 빠른 모드를 다운그레이드합니다.",
     highlight: "retry",
     tokens: 0,
   },
@@ -180,9 +180,9 @@ const errorSteps: SequenceStep[] = [
     id: 10,
     from: "api",
     to: "loop",
-    label: "529 again",
-    sublabel: "Still overloaded",
-    description: "Second failure. Backoff interval doubles.",
+    label: "다시 529",
+    sublabel: "여전히 과부하",
+    description: "두 번째 실패. 백오프 간격이 두 배로 늘어납니다.",
     highlight: "error",
     tokens: 0,
   },
@@ -190,10 +190,10 @@ const errorSteps: SequenceStep[] = [
     id: 11,
     from: "loop",
     to: "loop",
-    label: "Backoff: 2s",
-    sublabel: "Attempt 2 of 3",
+    label: "백오프: 2초",
+    sublabel: "2/3 시도",
     description:
-      "Longer wait. The generator yields status events that the UI renders as a loading indicator.",
+      "더 오래 기다리십시오. 생성기는 UI가 로딩 표시기로 렌더링하는 상태 이벤트를 생성합니다.",
     highlight: "retry",
     tokens: 0,
   },
@@ -201,9 +201,9 @@ const errorSteps: SequenceStep[] = [
     id: 12,
     from: "loop",
     to: "api",
-    label: "Retry request",
-    sublabel: "Attempt 3",
-    description: "Final retry attempt with 4s backoff if this fails too.",
+    label: "재시도 요청",
+    sublabel: "시도 3",
+    description: "이것도 실패할 경우 4초 백오프를 사용하여 최종 재시도를 시도합니다.",
     highlight: "retry",
     tokens: 0,
   },
@@ -211,10 +211,10 @@ const errorSteps: SequenceStep[] = [
     id: 13,
     from: "api",
     to: "loop",
-    label: "200 OK -- streaming",
-    sublabel: "Recovery successful",
+    label: "200 OK -- 스트리밍",
+    sublabel: "복구 성공",
     description:
-      "The request succeeds on retry. Normal streaming resumes. The earlier errors were withheld from the consumer.",
+      "재시도 시 요청이 성공합니다. 정상적인 스트리밍이 재개됩니다. 이전 오류는 소비자로부터 보류되었습니다.",
     tokens: 3892,
   },
 ];
@@ -222,10 +222,10 @@ const errorSteps: SequenceStep[] = [
 // --- Participant Layout ---
 
 const participants: { id: Participant; label: string; short: string }[] = [
-  { id: "loop", label: "Query Loop", short: "Loop" },
-  { id: "factory", label: "Client Factory", short: "Factory" },
-  { id: "api", label: "Provider API", short: "API" },
-  { id: "cache", label: "Cache", short: "Cache" },
+  { id: "loop", label: "쿼리 루프", short: "Loop" },
+  { id: "factory", label: "클라이언트 공장", short: "Factory" },
+  { id: "api", label: "공급자 API", short: "API" },
+  { id: "cache", label: "캐시", short: "Cache" },
 ];
 
 const participantX: Record<Participant, number> = {
@@ -429,7 +429,7 @@ export default function APIRequestFlow({
             color: colors.text,
           }}
         >
-          API Request / Response Lifecycle
+          API 요청/응답 수명주기
         </h3>
         <p
           style={{
@@ -439,8 +439,8 @@ export default function APIRequestFlow({
             lineHeight: 1.5,
           }}
         >
-          A single API call traced from the query loop through provider
-          selection, caching, streaming, and error recovery.
+          공급자를 통해 쿼리 루프에서 추적된 단일 API 호출
+          선택, 캐싱, 스트리밍 및 오류 복구.
         </p>
       </div>
 
@@ -469,10 +469,10 @@ export default function APIRequestFlow({
           }}
         >
           {isPlaying
-            ? "\u23F8 Pause"
+            ? "⏸ 일시 정지"
             : currentStep >= steps.length - 1
-              ? "\u21BB Replay"
-              : "\u25B6 Play"}
+              ? "↻ 다시보기"
+              : "▶ 플레이"}
         </button>
 
         <button
@@ -495,7 +495,7 @@ export default function APIRequestFlow({
             fontSize: 13,
           }}
         >
-          Step \u25B6\u258F
+          단계 \u25B6\u258F
         </button>
 
         <button
@@ -511,7 +511,7 @@ export default function APIRequestFlow({
             fontSize: 13,
           }}
         >
-          Reset
+          재설정
         </button>
 
         <label
@@ -532,7 +532,7 @@ export default function APIRequestFlow({
             onChange={(e) => setSimulateError(e.target.checked)}
             style={{ accentColor: colors.red }}
           />
-          Simulate 529 error
+          529 오류 시뮬레이션
         </label>
       </div>
 
@@ -559,7 +559,7 @@ export default function APIRequestFlow({
             gap: 8,
           }}
         >
-          <span style={{ color: colors.textMuted }}>Tokens:</span>
+          <span style={{ color: colors.textMuted }}>토큰:</span>
           <motion.span
             key={tokenCount}
             initial={{ y: -4, opacity: 0 }}
@@ -585,7 +585,7 @@ export default function APIRequestFlow({
               gap: 8,
             }}
           >
-            <span style={{ color: colors.blue }}>Watchdog:</span>
+            <span style={{ color: colors.blue }}>워치독:</span>
             <span
               style={{
                 fontWeight: 700,
@@ -618,7 +618,7 @@ export default function APIRequestFlow({
                 fontWeight: 600,
               }}
             >
-              $ Cache saved ~60K tokens
+              $ 캐시 저장 ~60K 토큰
             </motion.div>
           )}
 
@@ -952,7 +952,7 @@ export default function APIRequestFlow({
                 color: colors.textMuted,
               }}
             >
-              Press Play or Step to begin the API call sequence.
+              API 호출 시퀀스를 시작하려면 재생 또는 단계를 누르세요.
             </div>
           )}
         </div>
@@ -987,7 +987,7 @@ export default function APIRequestFlow({
                 marginBottom: 4,
               }}
             >
-              Step {currentStep + 1}: {steps[currentStep].label}
+              단계 {currentStep + 1}: {steps[currentStep].label}
             </div>
             {steps[currentStep].description}
           </motion.div>

@@ -32,29 +32,29 @@ interface Provider {
 const providers: Provider[] = [
   {
     id: "direct",
-    label: "Direct API",
-    auth: "API Key or OAuth",
+    label: "다이렉트 API",
+    auth: "API 키 또는 OAuth",
     color: "#d97757",
     icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
   },
   {
     id: "bedrock",
-    label: "AWS Bedrock",
-    auth: "AWS Credentials + SSO",
+    label: "AWS 기반암",
+    auth: "AWS 자격 증명 + SSO",
     color: "#f59e0b",
     icon: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
   },
   {
     id: "vertex",
-    label: "Google Vertex AI",
-    auth: "Google Auth",
+    label: "구글 버텍스 AI",
+    auth: "구글 인증",
     color: "#4ade80",
     icon: "M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z",
   },
   {
     id: "foundry",
-    label: "Foundry",
-    auth: "Custom Auth",
+    label: "주조소",
+    auth: "맞춤 인증",
     color: "#a78bfa",
     icon: "M12 3v18m-7-7l7 7 7-7M5 6l7-3 7 3",
   },
@@ -230,7 +230,7 @@ export default function MultiProviderGraph({ className }: Props) {
               marginTop: 4,
             }}
           >
-            Resolves provider, builds SDK client
+            공급자 확인, SDK 클라이언트 빌드
           </div>
         </motion.div>
 
@@ -274,7 +274,7 @@ export default function MultiProviderGraph({ className }: Props) {
               color: colors.text,
             }}
           >
-            Anthropic SDK
+            인류 SDK
           </div>
           <div
             style={{
@@ -283,7 +283,7 @@ export default function MultiProviderGraph({ className }: Props) {
               marginTop: 2,
             }}
           >
-            Unified interface regardless of provider
+            공급자에 관계없이 통합 인터페이스
           </div>
         </motion.div>
 
@@ -327,7 +327,7 @@ export default function MultiProviderGraph({ className }: Props) {
               color: colors.text,
             }}
           >
-            callModel()
+            콜모델()
           </div>
           <div
             style={{
@@ -336,7 +336,7 @@ export default function MultiProviderGraph({ className }: Props) {
               marginTop: 2,
             }}
           >
-            Streaming API request with retries
+            재시도가 포함된 스트리밍 API 요청
           </div>
         </motion.div>
       </motion.div>

@@ -32,29 +32,29 @@ interface Phase {
 const phases: Phase[] = [
   {
     name: "Research",
-    description: "Understand the problem",
-    detail: "Dispatch parallel agents to explore codebase, read docs, analyze patterns",
+    description: "문제를 이해하다",
+    detail: "코드베이스를 탐색하고, 문서를 읽고, 패턴을 분석하기 위해 병렬 에이전트를 파견합니다.",
     icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
     color: "#60a5fa",
   },
   {
     name: "Synthesis",
-    description: "Consolidate findings",
-    detail: "Coordinator reads all research, builds shared understanding, plans approach",
+    description: "조사 결과 통합",
+    detail: "코디네이터는 모든 연구를 읽고 공유된 이해를 구축하며 접근 방식을 계획합니다.",
     icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
     color: "#a78bfa",
   },
   {
     name: "Implementation",
-    description: "Execute the plan",
-    detail: "Workers implement in parallel, coordinator monitors progress via scratchpad",
+    description: "계획을 실행",
+    detail: "작업자는 병렬로 구현하고 코디네이터는 스크래치 패드를 통해 진행 상황을 모니터링합니다.",
     icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
     color: "#d97757",
   },
   {
     name: "Verification",
-    description: "Confirm correctness",
-    detail: "Run tests, check types, verify behavior matches requirements",
+    description: "정확성 확인",
+    detail: "테스트 실행, 유형 확인, 동작이 요구 사항과 일치하는지 확인",
     icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
     color: "#4ade80",
   },
@@ -242,7 +242,7 @@ export default function CoordinatorWorkflow({ className }: Props) {
           fontFamily: "var(--font-mono)",
         }}
       >
-        Coordinator thinks and plans -- workers touch code. &quot;Never delegate understanding.&quot;
+        코디네이터는 생각하고 계획합니다. 작업자는 코드를 만집니다. &amp;quot;N대리자는 이해하지 못합니다.&amp;quot;
       </motion.div>
     </div>
   );

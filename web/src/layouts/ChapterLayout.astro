@@ -29,7 +29,7 @@ const { title, description, chapterNumber, slug, headings, prev, next, part } = 
 const showPartHeader = part && isFirstChapterOfPart(chapterNumber);
 ---
 
-<BaseLayout title={`Ch ${chapterNumber}. ${title} | Claude Code from Source`} description={description}>
+<BaseLayout title={`제${chapterNumber}장. ${title} | 소스로 살펴보는 Claude Code`} description={description}>
   <ReadingProgress />
   <Header />
 
@@ -39,7 +39,7 @@ const showPartHeader = part && isFirstChapterOfPart(chapterNumber);
     <main class="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-8 transition-all duration-200">
       {showPartHeader && (
         <div class="mb-8 pb-6 border-b border-[var(--color-border)] dark:border-[#333]">
-          <p class="text-xs font-semibold uppercase tracking-wider text-[var(--color-terracotta)] mb-1">Part {part!.number}</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-[var(--color-terracotta)] mb-1">제{part!.number}부</p>
           <h2 class="text-2xl font-bold text-[var(--color-charcoal)] dark:text-[var(--color-cream)] font-[var(--font-serif)]">{part!.title}</h2>
           <p class="text-sm italic text-[var(--color-muted)] mt-2">{part!.epigraph}</p>
         </div>

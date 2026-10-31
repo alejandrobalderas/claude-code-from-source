@@ -34,38 +34,38 @@ interface HookType {
 // --- Data ---
 
 const skillSources: SkillSource[] = [
-  { id: 1, name: "Managed (Policy)", priority: 1, location: "<MANAGED_PATH>/.claude/skills/", trust: "Enterprise" },
+  { id: 1, name: "관리형(정책)", priority: 1, location: "<MANAGED_PATH>/.claude/skills/", trust: "Enterprise" },
   { id: 2, name: "User", priority: 2, location: "~/.claude/skills/", trust: "User" },
   { id: 3, name: "Project", priority: 3, location: ".claude/skills/", trust: "Project" },
-  { id: 4, name: "Additional Dirs", priority: 4, location: "<add-dir>/.claude/skills/", trust: "Varies" },
-  { id: 5, name: "Legacy Commands", priority: 5, location: ".claude/commands/", trust: "Project" },
-  { id: 6, name: "Bundled", priority: 6, location: "Compiled into binary", trust: "Built-in" },
-  { id: 7, name: "MCP", priority: 7, location: "MCP server prompts", trust: "Remote" },
+  { id: 4, name: "추가 디렉토리", priority: 4, location: "<add-dir>/.claude/skills/", trust: "Varies" },
+  { id: 5, name: "레거시 명령", priority: 5, location: ".claude/명령/", trust: "Project" },
+  { id: 6, name: "Bundled", priority: 6, location: "바이너리로 컴파일됨", trust: "Built-in" },
+  { id: 7, name: "MCP", priority: 7, location: "MCP 서버 프롬프트", trust: "Remote" },
 ];
 
 const sampleSkills: SkillCard[] = [
-  { id: "deploy", name: "/deploy", description: "Run deployment pipeline", source: "Project", tokens: 1847, loaded: false },
-  { id: "review", name: "/review", description: "Code review checklist", source: "Project", tokens: 2103, loaded: false },
-  { id: "test", name: "/test", description: "Run test suite with coverage", source: "User", tokens: 956, loaded: false },
-  { id: "db-migrate", name: "/db-migrate", description: "Database migration helper", source: "Project", tokens: 1432, loaded: false },
-  { id: "format", name: "/format", description: "Format and lint code", source: "Bundled", tokens: 734, loaded: false },
-  { id: "git-pr", name: "/git-pr", description: "Create pull request", source: "Bundled", tokens: 1289, loaded: false },
-  { id: "security", name: "/security", description: "Security audit checklist", source: "Managed", tokens: 2456, loaded: false },
-  { id: "docs", name: "/docs", description: "Generate documentation", source: "User", tokens: 1678, loaded: false },
-  { id: "refactor", name: "/refactor", description: "Refactoring patterns", source: "MCP", tokens: 1923, loaded: false },
-  { id: "debug", name: "/debug", description: "Debugging workflow", source: "Bundled", tokens: 867, loaded: false },
-  { id: "perf", name: "/perf", description: "Performance profiling", source: "Project", tokens: 1544, loaded: false },
-  { id: "api", name: "/api", description: "API design patterns", source: "User", tokens: 2011, loaded: false },
-  { id: "ci", name: "/ci", description: "CI/CD configuration", source: "Project", tokens: 1156, loaded: false },
-  { id: "lint", name: "/lint", description: "Custom lint rules", source: "Legacy", tokens: 623, loaded: false },
-  { id: "scaffold", name: "/scaffold", description: "Project scaffolding", source: "MCP", tokens: 1789, loaded: false },
+  { id: "deploy", name: "/deploy", description: "배포 파이프라인 실행", source: "Project", tokens: 1847, loaded: false },
+  { id: "review", name: "/review", description: "코드 검토 체크리스트", source: "Project", tokens: 2103, loaded: false },
+  { id: "test", name: "/test", description: "적용 범위를 포함하여 테스트 스위트 실행", source: "User", tokens: 956, loaded: false },
+  { id: "db-migrate", name: "/db-migrate", description: "데이터베이스 마이그레이션 도우미", source: "Project", tokens: 1432, loaded: false },
+  { id: "format", name: "/format", description: "형식 및 린트 코드", source: "Bundled", tokens: 734, loaded: false },
+  { id: "git-pr", name: "/git-pr", description: "풀 요청 생성", source: "Bundled", tokens: 1289, loaded: false },
+  { id: "security", name: "/security", description: "보안 감사 체크리스트", source: "Managed", tokens: 2456, loaded: false },
+  { id: "docs", name: "/docs", description: "문서 생성", source: "User", tokens: 1678, loaded: false },
+  { id: "refactor", name: "/refactor", description: "리팩토링 패턴", source: "MCP", tokens: 1923, loaded: false },
+  { id: "debug", name: "/debug", description: "디버깅 작업흐름", source: "Bundled", tokens: 867, loaded: false },
+  { id: "perf", name: "/perf", description: "성능 프로파일링", source: "Project", tokens: 1544, loaded: false },
+  { id: "api", name: "/api", description: "API 디자인 패턴", source: "User", tokens: 2011, loaded: false },
+  { id: "ci", name: "/ci", description: "CI/CD 구성", source: "Project", tokens: 1156, loaded: false },
+  { id: "lint", name: "/lint", description: "맞춤 린트 규칙", source: "Legacy", tokens: 623, loaded: false },
+  { id: "scaffold", name: "/scaffold", description: "프로젝트 비계", source: "MCP", tokens: 1789, loaded: false },
 ];
 
 const hookTypes: HookType[] = [
-  { id: "pre", name: "PreToolUse", description: "Fires before every tool execution. Can block, modify input, auto-approve, or inject context.", exitCodes: "deny > ask > allow precedence" },
-  { id: "post", name: "PostToolUse", description: "Fires after successful execution. Can inject context or replace MCP tool output.", exitCodes: "Context injection only" },
-  { id: "stop", name: "Stop", description: "Fires before Claude concludes. Exit 2 forces continuation -- the most powerful integration point.", exitCodes: "Exit 2 = force continue" },
-  { id: "notification", name: "Notification", description: "Fires on notifications, elicitations, and session events. Cannot block.", exitCodes: "Non-blocking only" },
+  { id: "pre", name: "PreToolUse", description: "모든 도구 실행 전에 발생합니다. 입력을 차단하거나, 수정하거나, 자동 승인하거나, 컨텍스트를 삽입할 수 있습니다.", exitCodes: "거부 > 질문 > 우선순위 허용" },
+  { id: "post", name: "PostToolUse", description: "성공적인 실행 후에 발생합니다. 컨텍스트를 삽입하거나 MCP 도구 출력을 대체할 수 있습니다.", exitCodes: "컨텍스트 주입만 가능" },
+  { id: "stop", name: "Stop", description: "Claude가 결론을 내리기 전에 발생합니다. 출구 2는 지속을 강제합니다 - 가장 강력한 통합 지점입니다.", exitCodes: "2번 출구 = 강제 계속" },
+  { id: "notification", name: "Notification", description: "알림, 유도 및 세션 이벤트 시 발생합니다. 차단할 수 없습니다.", exitCodes: "비차단 전용" },
 ];
 
 // --- Helpers ---
@@ -299,9 +299,9 @@ function SkillsTab({ colors, isDark }: TabProps) {
         }}
       >
         {[
-          { label: "Startup", desc: "Load frontmatter only", active: phase === "startup" },
-          { label: "User types /command", desc: "Skill invoked", active: phase === "invoked" },
-          { label: "Execution", desc: "Full content injected", active: phase === "invoked" && loadedSkillId !== null },
+          { label: "시작", desc: "머리말만 로드", active: phase === "startup" },
+          { label: "사용자 유형/명령", desc: "스킬 발동", active: phase === "invoked" },
+          { label: "실행", desc: "전체 콘텐츠 삽입", active: phase === "invoked" && loadedSkillId !== null },
         ].map((step, i) => (
           <div key={step.label} style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
             <div style={{ textAlign: "center", flex: 1 }}>
@@ -352,7 +352,7 @@ function SkillsTab({ colors, isDark }: TabProps) {
             transition: "background 0.2s",
           }}
         >
-          {phase === "startup" ? "Loading..." : "Simulate Startup"}
+          {phase === "startup" ? "로드 중..." : "시작 시뮬레이션"}
         </button>
         <button
           onClick={() => setShowSources(!showSources)}
@@ -369,7 +369,7 @@ function SkillsTab({ colors, isDark }: TabProps) {
             transition: "all 0.2s",
           }}
         >
-          {showSources ? "Hide" : "Show"} 7 Sources
+          {showSources ? "숨기기" : "쇼"} 7개 소스
         </button>
       </div>
 
@@ -392,7 +392,7 @@ function SkillsTab({ colors, isDark }: TabProps) {
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 12 }}>
-                7 Skill Sources (by priority)
+                7개의 스킬 소스(우선순위별)
               </div>
               <div style={{ display: "grid", gap: 6 }}>
                 {skillSources.map((src) => (
@@ -468,7 +468,7 @@ function SkillsTab({ colors, isDark }: TabProps) {
           }}
         >
           <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: colors.textSecondary }}>
-            Content loaded:
+            로드된 콘텐츠:
           </span>
           <span
             style={{
@@ -481,11 +481,11 @@ function SkillsTab({ colors, isDark }: TabProps) {
             {animatingTokens.toLocaleString()}
           </span>
           <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: colors.textSecondary }}>
-            tokens
+            토큰
           </span>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: colors.textSecondary }}>
-            Only this skill loaded. Other 14 remain as frontmatter only (~0 tokens each).
+            이 스킬만 로드됩니다. 나머지 14개는 머리말로만 남습니다(각각 ~0개 토큰).
           </span>
         </motion.div>
       )}
@@ -564,7 +564,7 @@ function SkillsTab({ colors, isDark }: TabProps) {
                     fontWeight: isLoaded ? 700 : 400,
                   }}
                 >
-                  {isLoaded ? `${skill.tokens} tok` : "0 tok"}
+                  {isLoaded ? `${skill.tokens} tok` : "0톡"}
                 </span>
               </div>
             </motion.button>
@@ -584,9 +584,9 @@ function SkillsTab({ colors, isDark }: TabProps) {
           lineHeight: 1.6,
         }}
       >
-        <strong style={{ color: colors.text }}>Two-phase loading:</strong> At startup, only YAML frontmatter is extracted (name, description, whenToUse) -- near-zero token cost.
-        When invoked, <code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>getPromptForCommand</code> loads the full markdown body, substitutes variables, and executes inline shell commands.
-        Click any skill card to simulate invocation.
+        <strong style={{ color: colors.text }}>2단계 로딩:</strong> 시작 시 YAML 머리말(이름, 설명, whenToUse)만 추출됩니다. 즉, 토큰 비용이 거의 0에 가깝습니다.
+        호출되면, <code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>getPromptFor명령</code> 전체 마크다운 본문을 로드하고, 변수를 대체하고, 인라인 셸 명령을 실행합니다.
+        호출을 시뮬레이션하려면 스킬 카드를 클릭하세요.
       </div>
     </div>
   );
@@ -619,10 +619,10 @@ function HooksTab({ colors, isDark }: TabProps) {
   }, []);
 
   const flowSteps: { id: HookFlowStep; label: string; detail: string }[] = [
-    { id: "pre", label: "PreToolUse", detail: "3 hooks matched, checking..." },
-    { id: "execute", label: "Tool Execution", detail: "Running Bash: git commit -m 'fix'" },
-    { id: "post", label: "PostToolUse", detail: "2 hooks ran, context injected" },
-    { id: "done", label: "Complete", detail: "Result returned to model" },
+    { id: "pre", label: "PreTool사용", detail: "훅 3개 일치, 확인 중..." },
+    { id: "execute", label: "도구 실행", detail: "Bash 실행: git commit -m 'fix'" },
+    { id: "post", label: "PostTool사용", detail: "2개의 훅가 실행되고 컨텍스트가 주입되었습니다." },
+    { id: "done", label: "완료", detail: "결과가 모델로 반환됨" },
   ];
 
   const getFlowIndex = (step: HookFlowStep) => flowSteps.findIndex((s) => s.id === step);
@@ -643,15 +643,15 @@ function HooksTab({ colors, isDark }: TabProps) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <LockIcon size={16} color={colors.accent} />
           <span style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>
-            Snapshot Security Model
+            스냅샷 보안 모델
           </span>
         </div>
         <div style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 1.6 }}>
-          Hook configuration is <strong style={{ color: colors.accent }}>frozen at startup</strong> via{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>captureHooksConfigSnapshot()</code>.
-          Runtime filesystem changes to <code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>.claude/settings.json</code> are ignored.
-          Only explicit channels (<code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>/hooks</code> command or file watcher)
-          can update the snapshot.
+          훅 구성은 <strong style={{ color: colors.accent }}>시작 시 정지됨</strong> 통해{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>CaptureHooksConfigSnapshot()</code>.
+          런타임 파일 시스템이 다음으로 변경됩니다. <code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>.claude/settings.json</code> 무시됩니다.
+          명시적인 채널(<code style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>/hooks</code> 명령 또는 파일 감시자)
+          스냅샷을 업데이트할 수 있습니다.
         </div>
         <div
           style={{
@@ -668,17 +668,17 @@ function HooksTab({ colors, isDark }: TabProps) {
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <LockIcon size={12} color={colors.green} />
-            <span style={{ color: colors.green }}>Startup: config frozen</span>
+            <span style={{ color: colors.green }}>시작: 구성이 동결되었습니다.</span>
           </div>
           <div style={{ color: colors.cardBorder }}>|</div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <BlockIcon />
-            <span style={{ color: colors.red }}>Attacker modifies .claude/settings.json</span>
+            <span style={{ color: colors.red }}>공격자가 .claude/settings.json을 수정합니다.</span>
           </div>
           <div style={{ color: colors.cardBorder }}>|</div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <LockIcon size={12} color={colors.accent} />
-            <span style={{ color: colors.accent }}>executeHooks() reads frozen snapshot</span>
+            <span style={{ color: colors.accent }}>ExecuteHooks()는 고정된 스냅샷을 읽습니다.</span>
           </div>
         </div>
       </div>
@@ -694,7 +694,7 @@ function HooksTab({ colors, isDark }: TabProps) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>Hook Execution Flow</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>훅 실행 흐름</span>
           <button
             onClick={flowStep === "idle" ? runFlow : resetFlow}
             style={{
@@ -709,7 +709,7 @@ function HooksTab({ colors, isDark }: TabProps) {
               cursor: "pointer",
             }}
           >
-            {flowStep === "idle" ? "Run Tool Call" : "Reset"}
+            {flowStep === "idle" ? "도구 호출 실행" : "재설정"}
           </button>
         </div>
 
@@ -796,7 +796,7 @@ function HooksTab({ colors, isDark }: TabProps) {
 
       {/* Hook types grid */}
       <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 12 }}>
-        4 Hook Types
+        4가지 훅 유형
       </div>
       <div
         style={{
@@ -858,13 +858,13 @@ function HooksTab({ colors, isDark }: TabProps) {
         }}
       >
         <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 12 }}>
-          Exit Code Semantics
+          종료 코드 의미
         </div>
         <div style={{ display: "grid", gap: 8 }}>
           {[
-            { code: "0", meaning: "Success -- stdout parsed if JSON", color: colors.green, bg: colors.greenBg, icon: <CheckIcon color={colors.green} /> },
-            { code: "2", meaning: "Blocking error -- stderr shown as system message", color: colors.red, bg: colors.redBg, icon: <BlockIcon /> },
-            { code: "Other", meaning: "Non-blocking warning -- shown to user only", color: colors.yellow, bg: colors.yellowBg, icon: <WarningIcon /> },
+            { code: "0", meaning: "성공 - JSON인 경우 stdout이 구문 분석됨", color: colors.green, bg: colors.greenBg, icon: <CheckIcon color={colors.green} /> },
+            { code: "2", meaning: "차단 오류 - stderr이 시스템 메시지로 표시됨", color: colors.red, bg: colors.redBg, icon: <BlockIcon /> },
+            { code: "Other", meaning: "비차단 경고 - 사용자에게만 표시됩니다.", color: colors.yellow, bg: colors.yellowBg, icon: <WarningIcon /> },
           ].map((ec) => (
             <div
               key={ec.code}
@@ -894,8 +894,8 @@ function HooksTab({ colors, isDark }: TabProps) {
           ))}
         </div>
         <div style={{ fontSize: 11, color: colors.textSecondary, marginTop: 10, lineHeight: 1.5 }}>
-          Exit code 2 was chosen deliberately. Exit code 1 is too common -- any unhandled exception or syntax error produces exit 1.
-          Using exit 2 prevents accidental enforcement.
+          종료 코드 2는 의도적으로 선택되었습니다. 종료 코드 1은 너무 일반적입니다. 처리되지 않은 예외나 구문 오류가 있으면 종료 1이 생성됩니다.
+          2번 출구를 이용하면 우발적인 단속을 방지할 수 있습니다.
         </div>
       </div>
     </div>

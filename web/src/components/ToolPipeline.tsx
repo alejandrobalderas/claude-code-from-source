@@ -38,32 +38,32 @@ const hookRejectionMsg =
 const pipelineSteps: PipelineStep[] = [
   {
     id: 1,
-    name: "Tool Lookup",
-    description: "Find the tool by name in the registry",
+    name: "도구 조회",
+    description: "레지스트리에서 이름으로 도구 찾기",
     detail: (tool) => `Found: ${tool}Tool`,
     canFail: false,
     failDetail: "",
   },
   {
     id: 2,
-    name: "Abort Check",
-    description: "Verify the request hasn't been cancelled",
+    name: "확인 중단",
+    description: "요청이 취소되지 않았는지 확인하세요.",
     detail: () => "Request active",
     canFail: false,
     failDetail: "",
   },
   {
     id: 3,
-    name: "Zod Validation",
-    description: "Validate input against the tool's schema",
+    name: "Zod 검증",
+    description: "도구의 스키마에 대해 입력 유효성을 검사합니다.",
     detail: () => "Schema valid",
     canFail: true,
-    failDetail: "Invalid input: missing required field 'command'",
+    failDetail: "잘못된 입력: 필수 필드 '명령'이 누락되었습니다.",
   },
   {
     id: 4,
-    name: "Semantic Validation",
-    description: "Tool-specific input validation",
+    name: "의미론적 검증",
+    description: "도구별 입력 검증",
     detail: (tool) =>
       tool === "Read" ? "File path resolved" : "Input accepted",
     canFail: false,
@@ -71,8 +71,8 @@ const pipelineSteps: PipelineStep[] = [
   },
   {
     id: 5,
-    name: "Speculative Classifier",
-    description: "Is this tool safe to run speculatively?",
+    name: "추측 분류기",
+    description: "이 도구는 추측에 따라 실행해도 안전한가요?",
     detail: (tool) =>
       tool === "Read" || tool === "Grep"
         ? "Safe: read-only"
@@ -82,43 +82,43 @@ const pipelineSteps: PipelineStep[] = [
   },
   {
     id: 6,
-    name: "Input Backfill",
-    description: "Clone and fill defaults (clone, not mutate)",
+    name: "입력 백필",
+    description: "복제 및 채우기 기본값(변형이 아닌 복제)",
     detail: () => "Defaults applied (immutable clone)",
     canFail: false,
     failDetail: "",
   },
   {
     id: 7,
-    name: "PreToolUse Hooks",
-    description: "Run registered hooks (can block execution)",
+    name: "PreTool훅 사용",
+    description: "등록된 훅 실행(실행을 차단할 수 있음)",
     detail: () => "3 hooks ran, all passed",
     canFail: true,
     failDetail: hookRejectionMsg,
   },
   {
     id: 8,
-    name: "Permission Resolution",
-    description: "Check 7 permission modes + rules",
+    name: "권한 해결",
+    description: "7가지 권한 모드 + 규칙 확인",
     detail: (tool) =>
       tool === "Read" || tool === "Grep"
         ? "auto-allowed (read-only)"
         : "Permission: allowed (auto-edit mode)",
     canFail: true,
-    failDetail: "Permission denied: user rejected Bash execution",
+    failDetail: "권한 거부됨: 사용자가 Bash 실행을 거부했습니다.",
   },
   {
     id: 9,
-    name: "Permission Denied",
-    description: "Handle denial (prompt user or fail)",
+    name: "권한이 거부되었습니다",
+    description: "거부 처리(사용자에게 메시지 표시 또는 실패)",
     detail: () => "Skipped (permission granted)",
     canFail: false,
     failDetail: "",
   },
   {
     id: 10,
-    name: "Tool Execution",
-    description: "Actually run the tool",
+    name: "도구 실행",
+    description: "실제로 도구를 실행해 보세요.",
     detail: (tool) =>
       tool === "Bash"
         ? "Process exited (0)"
@@ -132,32 +132,32 @@ const pipelineSteps: PipelineStep[] = [
   },
   {
     id: 11,
-    name: "Result Mapping",
-    description: "Transform raw output into a tool_result message",
+    name: "결과 매핑",
+    description: "원시 출력을 tool_result 메시지로 변환",
     detail: () => "Mapped to ContentBlock[]",
     canFail: false,
     failDetail: "",
   },
   {
     id: 12,
-    name: "Result Budgeting",
-    description: "Enforce per-tool and per-message size caps",
+    name: "결과예산",
+    description: "도구별 및 메시지별 크기 제한 적용",
     detail: () => "1.2KB / 100KB budget",
     canFail: false,
     failDetail: "",
   },
   {
     id: 13,
-    name: "PostToolUse Hooks",
-    description: "Run post-execution hooks",
+    name: "PostTool훅 사용",
+    description: "실행 후 훅 실행",
     detail: () => "2 hooks ran",
     canFail: false,
     failDetail: "",
   },
   {
     id: 14,
-    name: "Error Classification",
-    description: "Categorize errors for the model",
+    name: "오류 분류",
+    description: "모델의 오류 분류",
     detail: () => "No errors",
     canFail: false,
     failDetail: "",
@@ -335,7 +335,7 @@ export default function ToolPipeline({ className }: Props) {
               fontFamily: "var(--font-mono)",
             }}
           >
-            Tool:
+            도구:
           </label>
           <select
             value={selectedTool}
@@ -394,7 +394,7 @@ export default function ToolPipeline({ className }: Props) {
             disabled={isRunning}
             style={{ accentColor: "#d97757" }}
           />
-          Show failure scenario
+          실패 시나리오 표시
         </label>
 
         <button
@@ -412,7 +412,7 @@ export default function ToolPipeline({ className }: Props) {
             transition: "background 0.2s",
           }}
         >
-          {isRunning ? "Reset" : "Execute"}
+          {isRunning ? "재설정" : "실행"}
         </button>
       </div>
 
@@ -443,11 +443,11 @@ export default function ToolPipeline({ className }: Props) {
           if (isActive) {
             borderColor = colors.active;
             bgColor = isDark
-              ? "rgba(217, 119, 87, 0.08)"
-              : "rgba(217, 119, 87, 0.05)";
+              ? "RGBA(217, 119, 87, 0.08)"
+              : "RGBA(217, 119, 87, 0.05)";
           } else if (isPassed) {
             borderColor = colors.passedBorder;
-            bgColor = isDark ? "rgba(217, 119, 87, 0.06)" : colors.passed;
+            bgColor = isDark ? "RGBA(217, 119, 87, 0.06)" : colors.passed;
           } else if (isFailed) {
             borderColor = colors.failed;
             bgColor = colors.failedBg;
@@ -556,7 +556,7 @@ export default function ToolPipeline({ className }: Props) {
                           : "rgba(135,134,127,0.1)",
                       }}
                     >
-                      can fail
+                      실패할 수 있다
                     </span>
                   )}
                 </div>
@@ -663,16 +663,16 @@ export default function ToolPipeline({ className }: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  Tool execution complete
+                  도구 실행 완료
                 </div>
                 <div style={{ fontSize: 12, color: colors.textSecondary }}>
                   {selectedTool === "Bash"
-                    ? "Process exited with code 0. Output: 12 lines, 384 bytes."
+                    ? "코드 0으로 프로세스가 종료되었습니다. 출력: 12줄, 384바이트."
                     : selectedTool === "Read"
-                      ? "File read successfully. 156 lines returned as tool_result."
+                      ? "파일을 성공적으로 읽었습니다. 156줄이 tool_result로 반환되었습니다."
                       : selectedTool === "Write"
-                        ? "File written. 42 lines, diff applied to conversation."
-                        : "Search complete. 7 matches across 3 files."}
+                        ? "작성된 파일입니다. 42줄, 대화에 차이가 적용됩니다."
+                        : "검색이 완료되었습니다. 3개 파일에서 7개가 일치합니다."}
                 </div>
               </div>
             ) : (
@@ -685,11 +685,11 @@ export default function ToolPipeline({ className }: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  Pipeline halted at step {failAtStep}
+                  파이프라인이 단계에서 중단됨 {failAtStep}
                 </div>
                 <div style={{ fontSize: 12, color: colors.textSecondary }}>
-                  Error classified and returned to the model as a tool_result
-                  with is_error: true
+                  오류가 분류되어 tool_result로 모델에 반환됩니다.
+                  is_error: true
                 </div>
               </div>
             )}

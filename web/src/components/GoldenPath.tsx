@@ -25,11 +25,11 @@ interface SequenceMessage {
 // --- Data ---
 
 const participants: Participant[] = [
-  { id: "user", label: "User / REPL", shortLabel: "User" },
-  { id: "query", label: "Query Loop", shortLabel: "Query" },
-  { id: "model", label: "Model API", shortLabel: "Model" },
-  { id: "executor", label: "StreamingToolExecutor", shortLabel: "Executor" },
-  { id: "tools", label: "Tool System", shortLabel: "Tools" },
+  { id: "user", label: "사용자 / REPL", shortLabel: "User" },
+  { id: "query", label: "쿼리 루프", shortLabel: "Query" },
+  { id: "model", label: "모델 API", shortLabel: "Model" },
+  { id: "executor", label: "스트리밍 도구 실행기", shortLabel: "Executor" },
+  { id: "tools", label: "도구 시스템", shortLabel: "Tools" },
 ];
 
 const sequence: SequenceMessage[] = [
@@ -37,8 +37,8 @@ const sequence: SequenceMessage[] = [
     id: 1,
     from: "user",
     to: "query",
-    label: "UserMessage",
-    detail: "REPL captures input, wraps as UserMessage, feeds to query loop generator",
+    label: "사용자 메시지",
+    detail: "REPL은 입력을 캡처하고, UserMessage로 래핑하고, 쿼리 루프 생성기에 공급합니다.",
     terminalText: '> add error handling to the login function\n\n  Thinking...',
     durationMs: 200,
   },
@@ -46,8 +46,8 @@ const sequence: SequenceMessage[] = [
     id: 2,
     from: "query",
     to: "query",
-    label: "Token count check",
-    detail: "Check context window usage. Auto-compact if conversation exceeds budget",
+    label: "토큰 개수 확인",
+    detail: "컨텍스트 창 사용법을 확인하세요. 대화가 예산을 초과하는 경우 자동 압축",
     terminalText: '> add error handling to the login function\n\n  Thinking... (context: 12,847 tokens)',
     durationMs: 150,
   },
@@ -55,8 +55,8 @@ const sequence: SequenceMessage[] = [
     id: 3,
     from: "query",
     to: "model",
-    label: "callModel() streams request",
-    detail: "System prompt + memory + conversation history sent to Claude API",
+    label: "callModel() 스트림 요청",
+    detail: "시스템 프롬프트 + 메모리 + Claude API로 전송된 대화 내역",
     terminalText: '> add error handling to the login function\n\n  Streaming response...',
     durationMs: 300,
   },
@@ -64,8 +64,8 @@ const sequence: SequenceMessage[] = [
     id: 4,
     from: "model",
     to: "query",
-    label: "Tokens stream back",
-    detail: "Response arrives as streaming chunks: text blocks and tool_use blocks interleaved",
+    label: "토큰이 다시 스트리밍됩니다.",
+    detail: "응답은 스트리밍 청크로 도착합니다. 텍스트 블록과 tool_use 블록이 인터리브됩니다.",
     terminalText: '> add error handling to the login function\n\n  I\'ll read the login function first...',
     durationMs: 400,
   },
@@ -73,8 +73,8 @@ const sequence: SequenceMessage[] = [
     id: 5,
     from: "model",
     to: "executor",
-    label: "Detects tool_use blocks",
-    detail: "StreamingToolExecutor intercepts tool_use blocks mid-stream before response completes",
+    label: "tool_use 블록을 감지합니다.",
+    detail: "StreamingToolExecutor는 응답이 완료되기 전에 tool_use 블록 중간 스트림을 가로챕니다.",
     terminalText: '> add error handling to the login function\n\n  I\'ll read the login function first...\n  [tool_use: Read /src/auth/login.ts]',
     durationMs: 250,
   },
@@ -82,8 +82,8 @@ const sequence: SequenceMessage[] = [
     id: 6,
     from: "executor",
     to: "tools",
-    label: "Start concurrency-safe tools early",
-    detail: "Read-only tools (Read, Grep) start speculatively while model still streams",
+    label: "동시성이 안전한 도구를 일찍 시작하세요",
+    detail: "모델이 계속 스트리밍되는 동안 읽기 전용 도구(Read, Grep)가 예측적으로 시작됩니다.",
     terminalText: '> add error handling to the login function\n\n  Read /src/auth/login.ts (speculative)',
     durationMs: 300,
   },
@@ -91,8 +91,8 @@ const sequence: SequenceMessage[] = [
     id: 7,
     from: "tools",
     to: "executor",
-    label: "Results (may finish before model)",
-    detail: "Tool results queued. If model invalidates the call, results are discarded",
+    label: "결과(모델 이전에 완료될 수 있음)",
+    detail: "도구 결과가 대기열에 추가되었습니다. 모델이 호출을 무효화하면 결과가 삭제됩니다.",
     terminalText: '> add error handling to the login function\n\n  Read /src/auth/login.ts -> 156 lines',
     durationMs: 200,
   },
@@ -100,8 +100,8 @@ const sequence: SequenceMessage[] = [
     id: 8,
     from: "query",
     to: "tools",
-    label: "Execute remaining tools",
-    detail: "Serial/concurrent batch: Validate -> Hooks -> Permissions -> Execute",
+    label: "나머지 도구 실행",
+    detail: "직렬/동시 배치: 유효성 검사 -> 훅 -> 권한 -> 실행",
     terminalText: '> add error handling to the login function\n\n  Edit /src/auth/login.ts (42 lines changed)',
     durationMs: 350,
   },
@@ -109,8 +109,8 @@ const sequence: SequenceMessage[] = [
     id: 9,
     from: "tools",
     to: "query",
-    label: "ToolResultMessages",
-    detail: "Results mapped to ContentBlock[], budgeted to per-tool size caps, appended to history",
+    label: "도구결과메시지",
+    detail: "ContentBlock[]에 매핑된 결과, 도구별 크기 제한에 대한 예산 책정, 기록에 추가됨",
     terminalText: '> add error handling to the login function\n\n  Edit applied. Checking if more changes needed...',
     durationMs: 200,
   },
@@ -118,8 +118,8 @@ const sequence: SequenceMessage[] = [
     id: 10,
     from: "query",
     to: "query",
-    label: "Stop check: loop?",
-    detail: "More tool calls pending? Continue loop. No more calls? Generate final response",
+    label: "확인 중지: 루프?",
+    detail: "추가 도구 요청이 보류 중입니까? 루프를 계속하세요. 더 이상 전화가 없나요? 최종 응답 생성",
     isLoopBack: true,
     terminalText: '> add error handling to the login function\n\n  More tool calls detected -> loop continues',
     durationMs: 200,
@@ -128,8 +128,8 @@ const sequence: SequenceMessage[] = [
     id: 11,
     from: "query",
     to: "model",
-    label: "Loop: updated context",
-    detail: "Tool results appended to message history. Model called again with full context",
+    label: "루프: 업데이트된 컨텍스트",
+    detail: "메시지 기록에 도구 결과가 추가되었습니다. 전체 컨텍스트로 모델이 다시 호출됨",
     isLoopBack: true,
     terminalText: '> add error handling to the login function\n\n  Re-entering query loop with tool results...',
     durationMs: 300,
@@ -138,8 +138,8 @@ const sequence: SequenceMessage[] = [
     id: 12,
     from: "model",
     to: "query",
-    label: "Final text response",
-    detail: "No more tool_use blocks. Model generates final text response to user",
+    label: "최종 문자 응답",
+    detail: "더 이상 tool_use 블록이 없습니다. 모델이 사용자에게 최종 텍스트 응답을 생성합니다.",
     terminalText: '> add error handling to the login function\n\n  Done. Added try-catch blocks with specific\n  error types for auth failures, rate limits,\n  and network errors.',
     durationMs: 400,
   },
@@ -147,8 +147,8 @@ const sequence: SequenceMessage[] = [
     id: 13,
     from: "query",
     to: "user",
-    label: "Yield Messages -> render",
-    detail: "Generator yields final messages. REPL renders markdown to terminal via Ink",
+    label: "수율 메시지 -> 렌더링",
+    detail: "생성기는 최종 메시지를 생성합니다. REPL은 잉크를 통해 마크다운을 터미널로 렌더링합니다.",
     terminalText: '> add error handling to the login function\n\n  Done. Added try-catch blocks with specific\n  error types for auth failures, rate limits,\n  and network errors.\n\n  Files changed: /src/auth/login.ts',
     durationMs: 250,
   },
@@ -316,7 +316,7 @@ export default function GoldenPath({ className }: Props) {
             transition: "background 0.2s",
           }}
         >
-          {mode === "playing" ? "Stop" : mode === "done" ? "Replay" : "Play"}
+          {mode === "playing" ? "중지" : mode === "done" ? "재생" : "플레이"}
         </button>
 
         <button
@@ -336,7 +336,7 @@ export default function GoldenPath({ className }: Props) {
             opacity: mode === "playing" ? 0.5 : 1,
           }}
         >
-          Step
+          단계
         </button>
 
         <button
@@ -354,7 +354,7 @@ export default function GoldenPath({ className }: Props) {
             opacity: mode === "idle" ? 0.5 : 1,
           }}
         >
-          Reset
+          재설정
         </button>
 
         <div style={{ flex: 1, minWidth: 20 }} />
@@ -366,8 +366,8 @@ export default function GoldenPath({ className }: Props) {
             color: colors.textSecondary,
           }}
         >
-          {currentStep >= 0 ? `Step ${currentStep + 1}/${sequence.length}` : "Ready"}{" "}
-          &middot; Total: {TOTAL_DURATION}
+          {currentStep >= 0 ? `Step ${currentStep + 1}/${sequence.length}` : "준비"}{" "}
+          &amp;middot; 합계: {TOTAL_DURATION}
         </span>
       </div>
 
@@ -418,13 +418,7 @@ export default function GoldenPath({ className }: Props) {
         })}
       </div>
 
-      <style>{`
-        .golden-path-short-label { display: none; }
-        @media (max-width: 640px) {
-          .golden-path-full-label { display: none; }
-          .golden-path-short-label { display: inline; }
-        }
-      `}</style>
+      <style>{".golden-path-short-label { 표시: 없음; }\n        @media (최대 너비: 640px) {\n          .golden-path-full-label { 표시: 없음; }\n          .golden-path-short-label { 디스플레이: 인라인; }\n        }"}</style>
 
       {/* Sequence messages */}
       <div style={{ position: "relative" }}>
@@ -569,7 +563,7 @@ export default function GoldenPath({ className }: Props) {
                   color: "#87867f",
                 }}
               >
-                Terminal
+                터미널
               </span>
             </div>
             {/* Terminal body */}
@@ -628,10 +622,10 @@ export default function GoldenPath({ className }: Props) {
                   fontFamily: "var(--font-mono)",
                 }}
               >
-                Golden path complete
+                황금길 완성
               </div>
               <div style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                13 messages, 1 tool loop iteration, {TOTAL_DURATION} end-to-end
+                메시지 13개, 도구 루프 반복 1개, {TOTAL_DURATION} 엔드투엔드
               </div>
             </div>
             <div
@@ -644,7 +638,7 @@ export default function GoldenPath({ className }: Props) {
                 background: isDark ? "rgba(217, 119, 87, 0.15)" : "rgba(217, 119, 87, 0.12)",
               }}
             >
-              Generator yielded Terminal.Success
+              생성기가 Terminal.Success를 생성했습니다.
             </div>
           </motion.div>
         )}

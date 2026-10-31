@@ -20,14 +20,14 @@ const componentTree: ComponentNode = {
   id: "repl",
   name: "REPL",
   description:
-    "Root orchestrator of the entire interactive experience. ~9 sections: imports, feature flags, state management, QueryGuard, message handling, tool permission flow, session management, keybinding setup, and render tree. Compiled by React Compiler throughout.",
+    "전체 대화형 경험의 루트 조정자입니다. ~9개 섹션: 가져오기, 기능 플래그, 상태 관리, QueryGuard, 메시지 처리, 도구 권한 흐름, 세션 관리, 키 바인딩 설정 및 렌더링 트리. 전체적으로 React Compiler로 컴파일되었습니다.",
   lines: "~5,000",
   keyProps: ["bootstrapState", "commands", "history", "sessionId"],
   reRenderTriggers: [
-    "Message stream tokens",
-    "Tool use status changes",
-    "Permission dialog open/close",
-    "Input mode changes",
+    "메시지 스트림 토큰",
+    "도구 사용 상태 변경",
+    "권한 대화상자 열기/닫기",
+    "입력 모드 변경",
   ],
   isHotPath: true,
   children: [
@@ -35,13 +35,13 @@ const componentTree: ComponentNode = {
       id: "message-list",
       name: "VirtualMessageList",
       description:
-        "Renders conversation messages with virtual scrolling. Only mounts messages visible in the viewport plus a buffer. Height cache per message, invalidated on terminal column change. Jump handle for search navigation.",
+        "가상 스크롤을 사용하여 대화 메시지를 렌더링합니다. 뷰포트와 버퍼에 표시되는 메시지만 마운트합니다. 메시지당 높이 캐시가 터미널 열 변경 시 무효화됩니다. 검색 탐색을 위한 점프 핸들입니다.",
       lines: "~800",
       keyProps: ["messages", "scrollTop", "viewportHeight", "searchQuery"],
       reRenderTriggers: [
-        "New message added",
-        "Scroll position change",
-        "Search highlight update",
+        "새 메시지가 추가되었습니다.",
+        "스크롤 위치 변경",
+        "검색 하이라이트 업데이트",
       ],
       isHotPath: true,
       children: [
@@ -49,22 +49,22 @@ const componentTree: ComponentNode = {
           id: "user-message",
           name: "UserMessage",
           description:
-            "User input blocks. Wrapped in MessageRow. Includes the prompt text and any attached images.",
+            "사용자 입력 블록. MessageRow에 래핑됩니다. 프롬프트 텍스트와 첨부된 이미지가 포함됩니다.",
           lines: "~150",
           keyProps: ["content", "images", "index"],
-          reRenderTriggers: ["Mount only (static content)"],
+          reRenderTriggers: ["마운트 전용(정적 콘텐츠)"],
           isHotPath: false,
         },
         {
           id: "assistant-message",
           name: "StreamingMarkdown",
           description:
-            "Model output with streaming markdown. Token caching via module-level LRU (500 entries). Fast-path detection bypasses GFM parser for plain text. Lazy syntax highlighting via React Suspense.",
+            "스트리밍 마크다운을 사용한 모델 출력. 모듈 수준 LRU(500개 항목)를 통한 토큰 캐싱. 빠른 경로 감지는 일반 텍스트에 대해 GFM 파서를 우회합니다. React Suspense를 통한 게으른 구문 강조.",
           lines: "~400",
           keyProps: ["content", "isStreaming", "highlight"],
           reRenderTriggers: [
-            "Every new token (10-50/sec)",
-            "Syntax highlight resolve",
+            "모든 새 토큰(10-50/초)",
+            "구문 강조 표시 해결",
           ],
           isHotPath: true,
         },
@@ -72,12 +72,12 @@ const componentTree: ComponentNode = {
           id: "tool-result",
           name: "ToolUseBlock",
           description:
-            "Tool execution results. Shows tool name, status (running/done/error), and collapsible output. Includes elapsed time counter while running.",
+            "도구 실행 결과. 도구 이름, 상태(실행 중/완료/오류) 및 축소 가능한 출력을 표시합니다. 실행 중 경과 시간 카운터를 포함합니다.",
           lines: "~300",
           keyProps: ["toolName", "status", "result", "elapsed"],
           reRenderTriggers: [
-            "Status change (running->done)",
-            "Elapsed time tick",
+            "상태변경(실행중->완료)",
+            "경과 시간 틱",
           ],
           isHotPath: false,
         },
@@ -85,10 +85,10 @@ const componentTree: ComponentNode = {
           id: "offscreen-freeze",
           name: "OffscreenFreeze",
           description:
-            "Performance optimization: caches React element and freezes subtree when message scrolls above viewport. Prevents timer-based updates (spinners, elapsed counters) in off-screen messages from triggering terminal resets.",
+            "성능 최적화: 메시지가 뷰포트 위로 스크롤되면 React 요소를 캐시하고 하위 트리를 고정합니다. 화면 외부 메시지의 타이머 기반 업데이트(회전자, 경과된 카운터)가 터미널 재설정을 트리거하는 것을 방지합니다.",
           lines: "~60",
           keyProps: ["isVisible", "children"],
-          reRenderTriggers: ["Visibility change only"],
+          reRenderTriggers: ["가시성만 변경됨"],
           isHotPath: false,
         },
       ],
@@ -97,30 +97,30 @@ const componentTree: ComponentNode = {
       id: "input-area",
       name: "PromptInput",
       description:
-        "Text input with keybinding support, vim mode, and autocomplete. Manages insert/normal mode state, cursor position, and multi-line editing.",
+        "키 바인딩 지원, vim 모드 및 자동 완성 기능을 갖춘 텍스트 입력. 삽입/일반 모드 상태, 커서 위치 및 여러 줄 편집을 관리합니다.",
       lines: "~600",
       keyProps: ["mode", "value", "cursorPosition", "vimState"],
-      reRenderTriggers: ["Every keystroke", "Mode change (insert/normal/vim)"],
+      reRenderTriggers: ["모든 키 입력", "모드 변경(insert/normal/vim)"],
       isHotPath: true,
       children: [
         {
           id: "prompt-line",
           name: "PromptLine",
           description:
-            'The ">" prompt with mode indicator. Shows current mode (insert/normal/vim), pending chord prefix, and model name.',
+            "모드 표시기가 있는 \">\" 프롬프트. 현재 모드(insert/normal/vim), 보류 중인 코드 접두사 및 모델 이름을 표시합니다.",
           lines: "~80",
           keyProps: ["mode", "pendingChord", "modelName"],
-          reRenderTriggers: ["Mode change", "Chord state change"],
+          reRenderTriggers: ["모드 변경", "코드 상태 변경"],
           isHotPath: false,
         },
         {
           id: "multi-line-editor",
           name: "MultiLineEditor",
           description:
-            "Text editor component handling multi-line input. Cursor declaration via useDeclaredCursor for IME/CJK support. Word wrap with grapheme boundary awareness.",
+            "여러 줄 입력을 처리하는 텍스트 편집기 구성 요소입니다. IME/CJK 지원을 위해 useDeclaredCursor를 통한 커서 선언. 문자소 경계 인식으로 단어 줄바꿈.",
           lines: "~350",
           keyProps: ["value", "cursor", "selection", "wrap"],
-          reRenderTriggers: ["Every keystroke", "Selection change"],
+          reRenderTriggers: ["모든 키 입력", "선택 변경"],
           isHotPath: true,
         },
       ],
@@ -129,52 +129,52 @@ const componentTree: ComponentNode = {
       id: "status-bar",
       name: "StatusLine",
       description:
-        "Bottom bar with model name, cumulative cost, token count, and background task indicators. Updates on every API response with new token/cost data.",
+        "모델 이름, 누적 비용, 토큰 수 및 백그라운드 작업 표시기가 포함된 하단 표시줄입니다. 새로운 토큰/비용 데이터로 모든 API 응답을 업데이트합니다.",
       lines: "~120",
       keyProps: ["model", "cost", "tokens", "activeTasks"],
-      reRenderTriggers: ["API response (cost/token update)", "Task status change"],
+      reRenderTriggers: ["API 응답(비용/토큰 업데이트)", "작업 상태 변경"],
       isHotPath: false,
     },
     {
       id: "permission-prompt",
       name: "PermissionRequest",
       description:
-        "Modal dialog for tool permission approval. Shows tool name, description, suggested permissions. Handles y/n/a (allow once/deny/always allow) keybindings via Confirmation context.",
+        "도구 권한 승인을 위한 모달 대화 상자입니다. 도구 이름, 설명, 제안된 권한을 표시합니다. 확인 컨텍스트를 통해 y/n/a(한 번 허용/거부/항상 허용) 키 바인딩을 처리합니다.",
       lines: "~250",
       keyProps: ["toolName", "description", "suggestions", "onAllow", "onDeny"],
-      reRenderTriggers: ["New permission request"],
+      reRenderTriggers: ["새로운 권한 요청"],
       isHotPath: false,
     },
     {
       id: "keybinding-setup",
       name: "KeybindingSetup",
       description:
-        "Wires keybinding providers: GlobalKeybindingHandlers, CommandKeybindingHandlers, CancelRequestHandler. Manages context registration and chord interceptor.",
+        "와이어 키 바인딩 공급자: GlobalKeybindingHandlers, CommandKeybindingHandlers, CancelRequestHandler. 컨텍스트 등록 및 코드 인터셉터를 관리합니다.",
       lines: "~200",
       keyProps: ["bindings", "contexts", "handlers"],
-      reRenderTriggers: ["Context activation/deactivation"],
+      reRenderTriggers: ["컨텍스트 활성화/비활성화"],
       isHotPath: false,
     },
     {
       id: "logo-header",
       name: "LogoHeader",
       description:
-        "Session header with Claude branding, model info, and session ID. Rendered once at the top of the message list.",
+        "Claude 브랜딩, 모델 정보, 세션 ID가 포함된 세션 헤더입니다. 메시지 목록 상단에 한 번 렌더링됩니다.",
       lines: "~40",
       keyProps: ["sessionId", "model"],
-      reRenderTriggers: ["Mount only"],
+      reRenderTriggers: ["마운트 전용"],
       isHotPath: false,
     },
   ],
 };
 
 const dataFlowSteps = [
-  { from: "input-area", label: "User types and presses Enter" },
-  { from: "repl", label: "REPL calls query() with message" },
-  { from: "assistant-message", label: "Tokens stream into StreamingMarkdown" },
-  { from: "tool-result", label: "Tool use blocks appear for tool calls" },
-  { from: "status-bar", label: "StatusLine updates cost/token counts" },
-  { from: "message-list", label: "VirtualMessageList scrolls to bottom" },
+  { from: "input-area", label: "사용자 유형을 입력하고 Enter 키를 누릅니다." },
+  { from: "repl", label: "REPL은 메시지와 함께 query()를 호출합니다." },
+  { from: "assistant-message", label: "토큰은 StreamingMarkdown으로 스트리밍됩니다." },
+  { from: "tool-result", label: "도구 호출에 대해 도구 사용 블록이 나타납니다." },
+  { from: "status-bar", label: "StatusLine은 비용/토큰 수를 업데이트합니다." },
+  { from: "message-list", label: "VirtualMessageList가 맨 아래로 스크롤됩니다." },
 ];
 
 // --- Helpers ---
@@ -435,7 +435,7 @@ export default function REPLComponentTree({ className }: Props) {
                 letterSpacing: "0.5px",
               }}
             >
-              hot path
+              핫 패스
             </span>
           )}
 
@@ -525,7 +525,7 @@ export default function REPLComponentTree({ className }: Props) {
               fontWeight: 600,
             }}
           >
-            REPL Component Hierarchy
+            REPL 구성 요소 계층 구조
           </span>
           <span
             style={{
@@ -538,7 +538,7 @@ export default function REPLComponentTree({ className }: Props) {
               fontWeight: 700,
             }}
           >
-            ~5,000 lines
+            ~5,000줄
           </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -559,7 +559,7 @@ export default function REPLComponentTree({ className }: Props) {
               transition: "all 0.2s",
             }}
           >
-            {showDataFlow ? "Stop Flow" : "Show Data Flow"}
+            {showDataFlow ? "흐름 중지" : "데이터 흐름 표시"}
           </button>
           <button
             onClick={() =>
@@ -580,7 +580,7 @@ export default function REPLComponentTree({ className }: Props) {
               cursor: "pointer",
             }}
           >
-            {expandedIds.size > 3 ? "Collapse" : "Expand All"}
+            {expandedIds.size > 3 ? "접기" : "모두 확장"}
           </button>
         </div>
       </div>
@@ -649,11 +649,11 @@ export default function REPLComponentTree({ className }: Props) {
                     marginBottom: 12,
                   }}
                 >
-                  {selectedNode.lines} lines
+                  {selectedNode.lines} 라인
                   {selectedNode.isHotPath && (
                     <span style={{ color: colors.hotPathBorder }}>
                       {" "}
-                      -- hot path
+                      -- 핫 패스
                     </span>
                   )}
                 </div>
@@ -681,7 +681,7 @@ export default function REPLComponentTree({ className }: Props) {
                     marginBottom: 6,
                   }}
                 >
-                  Key Props
+                  주요 소품
                 </div>
                 <div
                   style={{
@@ -720,7 +720,7 @@ export default function REPLComponentTree({ className }: Props) {
                     marginBottom: 6,
                   }}
                 >
-                  Re-render Triggers
+                  재렌더링 트리거
                 </div>
                 <div
                   style={{
@@ -785,7 +785,7 @@ export default function REPLComponentTree({ className }: Props) {
                 marginBottom: 8,
               }}
             >
-              Message Flow: User Input to Rendered Output
+              메시지 흐름: 렌더링된 출력에 대한 사용자 입력
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {dataFlowSteps.map((step, index) => (

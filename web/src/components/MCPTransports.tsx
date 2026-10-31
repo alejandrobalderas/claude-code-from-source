@@ -39,188 +39,188 @@ const transports: TransportType[] = [
     name: "stdio",
     category: "Local",
     categoryColor: "#4ade80",
-    description: "Subprocess with stdin/stdout JSON-RPC. Default when type is omitted.",
-    howItWorks: "Claude Code spawns a child process. JSON-RPC messages are piped through stdin (client to server) and stdout (server to client). No network, no auth.",
-    whenToUse: "Local tools: filesystem access, database queries, custom scripts. Most common transport.",
-    connectionFlow: ["Spawn subprocess", "Pipe stdin/stdout", "Send tools/list", "Ready"],
+    description: "stdin/stdout JSON-RPC를 사용하여 하위 프로세스를 수행합니다. 유형이 생략된 경우 기본값입니다.",
+    howItWorks: "Claude Code는 하위 프로세스를 생성합니다. JSON-RPC 메시지는 stdin(클라이언트에서 서버로) 및 stdout(서버에서 클라이언트로)을 통해 파이프됩니다. 네트워크도 없고 인증도 없습니다.",
+    whenToUse: "로컬 도구: 파일 시스템 액세스, 데이터베이스 쿼리, 사용자 정의 스크립트. 가장 일반적인 교통수단.",
+    connectionFlow: ["생성 하위 프로세스", "파이프 표준 입력/표준 출력", "도구/목록 보내기", "준비"],
   },
   {
     id: "sse",
-    name: "SSE (Server-Sent Events)",
+    name: "SSE(서버 전송 이벤트)",
     category: "Remote",
     categoryColor: "#60a5fa",
-    description: "Legacy HTTP transport. Client POSTs requests, server pushes responses via SSE stream.",
-    howItWorks: "Client establishes an SSE connection for server-to-client messages. Client-to-server messages are sent via HTTP POST. Widely deployed but being superseded.",
-    whenToUse: "Legacy MCP servers deployed before 2025. Still common in the ecosystem.",
-    connectionFlow: ["HTTP GET /sse", "SSE stream established", "POST requests", "SSE responses"],
+    description: "레거시 HTTP 전송. 클라이언트 POST 요청, 서버는 SSE 스트림을 통해 응답을 푸시합니다.",
+    howItWorks: "클라이언트는 서버-클라이언트 메시지에 대한 SSE 연결을 설정합니다. 클라이언트-서버 메시지는 HTTP POST를 통해 전송됩니다. 널리 배포되었지만 대체되었습니다.",
+    whenToUse: "2025년 이전에 배포된 레거시 MCP 서버. 생태계에서는 여전히 일반적입니다.",
+    connectionFlow: ["HTTP GET /sse", "SSE 스트림이 설립되었습니다.", "POST 요청", "SSE 응답"],
   },
   {
     id: "http",
-    name: "Streamable HTTP",
+    name: "스트리밍 가능한 HTTP",
     category: "Remote",
     categoryColor: "#60a5fa",
-    description: "Current spec recommendation. POST with optional SSE for streaming responses.",
-    howItWorks: "Client sends JSON-RPC via HTTP POST. Server can respond with JSON (simple) or upgrade to SSE stream (streaming). Bidirectional via session IDs.",
-    whenToUse: "New remote MCP servers. The current specification recommendation.",
-    connectionFlow: ["POST /mcp", "Response: JSON or SSE", "Session ID tracked", "Retry on -32001"],
+    description: "현재 사양 권장 사항. 스트리밍 응답을 위한 선택적 SSE가 포함된 POST.",
+    howItWorks: "클라이언트는 HTTP POST를 통해 JSON-RPC를 보냅니다. 서버는 JSON(단순)으로 응답하거나 SSE 스트림(스트리밍)으로 업그레이드할 수 있습니다. 세션 ID를 통한 양방향.",
+    whenToUse: "새로운 원격 MCP 서버. 현재 사양 권장사항입니다.",
+    connectionFlow: ["POST /mcp", "응답: JSON 또는 SSE", "세션 ID가 추적되었습니다.", "-32001에 다시 시도"],
   },
   {
     id: "ws",
     name: "WebSocket",
     category: "Remote",
     categoryColor: "#60a5fa",
-    description: "Full-duplex bidirectional communication. Rare in practice.",
-    howItWorks: "Standard WebSocket connection. JSON-RPC messages flow in both directions. Bun and Node have different WebSocket APIs -- runtime split required.",
-    whenToUse: "When bidirectional server-initiated communication is needed. Rare outside IDE integrations.",
-    connectionFlow: ["WS handshake", "Bidirectional channel", "JSON-RPC both ways", "Close on disconnect"],
+    description: "전이중 양방향 통신. 실제로는 드물다.",
+    howItWorks: "표준 WebSocket 연결. JSON-RPC 메시지는 양방향으로 흐릅니다. Bun과 Node에는 서로 다른 WebSocket API가 있습니다. 즉, 런타임 분할이 필요합니다.",
+    whenToUse: "양방향 서버 시작 통신이 필요한 경우. 외부 IDE 통합은 거의 없습니다.",
+    connectionFlow: ["WS 핸드셰이크", "양방향 채널", "JSON-RPC 양방향", "연결이 끊길 때 닫기"],
   },
   {
     id: "sdk",
-    name: "SDK Transport",
+    name: "SDK 전송",
     category: "In-Process",
     categoryColor: "#a78bfa",
-    description: "Control messages over stdin/stdout for SDK-embedded scenarios.",
-    howItWorks: "Used when Claude Code runs as a subprocess via the SDK. Control messages (MCP requests) are multiplexed over the same stdin/stdout used for agent communication.",
-    whenToUse: "When building on top of Claude Code via the official SDK.",
-    connectionFlow: ["SDK spawns Claude Code", "Multiplex control messages", "MCP over stdin/stdout", "Shared channel"],
+    description: "SDK 내장 시나리오에 대해 stdin/stdout을 통해 메시지를 제어합니다.",
+    howItWorks: "Claude Code가 SDK를 통해 하위 프로세스로 실행될 때 사용됩니다. 제어 메시지(MCP 요청)는 에이전트 통신에 사용되는 것과 동일한 stdin/stdout을 통해 다중화됩니다.",
+    whenToUse: "공식 SDK를 통해 Claude Code를 기반으로 구축하는 경우.",
+    connectionFlow: ["SDK가 Claude Code를 생성합니다.", "다중 제어 메시지", "표준 입력/표준 출력을 통한 MCP", "공유 채널"],
   },
   {
     id: "sse-ide",
-    name: "IDE stdio",
+    name: "IDE 스튜디오",
     category: "IDE",
     categoryColor: "#f472b6",
-    description: "VS Code or JetBrains extension communicating via stdio channel.",
-    howItWorks: "IDE extension provides an MCP server through its extension API. Communication uses the IDE's built-in stdio channel rather than network.",
-    whenToUse: "VS Code extensions that expose MCP tools through the IDE's native channel.",
-    connectionFlow: ["IDE extension loads", "stdio channel opened", "MCP handshake", "Tools available"],
+    description: "VS Code 또는 JetBrains 확장 프로그램은 stdio 채널을 통해 통신합니다.",
+    howItWorks: "IDE 확장은 확장 API를 통해 MCP 서버를 제공합니다. 통신은 네트워크 대신 IDE에 내장된 stdio 채널을 사용합니다.",
+    whenToUse: "IDE의 기본 채널을 통해 MCP 도구를 노출하는 VS Code 확장입니다.",
+    connectionFlow: ["IDE 확장 로드", "stdio 채널이 열렸습니다", "MCP 핸드셰이크", "사용 가능한 도구"],
   },
   {
     id: "ws-ide",
-    name: "IDE WebSocket",
+    name: "IDE 웹소켓",
     category: "IDE",
     categoryColor: "#f472b6",
-    description: "IDE remote connection via WebSocket. Runtime-specific (Bun vs Node).",
-    howItWorks: "WebSocket connection to an IDE extension running remotely. Bun's WebSocket accepts proxy/TLS natively; Node requires the ws package.",
-    whenToUse: "Remote IDE connections (e.g., JetBrains Gateway, VS Code Remote).",
-    connectionFlow: ["WS connect to IDE", "Runtime detection", "Bun native / Node ws", "MCP ready"],
+    description: "WebSocket을 통한 IDE 원격 연결. 런타임별(Bun 및 노드).",
+    howItWorks: "원격으로 실행되는 IDE 확장에 대한 WebSocket 연결입니다. Bun의 WebSocket은 기본적으로 프록시/TLS를 허용합니다. 노드에는 ws 패키지가 필요합니다.",
+    whenToUse: "원격 IDE 연결(예: JetBrains Gateway, VS Code Remote)",
+    connectionFlow: ["WS가 IDE에 연결", "런타임 감지", "Bun 기본/노드 ws", "MCP 준비"],
   },
   {
     id: "inprocess",
     name: "In-Process",
     category: "In-Process",
     categoryColor: "#a78bfa",
-    description: "Linked transport pairs. Direct function calls. 63 lines total.",
-    howItWorks: "Two InProcessTransport instances are linked as peers. send() delivers via queueMicrotask() to prevent stack depth issues. close() cascades to peer.",
-    whenToUse: "Same-process MCP servers: Chrome MCP, Computer Use MCP. Zero network overhead.",
-    connectionFlow: ["Create linked pair", "queueMicrotask delivery", "Direct function calls", "Cascade close"],
+    description: "연결된 전송 쌍. 직접 함수 호출. 총 63줄.",
+    howItWorks: "두 개의 InProcessTransport 인스턴스가 피어로 연결됩니다. send()는 queueMicrotask()를 통해 전달하여 스택 깊이 문제를 방지합니다. close()는 피어로 캐스케이드됩니다.",
+    whenToUse: "동일 프로세스 MCP 서버: Chrome MCP, 컴퓨터 사용 MCP. 네트워크 오버헤드가 없습니다.",
+    connectionFlow: ["연결된 쌍 만들기", "대기열마이크로태스크 전달", "직접 함수 호출", "캐스케이드 닫기"],
   },
 ];
 
 const decisionTree: DecisionNode[] = [
   {
     id: "start",
-    question: "Where is your MCP server?",
+    question: "MCP 서버는 어디에 있습니까?",
     options: [
-      { label: "Same machine (local process)", next: "local" },
-      { label: "Remote service (HTTP/WS)", next: "remote" },
-      { label: "Same process (embedded)", next: "inprocess" },
-      { label: "IDE extension", next: "ide" },
+      { label: "동일한 머신(로컬 프로세스)", next: "local" },
+      { label: "원격 서비스(HTTP/WS)", next: "remote" },
+      { label: "동일한 프로세스(내장형)", next: "inprocess" },
+      { label: "IDE 확장", next: "ide" },
     ],
   },
   {
     id: "local",
     question: "",
     options: [],
-    result: "Use stdio -- no network, no auth, just pipes. The default and most common transport.",
+    result: "stdio를 사용하세요. 네트워크도 없고 인증도 없고 파이프만 있습니다. 기본적이고 가장 일반적인 전송입니다.",
     resultTransport: "stdio",
   },
   {
     id: "remote",
-    question: "Does the server need streaming responses?",
+    question: "서버에 스트리밍 응답이 필요합니까?",
     options: [
-      { label: "Yes, streaming needed", next: "remote-stream" },
-      { label: "No, simple request/response", next: "remote-simple" },
-      { label: "Need full bidirectional", next: "remote-bidi" },
+      { label: "예, 스트리밍이 필요합니다", next: "remote-stream" },
+      { label: "아니요, 단순 요청/응답", next: "remote-simple" },
+      { label: "완전한 양방향이 필요함", next: "remote-bidi" },
     ],
   },
   {
     id: "remote-stream",
-    question: "Is the server a legacy (pre-2025) deployment?",
+    question: "서버가 레거시(2025년 이전) 배포입니까?",
     options: [
-      { label: "Yes, legacy server", next: "remote-legacy" },
-      { label: "No, new server", next: "remote-new" },
+      { label: "예, 레거시 서버", next: "remote-legacy" },
+      { label: "아니요, 새 서버입니다.", next: "remote-new" },
     ],
   },
   {
     id: "remote-legacy",
     question: "",
     options: [],
-    result: "Use SSE -- legacy but widely deployed. Server pushes responses via Server-Sent Events.",
+    result: "SSE를 사용하세요. 레거시이지만 널리 배포됩니다. 서버는 서버 전송 이벤트를 통해 응답을 푸시합니다.",
     resultTransport: "sse",
   },
   {
     id: "remote-new",
     question: "",
     options: [],
-    result: "Use Streamable HTTP -- current spec recommendation. POST with optional SSE upgrade.",
+    result: "스트리밍 가능한 HTTP 사용 - 현재 사양 권장 사항. 선택적 SSE 업그레이드가 포함된 POST.",
     resultTransport: "http",
   },
   {
     id: "remote-simple",
     question: "",
     options: [],
-    result: "Use Streamable HTTP -- works for simple JSON responses too. The spec default for remote.",
+    result: "스트리밍 가능한 HTTP 사용 - 간단한 JSON 응답에도 작동합니다. 원격에 대한 사양 기본값입니다.",
     resultTransport: "http",
   },
   {
     id: "remote-bidi",
     question: "",
     options: [],
-    result: "Use WebSocket -- full-duplex bidirectional. Note: Bun/Node runtime split for ws package.",
+    result: "WebSocket 사용 - 전이중 양방향. 참고: ws 패키지에 대한 Bun/Node 런타임 분할.",
     resultTransport: "ws",
   },
   {
     id: "inprocess",
-    question: "Is the server built with the MCP SDK?",
+    question: "서버가 MCP SDK로 구축되어 있습니까?",
     options: [
-      { label: "Yes, SDK-based", next: "inprocess-sdk" },
-      { label: "No, custom server in same process", next: "inprocess-linked" },
+      { label: "예, SDK 기반", next: "inprocess-sdk" },
+      { label: "아니요, 동일한 프로세스에 있는 맞춤 서버입니다.", next: "inprocess-linked" },
     ],
   },
   {
     id: "inprocess-sdk",
     question: "",
     options: [],
-    result: "Use SDK transport -- multiplexes MCP over the existing stdin/stdout channel.",
+    result: "SDK 전송 사용 - 기존 stdin/stdout 채널을 통해 MCP를 다중화합니다.",
     resultTransport: "sdk",
   },
   {
     id: "inprocess-linked",
     question: "",
     options: [],
-    result: "Use InProcessTransport -- linked pairs with queueMicrotask delivery. Only 63 lines.",
+    result: "InProcessTransport를 사용하세요. -- queueMicrotask 전달과 연결된 쌍입니다. 단 63줄.",
     resultTransport: "inprocess",
   },
   {
     id: "ide",
-    question: "Is the IDE local or remote?",
+    question: "IDE가 로컬인가요, 아니면 원격인가요?",
     options: [
-      { label: "Local IDE (VS Code, JetBrains)", next: "ide-local" },
-      { label: "Remote IDE (Gateway, Remote SSH)", next: "ide-remote" },
+      { label: "로컬 IDE(VS Code, JetBrains)", next: "ide-local" },
+      { label: "원격 IDE(게이트웨이, 원격 SSH)", next: "ide-remote" },
     ],
   },
   {
     id: "ide-local",
     question: "",
     options: [],
-    result: "Use IDE stdio -- communicates through the IDE's built-in extension channel.",
+    result: "IDE stdio 사용 - IDE의 내장 확장 채널을 통해 통신합니다.",
     resultTransport: "sse-ide",
   },
   {
     id: "ide-remote",
     question: "",
     options: [],
-    result: "Use IDE WebSocket -- connects remotely. Handles Bun/Node runtime differences.",
+    result: "IDE WebSocket 사용 - 원격으로 연결합니다. Bun/Node 런타임 차이를 처리합니다.",
     resultTransport: "ws-ide",
   },
 ];
@@ -228,27 +228,27 @@ const decisionTree: DecisionNode[] = [
 const oauthSteps: OAuthStep[] = [
   {
     id: 1,
-    title: "Server Returns 401",
-    description: "MCP server requires authentication",
-    detail: "The initial request to the MCP server returns HTTP 401 Unauthorized. This triggers the OAuth discovery chain.",
+    title: "서버가 401을 반환합니다.",
+    description: "MCP 서버에 인증이 필요합니다",
+    detail: "MCP 서버에 대한 초기 요청은 HTTP 401 Unauthorized를 반환합니다. 그러면 OAuth 검색 체인이 트리거됩니다.",
   },
   {
     id: 2,
-    title: "RFC 9728 Discovery",
-    description: "Probe /.well-known/oauth-protected-resource",
-    detail: "GET request to the server's well-known endpoint. If found, extract authorization_servers[0] and proceed to RFC 8414 discovery against that URL.",
+    title: "RFC 9728 발견",
+    description: "/.well-known/oauth-protected-resource 프로브",
+    detail: "서버의 잘 알려진 엔드포인트에 대한 GET 요청입니다. 발견된 경우 Authorization_servers[0]를 추출하고 해당 URL에 대한 RFC 8414 검색을 진행합니다.",
   },
   {
     id: 3,
-    title: "RFC 8414 Metadata",
-    description: "Discover authorization server metadata",
-    detail: "Fetch the OpenID/OAuth metadata document. Contains: token_endpoint, authorization_endpoint, supported scopes, PKCE requirements. Falls back to path-aware probing if not found.",
+    title: "RFC 8414 메타데이터",
+    description: "인증 서버 메타데이터 검색",
+    detail: "OpenID/OAuth 메타데이터 문서를 가져옵니다. 포함: token_endpoint, Authorization_endpoint, 지원되는 범위, PKCE 요구 사항. 찾을 수 없는 경우 경로 인식 프로빙으로 돌아갑니다.",
   },
   {
     id: 4,
-    title: "OAuth 2.0 + PKCE Flow",
-    description: "Browser-based authorization with code verifier",
-    detail: "PKCE (Proof Key for Code Exchange) prevents authorization code interception. Generate code_verifier, compute code_challenge, redirect user to authorize, exchange code for tokens.",
+    title: "OAuth 2.0 + PKCE 흐름",
+    description: "코드 검증기를 사용한 브라우저 기반 인증",
+    detail: "PKCE(코드 교환용 증명 키)는 인증 코드 가로채기를 방지합니다. code_verifier를 생성하고, code_challenge를 계산하고, 사용자를 승인하도록 리디렉션하고, 토큰에 대한 코드를 교환합니다.",
   },
 ];
 
@@ -331,9 +331,9 @@ export default function MCPTransports({ className }: Props) {
         }}
       >
         {([
-          { id: "grid" as View, label: "8 Transports" },
-          { id: "decision" as View, label: "Which Should I Use?" },
-          { id: "oauth" as View, label: "OAuth Discovery" },
+          { id: "grid" as View, label: "8개의 운송수단" },
+          { id: "decision" as View, label: "어느 것을 사용해야 합니까?" },
+          { id: "oauth" as View, label: "OAuth 검색" },
         ]).map((tab) => (
           <button
             key={tab.id}
@@ -577,7 +577,7 @@ function TransportGrid({
                           letterSpacing: "0.05em",
                         }}
                       >
-                        How It Works
+                        작동 방식
                       </div>
                       <div style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 1.6 }}>
                         {t.howItWorks}
@@ -595,7 +595,7 @@ function TransportGrid({
                           letterSpacing: "0.05em",
                         }}
                       >
-                        When To Use
+                        사용 시기
                       </div>
                       <div style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 1.6 }}>
                         {t.whenToUse}
@@ -615,7 +615,7 @@ function TransportGrid({
                       letterSpacing: "0.05em",
                     }}
                   >
-                    Connection Flow
+                    연결 흐름
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                     {t.connectionFlow.map((step, i) => (
@@ -702,7 +702,7 @@ function DecisionTree({
                   fontWeight: i === path.length - 1 ? 600 : 400,
                 }}
               >
-                {node?.result ? "Result" : node?.question?.split("?")[0] || "Start"}
+                {node?.result ? "결과" : node?.question?.split("?")[0] || "Start"}
               </span>
             </div>
           );
@@ -736,7 +736,7 @@ function DecisionTree({
                 marginBottom: 8,
               }}
             >
-              Recommendation
+              추천
             </div>
             <div style={{ fontSize: 15, color: colors.text, lineHeight: 1.6, marginBottom: 16 }}>
               {currentNode.result}
@@ -831,7 +831,7 @@ function DecisionTree({
               cursor: "pointer",
             }}
           >
-            Back
+            뒤로
           </button>
         )}
         {path.length > 1 && (
@@ -849,7 +849,7 @@ function DecisionTree({
               cursor: "pointer",
             }}
           >
-            Start Over
+            다시 시작
           </button>
         )}
       </div>
@@ -873,11 +873,11 @@ function OAuthFlow({
   return (
     <div>
       <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 6 }}>
-        RFC 9728 + RFC 8414 OAuth Discovery Chain
+        RFC 9728 + RFC 8414 OAuth 검색 체인
       </div>
       <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 20, lineHeight: 1.5 }}>
-        When an MCP server returns 401, Claude Code walks through a multi-step discovery chain to find the authorization server.
-        Click each step to see details.
+        MCP 서버가 401을 반환하면 Claude Code는 다단계 검색 체인을 통해 인증 서버를 찾습니다.
+        자세한 내용을 보려면 각 단계를 클릭하세요.
       </div>
 
       <div style={{ position: "relative", paddingLeft: 28 }}>
@@ -1006,14 +1006,14 @@ function OAuthFlow({
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 600, color: colors.text, marginBottom: 8 }}>
-          Fallback Chain
+          폴백 체인
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
           {[
-            { label: "RFC 9728", desc: "Protected Resource" },
-            { label: "RFC 8414", desc: "Auth Server Metadata" },
-            { label: "Path-aware probing", desc: "Against MCP server URL" },
-            { label: "authServerMetadataUrl", desc: "Escape hatch config" },
+            { label: "RFC 9728", desc: "보호된 리소스" },
+            { label: "RFC 8414", desc: "인증 서버 메타데이터" },
+            { label: "경로 인식 프로빙", desc: "MCP 서버 URL에 대해" },
+            { label: "authServerMetadataUrl", desc: "탈출 해치 구성" },
           ].map((step, i) => (
             <div key={step.label} style={{ display: "flex", alignItems: "center" }}>
               <div
@@ -1041,7 +1041,7 @@ function OAuthFlow({
           ))}
         </div>
         <div style={{ fontSize: 11, color: colors.textSecondary, marginTop: 10, lineHeight: 1.5 }}>
-          The <code style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}>authServerMetadataUrl</code> escape hatch exists because some OAuth servers implement neither RFC.
+          는 <code style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}>authServerMetadataUrl</code> 일부 OAuth 서버는 RFC를 구현하지 않기 때문에 탈출 해치가 존재합니다.
         </div>
       </div>
     </div>

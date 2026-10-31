@@ -22,27 +22,27 @@ function useDarkMode() {
 }
 
 const beforeItems = [
-  "TLS socket preconnect",
-  "Environment variable loading",
-  "Fast-path check (--version, --help)",
-  "Subprocess spawning (git status)",
-  "Keychain reads",
+  "TLS 소켓 사전 연결",
+  "환경 변수 로딩",
+  "빠른 경로 확인(--version, --help)",
+  "하위 프로세스 생성(git 상태)",
+  "키체인 읽기",
 ];
 
 const boundaryItems = [
-  "Terms of service acceptance",
-  "Login / authentication",
-  "Trust device prompt",
-  "Setup dialogs (10 total)",
+  "서비스 약관 동의",
+  "로그인/인증",
+  "신뢰 장치 프롬프트",
+  "설정 대화 상자(총 10개)",
 ];
 
 const afterItems = [
-  "Parse CLI arguments",
-  "Resolve configuration",
-  "Load commands, agents, hooks",
-  "Initialize MCP servers",
-  "Build system prompt",
-  "Launch REPL or one-shot",
+  "CLI 인수 구문 분석",
+  "구성 해결",
+  "로드 명령, 에이전트, 훅",
+  "MCP 서버 초기화",
+  "빌드 시스템 프롬프트",
+  "REPL 또는 원샷 실행",
 ];
 
 interface Props {
@@ -101,7 +101,7 @@ export default function TrustBoundarySequence({ className }: Props) {
       >
         {/* Before Trust */}
         <div style={sectionStyle(3)}>
-          <div style={labelStyle}>Before Trust</div>
+          <div style={labelStyle}>신뢰하기 전에</div>
           {beforeItems.map((item, i) => (
             <div
               key={i}
@@ -132,7 +132,7 @@ export default function TrustBoundarySequence({ className }: Props) {
               fontStyle: "italic",
             }}
           >
-            No user data accessed yet
+            아직 액세스된 사용자 데이터가 없습니다.
           </div>
         </div>
 
@@ -183,7 +183,7 @@ export default function TrustBoundarySequence({ className }: Props) {
                 marginBottom: 4,
               }}
             >
-              Trust Boundary
+              신뢰 경계
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               {boundaryItems.map((item, i) => (
@@ -215,7 +215,7 @@ export default function TrustBoundarySequence({ className }: Props) {
 
         {/* After Trust */}
         <div style={sectionStyle(3)}>
-          <div style={labelStyle}>After Trust</div>
+          <div style={labelStyle}>신뢰 후</div>
           {afterItems.map((item, i) => (
             <div
               key={i}
@@ -246,7 +246,7 @@ export default function TrustBoundarySequence({ className }: Props) {
               fontStyle: "italic",
             }}
           >
-            Full initialization proceeds
+            전체 초기화가 진행됩니다
           </div>
         </div>
       </motion.div>

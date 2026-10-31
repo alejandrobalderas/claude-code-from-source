@@ -28,7 +28,7 @@ const currentPart = currentChapterNum ? getPartForChapter(currentChapterNum) : n
             data-part-toggle={part.number}
             class="flex items-center justify-between w-full text-left text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] hover:text-[var(--color-terracotta)] transition-colors py-1"
           >
-            <span>Part {part.number}: {part.title}</span>
+            <span>제{part.number}부: {part.title}</span>
             <svg
               class:list={[
                 'w-3 h-3 transition-transform',
@@ -88,7 +88,7 @@ const currentPart = currentChapterNum ? getPartForChapter(currentChapterNum) : n
       return (
         <div class="mb-4">
           <div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] py-1">
-            Part {part.number}: {part.title}
+            제{part.number}부: {part.title}
           </div>
           <ul class="mt-1 space-y-0.5">
             {partChapters.map((ch) => {

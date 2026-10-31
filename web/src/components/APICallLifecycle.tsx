@@ -40,148 +40,148 @@ interface PromptSection {
 const PROMPT_SECTIONS: PromptSection[] = [
   {
     id: "identity",
-    label: "Identity & Intro",
+    label: "아이덴티티 & 소개",
     tier: "static",
-    description: "System identity, role description, and behavioral foundations",
+    description: "시스템 정체성, 역할 설명 및 행동 기반",
     tokenEstimate: "~200",
     cacheScope: "global",
-    contents: ["You are Claude Code, an expert software engineer...", "Core behavioral rules and safety guidelines"],
+    contents: ["당신은 전문 소프트웨어 엔지니어 클로드 코드입니다...", "핵심 행동 규칙 및 안전 지침"],
   },
   {
     id: "behavior",
-    label: "System Behavior Rules",
+    label: "시스템 동작 규칙",
     tier: "static",
-    description: "Response formatting, safety constraints, refusal patterns",
+    description: "응답 형식, 안전 제약, 거부 패턴",
     tokenEstimate: "~500",
     cacheScope: "global",
-    contents: ["Tool calling conventions", "Error handling rules", "Safety and content policy"],
+    contents: ["도구 호출 규칙", "오류 처리 규칙", "안전 및 콘텐츠 정책"],
   },
   {
     id: "tasks",
-    label: "Doing Tasks Guidance",
+    label: "작업 지침 수행",
     tier: "static",
-    description: "How to approach multi-step tasks, planning, and verification",
+    description: "다단계 작업, 계획, 검증에 접근하는 방법",
     tokenEstimate: "~400",
     cacheScope: "global",
-    contents: ["Task decomposition rules", "Verification requirements", "When to ask vs. proceed"],
+    contents: ["작업 분해 규칙", "확인 요구 사항", "질문해야 할 때와 진행해야 할 때"],
   },
   {
     id: "actions",
-    label: "Actions Guidance",
+    label: "조치 지침",
     tier: "static",
-    description: "Tool definitions, schemas, and usage instructions",
+    description: "도구 정의, 스키마 및 사용 지침",
     tokenEstimate: "~2,000",
     cacheScope: "global",
-    contents: ["Read, Write, Edit, Bash, Glob, Grep tool schemas", "Tool selection heuristics", "File manipulation rules"],
+    contents: ["읽기, 쓰기, 편집, Bash, Glob, Grep 도구 스키마", "도구 선택 휴리스틱", "파일 조작 규칙"],
   },
   {
     id: "tools",
-    label: "Tool Usage Instructions",
+    label: "도구 사용 지침",
     tier: "static",
-    description: "Detailed per-tool usage patterns and constraints",
+    description: "자세한 도구별 사용 패턴 및 제약 사항",
     tokenEstimate: "~3,000",
     cacheScope: "global",
-    contents: ["Git workflow rules", "Search before create patterns", "File editing best practices"],
+    contents: ["Git 워크플로 규칙", "패턴 생성 전 검색", "파일 편집 모범 사례"],
   },
   {
     id: "tone",
-    label: "Tone & Style",
+    label: "톤 & 스타일",
     tier: "static",
-    description: "Output formatting, conciseness rules, communication style",
+    description: "출력 형식, 간결성 규칙, 의사소통 스타일",
     tokenEstimate: "~300",
     cacheScope: "global",
-    contents: ["Concise by default", "No unnecessary preamble", "Technical precision"],
+    contents: ["기본적으로 간결함", "불필요한 서문 없음", "기술적 정밀도"],
   },
   {
     id: "efficiency",
-    label: "Output Efficiency",
+    label: "출력 효율성",
     tier: "static",
-    description: "Rules for minimizing token output while maximizing usefulness",
+    description: "유용성을 극대화하면서 토큰 출력을 최소화하기 위한 규칙",
     tokenEstimate: "~200",
     cacheScope: "global",
-    contents: ["Avoid restating the question", "Only show relevant code", "Batch tool calls"],
+    contents: ["질문을 다시 언급하지 마세요", "관련 코드만 표시", "일괄 도구 호출"],
   },
   {
     id: "boundary",
-    label: "=== DYNAMIC BOUNDARY ===",
+    label: "=== 동적 경계 ===",
     tier: "boundary",
-    description: "Cache breakpoint: everything above is shared globally across all users. Everything below is per-session. Moving sections across this boundary affects fleet-wide cache performance.",
+    description: "캐시 중단점: 위의 모든 내용은 모든 사용자가 전역적으로 공유됩니다. 아래의 모든 내용은 세션별입니다. 이 경계를 넘어 섹션을 이동하면 플릿 전체 캐시 성능에 영향을 미칩니다.",
     tokenEstimate: "marker",
     cacheScope: "break",
-    contents: ["Each conditional below is a runtime bit that would otherwise multiply the Blake2b prefix hash variants (2^N)"],
+    contents: ["아래의 각 조건은 Blake2b 접두사 해시 변형(2^N)을 곱하는 런타임 비트입니다."],
   },
   {
     id: "session",
-    label: "Session Guidance",
+    label: "세션 안내",
     tier: "dynamic",
-    description: "Session-specific behavior overrides and feature flags",
+    description: "세션별 동작 재정의 및 기능 플래그",
     tokenEstimate: "~300",
     cacheScope: "per-session",
-    contents: ["Current permission mode", "Active feature flags", "Session type (REPL vs one-shot)"],
+    contents: ["현재 권한 모드", "활성 기능 플래그", "세션 유형(REPL 대 원샷)"],
   },
   {
     id: "memory",
-    label: "Memory (CLAUDE.md)",
+    label: "메모리(CLAUDE.md)",
     tier: "dynamic",
-    description: "Project-specific instructions loaded from filesystem",
+    description: "파일 시스템에서 로드된 프로젝트별 지침",
     tokenEstimate: "~2,000-50,000",
     cacheScope: "per-session",
-    contents: ["User's CLAUDE.md content", "Project conventions", "Custom rules and preferences"],
+    contents: ["사용자의 CLAUDE.md 콘텐츠", "프로젝트 규칙", "사용자 정의 규칙 및 기본 설정"],
   },
   {
     id: "environment",
-    label: "Environment Info",
+    label: "환경정보",
     tier: "dynamic",
-    description: "Git status, working directory, OS, shell information",
+    description: "Git 상태, 작업 디렉토리, OS, 쉘 정보",
     tokenEstimate: "~500",
     cacheScope: "per-session",
-    contents: ["Git branch, status, recent commits", "Working directory path", "OS and shell version"],
+    contents: ["Git 브랜치, 상태, 최근 커밋", "작업 디렉터리 경로", "OS 및 셸 버전"],
   },
   {
     id: "language",
-    label: "Language Preference",
+    label: "언어 기본 설정",
     tier: "dynamic",
-    description: "User's preferred response language",
+    description: "사용자가 선호하는 응답 언어",
     tokenEstimate: "~50",
     cacheScope: "per-session",
-    contents: ["Respond in the user's language"],
+    contents: ["사용자의 언어로 응답"],
   },
   {
     id: "mcp",
-    label: "MCP Instructions",
+    label: "MCP 지침",
     tier: "dynamic",
-    description: "DANGEROUS: User-specific MCP tool definitions. Disables global cache scope when present because MCP definitions are unique per user.",
+    description: "위험: 사용자별 MCP 도구 정의. MCP 정의는 사용자별로 고유하므로 존재하는 경우 전역 캐시 범위를 비활성화합니다.",
     tokenEstimate: "~1,000-10,000",
     cacheScope: "UNCACHED",
-    contents: ["MCP server tool definitions", "Per-tool instructions", "Server connection details"],
+    contents: ["MCP 서버 도구 정의", "도구별 지침", "서버 연결 세부정보"],
   },
   {
     id: "output-style",
-    label: "Output Style",
+    label: "출력 스타일",
     tier: "dynamic",
-    description: "Session-specific output formatting preferences",
+    description: "세션별 출력 형식 지정 기본 설정",
     tokenEstimate: "~100",
     cacheScope: "per-session",
-    contents: ["Verbose mode settings", "Expanded view preferences"],
+    contents: ["상세 모드 설정", "확장된 보기 기본 설정"],
   },
 ];
 
 const PROVIDER_INFO: Record<Provider, { label: string; authDesc: string; envVar: string; color: string }> = {
   direct: {
-    label: "Direct API",
-    authDesc: "API key or OAuth token",
+    label: "다이렉트 API",
+    authDesc: "API 키 또는 OAuth 토큰",
     envVar: "ANTHROPIC_API_KEY",
     color: "#d97757",
   },
   bedrock: {
-    label: "AWS Bedrock",
-    authDesc: "AWS credentials (IAM role / access keys)",
+    label: "AWS 기반암",
+    authDesc: "AWS 자격 증명(IAM 역할/액세스 키)",
     envVar: "ANTHROPIC_BEDROCK_BASE_URL",
     color: "#ff9900",
   },
   vertex: {
-    label: "Google Vertex AI",
-    authDesc: "Google Auth (service account / ADC)",
+    label: "구글 버텍스 AI",
+    authDesc: "Google 인증(서비스 계정/ADC)",
     envVar: "ANTHROPIC_VERTEX_PROJECT_ID",
     color: "#4285f4",
   },
@@ -195,9 +195,9 @@ interface ToggleFeature {
 }
 
 const TOGGLE_FEATURES: ToggleFeature[] = [
-  { id: "extended-thinking", label: "Extended thinking", default: false, effect: "Adds thinking budget to request body -- changes cache key" },
-  { id: "mcp-tools", label: "MCP tools", default: false, effect: "Adds user-specific tool definitions -- disables global cache scope" },
-  { id: "auto-mode", label: "Auto mode (AFK)", default: false, effect: "Adds beta header -- once latched, stays for session" },
+  { id: "extended-thinking", label: "확장된 사고", default: false, effect: "요청 본문에 생각 예산 추가 - 캐시 키 변경" },
+  { id: "mcp-tools", label: "MCP 도구", default: false, effect: "사용자별 도구 정의 추가 - 전역 캐시 범위 비활성화" },
+  { id: "auto-mode", label: "자동 모드(AFK)", default: false, effect: "베타 헤더 추가 - 일단 래치되면 세션 동안 유지됩니다." },
 ];
 
 // --- Component ---
@@ -308,7 +308,7 @@ export default function APICallLifecycle({ className }: Props) {
             alignSelf: "center",
           }}
         >
-          Provider:
+          제공자:
         </span>
         {(Object.keys(PROVIDER_INFO) as Provider[]).map((provider) => {
           const info = PROVIDER_INFO[provider];
@@ -351,9 +351,9 @@ export default function APICallLifecycle({ className }: Props) {
             color: colors.textSecondary,
           }}
         >
-          Auth: {PROVIDER_INFO[selectedProvider].authDesc} -- env: <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>{PROVIDER_INFO[selectedProvider].envVar}</code>
+          인증: {PROVIDER_INFO[selectedProvider].authDesc} -- 환경: <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>{PROVIDER_INFO[selectedProvider].envVar}</code>
           <div style={{ fontSize: 11, marginTop: 2, opacity: 0.7 }}>
-            All providers are cast to <code style={{ fontSize: 10, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>Anthropic</code> via type erasure -- consumers never branch on provider.
+            모든 공급자는 다음으로 전송됩니다. <code style={{ fontSize: 10, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>Anthropic</code> 유형 삭제를 통해 - 소비자는 공급자를 분기하지 않습니다.
           </div>
         </motion.div>
       </AnimatePresence>
@@ -382,7 +382,7 @@ export default function APICallLifecycle({ className }: Props) {
               marginBottom: 10,
             }}
           >
-            System Prompt Structure
+            시스템 프롬프트 구조
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -542,7 +542,7 @@ export default function APICallLifecycle({ className }: Props) {
                 marginBottom: 8,
               }}
             >
-              Cache Status
+              캐시 상태
             </div>
             <div
               style={{
@@ -561,12 +561,12 @@ export default function APICallLifecycle({ className }: Props) {
                 }}
               />
               <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: colors.text }}>
-                {globalCacheDisabled ? "Global cache disabled" : "Global cache active"}
+                {globalCacheDisabled ? "글로벌 캐시가 비활성화되었습니다." : "글로벌 캐시 활성"}
               </span>
             </div>
             <div style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 1.5 }}>
               {globalCacheDisabled
-                ? "MCP tool definitions are user-specific. They fragment the global cache into millions of unique prefixes."
+                ? "MCP 도구 정의는 사용자마다 다릅니다. 글로벌 캐시를 수백만 개의 고유한 접두사로 조각화합니다."
                 : `Static sections (~${staticTokens.toLocaleString()} tokens) are cached across all Claude Code users, sessions, and organizations.`}
             </div>
           </div>
@@ -589,7 +589,7 @@ export default function APICallLifecycle({ className }: Props) {
                 marginBottom: 8,
               }}
             >
-              Feature Toggles
+              기능 토글
             </div>
 
             {TOGGLE_FEATURES.map((feature) => {
@@ -666,15 +666,15 @@ export default function APICallLifecycle({ className }: Props) {
             }}
           >
             <div style={{ fontWeight: 600, color: colors.terracotta, marginBottom: 4, fontFamily: "var(--font-mono)", fontSize: 10 }}>
-              THE 2^N PROBLEM
+              2^N 문제
             </div>
-            Each conditional before the boundary doubles the number of unique global cache entries.
+            경계 앞의 각 조건은 고유한 전역 캐시 항목 수를 두 배로 늘립니다.
             {Object.values(features).filter(Boolean).length > 0 && (
               <span style={{ color: colors.terracotta, fontWeight: 600 }}>
-                {" "}Current active toggles: {Object.values(features).filter(Boolean).length} = {Math.pow(2, Object.values(features).filter(Boolean).length)} cache variants.
+                {" "}현재 활성 토글: {Object.values(features).filter(Boolean).length} = {Math.pow(2, Object.values(features).filter(Boolean).length)} 캐시 변형.
               </span>
             )}
-            {" "}Static sections are deliberately unconditional to prevent cache fragmentation.
+            {" "}정적 섹션은 캐시 조각화를 방지하기 위해 의도적으로 무조건적입니다.
           </div>
 
           {/* Legend */}
@@ -688,19 +688,19 @@ export default function APICallLifecycle({ className }: Props) {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
               <span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: colors.staticBg, border: `1px solid ${colors.staticBorder}` }} />
-              <span>Static (cached globally)</span>
+              <span>정적(전역적으로 캐시됨)</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
               <span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: colors.boundaryBg, border: `1px solid ${colors.boundaryBorder}` }} />
-              <span>Dynamic boundary</span>
+              <span>동적 경계</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
               <span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: colors.dynamicBg, border: `1px solid ${colors.dynamicBorder}` }} />
-              <span>Dynamic (per-session)</span>
+              <span>동적(세션별)</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: colors.uncachedBg, border: `1px solid ${colors.uncachedBorder}` }} />
-              <span>Uncached (DANGEROUS)</span>
+              <span>캐시되지 않음(위험)</span>
             </div>
           </div>
 
@@ -713,7 +713,7 @@ export default function APICallLifecycle({ className }: Props) {
               fontStyle: "italic",
             }}
           >
-            Hover on sections for details
+            자세한 내용을 보려면 섹션에 마우스를 올리세요.
           </div>
         </div>
       </div>
@@ -739,9 +739,9 @@ export default function APICallLifecycle({ className }: Props) {
           }}
         >
           <div style={{ fontWeight: 600, color: colors.staticAccent, marginBottom: 4 }}>
-            systemPromptSection()
+            시스템프롬프트섹션()
           </div>
-          Safe. Content goes before the boundary. Cached globally. No runtime conditionals allowed.
+          안전합니다. 콘텐츠가 경계보다 먼저 이동합니다. 전역적으로 캐시됩니다. 런타임 조건은 허용되지 않습니다.
         </div>
         <div
           style={{
@@ -757,7 +757,7 @@ export default function APICallLifecycle({ className }: Props) {
           <div style={{ fontWeight: 600, color: colors.uncachedAccent, marginBottom: 4 }}>
             DANGEROUS_uncachedSystemPromptSection(_reason)
           </div>
-          Cache-breaking. Requires a reason string. The _reason param is mandatory documentation in source.
+          캐시 파괴. 이유 문자열이 필요합니다. _reason 매개변수는 소스의 필수 문서입니다.
         </div>
       </div>
     </div>

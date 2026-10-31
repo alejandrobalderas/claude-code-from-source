@@ -18,85 +18,85 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 const nodes: GraphNode[] = [
   {
     id: "query-loop",
-    label: "Query Loop",
+    label: "쿼리 루프",
     description:
-      "The async generator that drives everything. Streams model output, executes tools, manages context.",
+      "모든 것을 구동하는 비동기 생성기입니다. 모델 출력을 스트리밍하고, 도구를 실행하고, 컨텍스트를 관리합니다.",
     href: "/ch05-agent-loop/",
     primary: true,
   },
   {
     id: "tool-system",
-    label: "Tool System",
+    label: "도구 시스템",
     description:
-      "40+ tools with a 14-step execution pipeline. Permission system, result budgeting.",
+      "14단계 실행 파이프라인을 갖춘 40개 이상의 도구. 허가 시스템, 결과 예산 책정.",
     href: "/ch06-tools/",
     primary: true,
   },
   {
     id: "tasks",
-    label: "Tasks",
+    label: "작업",
     description:
-      "Sub-agents and background work. State machine: pending, running, completed/failed.",
+      "하위 에이전트 및 백그라운드 작업. 상태 머신: 보류 중, 실행 중, 완료/실패.",
     href: "/ch10-coordination/",
     primary: true,
   },
   {
     id: "state-layer",
-    label: "State Layer",
+    label: "상태 레이어",
     description:
-      "Two-tier: Bootstrap STATE (mutable singleton) + AppState (reactive store).",
+      "2계층: Bootstrap STATE(변경 가능한 싱글톤) + AppState(반응형 저장소)",
     href: "/ch03-state/",
     primary: true,
   },
   {
     id: "hooks",
-    label: "Hooks",
+    label: "훅",
     description:
-      "27 lifecycle events. Config frozen at startup. Can block tools, modify results, force continuation.",
+      "27개의 라이프사이클 이벤트. 시작 시 구성이 고정되었습니다. 도구를 차단하고, 결과를 수정하고, 강제로 계속할 수 있습니다.",
     href: "/ch12-extensibility/",
     primary: true,
   },
   {
     id: "memory",
-    label: "Memory",
+    label: "메모리",
     description:
-      "File-based with LLM-powered recall. 4 types: user, feedback, project, reference.",
+      "LLM 기반 리콜을 통한 파일 기반. 4가지 유형: 사용자, 피드백, 프로젝트, 참조.",
     href: "/ch11-memory/",
     primary: true,
   },
   {
     id: "user",
-    label: "User",
-    description: "The developer interacting with the CLI.",
+    label: "사용자",
+    description: "CLI와 상호 작용하는 개발자.",
     primary: false,
   },
   {
     id: "repl",
     label: "REPL",
-    description: "The terminal interface. Handles input, rendering, permissions.",
+    description: "터미널 인터페이스. 입력, 렌더링, 권한을 처리합니다.",
     href: "/ch13-terminal-ui/",
     primary: false,
   },
 ];
 
 const links: GraphLink[] = [
-  { source: "user", target: "repl", label: "input" },
-  { source: "repl", target: "query-loop", label: "prompts" },
-  { source: "query-loop", target: "tool-system", label: "tool calls" },
-  { source: "tool-system", target: "query-loop", label: "tool results" },
-  { source: "query-loop", target: "tasks", label: "spawns" },
-  { source: "tasks", target: "query-loop", label: "own query loop" },
-  { source: "tasks", target: "repl", label: "bubble permissions" },
-  { source: "query-loop", target: "hooks", label: "fires events" },
+  { source: "user", target: "repl", label: "입력" },
+  { source: "repl", target: "query-loop", label: "프롬프트" },
+  { source: "query-loop", target: "tool-system", label: "도구 호출" },
+  { source: "tool-system", target: "query-loop", label: "도구 결과" },
+  { source: "query-loop", target: "tasks", label: "산란" },
+  { source: "tasks", target: "query-loop", label: "자신의 쿼리 루프" },
+  { source: "tasks", target: "repl", label: "풍선 권한" },
+  { source: "query-loop", target: "hooks", label: "화재 사건" },
   { source: "hooks", target: "tool-system", label: "PreToolUse / PostToolUse" },
-  { source: "hooks", target: "query-loop", label: "Stop hooks" },
-  { source: "query-loop", target: "state-layer", label: "reads/writes" },
-  { source: "state-layer", target: "query-loop", label: "bootstrap singleton" },
-  { source: "state-layer", target: "repl", label: "reactive store" },
+  { source: "hooks", target: "query-loop", label: "훅 중지" },
+  { source: "query-loop", target: "state-layer", label: "읽기/쓰기" },
+  { source: "state-layer", target: "query-loop", label: "부트스트랩 싱글톤" },
+  { source: "state-layer", target: "repl", label: "반응 저장소" },
   {
     source: "memory",
     target: "query-loop",
-    label: "injected at session start",
+    label: "세션 시작 시 주입",
   },
 ];
 
@@ -537,7 +537,7 @@ export default function ArchitectureExplorer({ className }: Props) {
                 fontFamily: "var(--font-mono)",
               }}
             >
-              Click to read chapter
+              장을 읽으려면 클릭하세요
             </div>
           )}
         </div>
@@ -565,7 +565,7 @@ export default function ArchitectureExplorer({ className }: Props) {
               display: "inline-block",
             }}
           />
-          Core abstraction
+          핵심 추상화
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span
@@ -577,9 +577,9 @@ export default function ArchitectureExplorer({ className }: Props) {
               display: "inline-block",
             }}
           />
-          Interface
+          인터페이스
         </span>
-        <span>Drag nodes to explore. Hover for details. Click to read.</span>
+        <span>탐색하려면 노드를 드래그하세요. 자세한 내용을 보려면 마우스를 가져가세요. 읽으려면 클릭하세요.</span>
       </div>
     </div>
   );

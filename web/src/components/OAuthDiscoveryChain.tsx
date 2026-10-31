@@ -55,57 +55,57 @@ interface ChainStep {
 const chainSteps: ChainStep[] = [
   {
     number: 1,
-    title: "Authentication Required",
-    description: "Server rejects unauthenticated request",
+    title: "인증 필요",
+    description: "서버가 인증되지 않은 요청을 거부합니다.",
     method: "ANY",
     url: "/tools/list",
-    result: "401 Unauthorized",
+    result: "401 무단",
     accent: "#ef4444",
     phase: "discovery",
   },
   {
     number: 2,
-    title: "Resource Discovery",
-    description: "RFC 9728 probe for protected resource metadata",
+    title: "자원 발견",
+    description: "보호된 리소스 메타데이터에 대한 RFC 9728 프로브",
     method: "GET",
     url: "/.well-known/oauth-protected-resource",
-    result: '{ "authorization_servers": ["https://auth.example.com"] }',
+    result: "{ \"authorization_servers\": [\"https://auth.example.com\"] }",
     accent: "#60a5fa",
     phase: "discovery",
   },
   {
     number: 3,
-    title: "Extract Auth Server",
-    description: "Pick first authorization server from the list",
-    result: "authorization_servers[0]",
+    title: "인증 서버 추출",
+    description: "목록에서 첫 번째 인증 서버를 선택하세요.",
+    result: "인증_서버[0]",
     accent: "#60a5fa",
     phase: "discovery",
   },
   {
     number: 4,
-    title: "Server Configuration",
-    description: "RFC 8414 OpenID discovery for endpoints",
+    title: "서버 구성",
+    description: "엔드포인트에 대한 RFC 8414 OpenID 검색",
     method: "GET",
     url: "/.well-known/openid-configuration",
-    result: '{ "token_endpoint", "authorization_endpoint", ... }',
+    result: "{ \"토큰_엔드포인트\", \"승인_엔드포인트\", ... }",
     accent: "#c084fc",
     phase: "configuration",
   },
   {
     number: 5,
-    title: "PKCE Challenge",
-    description: "Generate cryptographic code verifier and challenge",
-    result: "code_verifier = random(43) \u2192 code_challenge = SHA256(verifier)",
+    title: "PKCE 챌린지",
+    description: "암호화 코드 검증기 및 챌린지 생성",
+    result: "code_verifier = 무작위(43) → code_challenge = SHA256(검증기)",
     accent: "#22c55e",
     phase: "exchange",
   },
   {
     number: 6,
-    title: "Authorization + Token Exchange",
-    description: "Redirect user to authorize, then exchange code for token",
+    title: "승인 + 토큰 교환",
+    description: "사용자를 승인하도록 리디렉션한 다음 코드를 토큰으로 교환하세요.",
     method: "POST",
     url: "/oauth/token",
-    result: '{ "access_token": "eyJ..." }',
+    result: "{ \"access_token\": \"eyJ...\" }",
     accent: "#22c55e",
     phase: "exchange",
   },
@@ -114,9 +114,9 @@ const chainSteps: ChainStep[] = [
 // --- Phase labels ---
 
 const phaseLabels: Record<string, { label: string; color: string }> = {
-  discovery: { label: "Discovery", color: "#60a5fa" },
-  configuration: { label: "Configuration", color: "#c084fc" },
-  exchange: { label: "Token Exchange", color: "#22c55e" },
+  discovery: { label: "발견", color: "#60a5fa" },
+  configuration: { label: "구성", color: "#c084fc" },
+  exchange: { label: "토큰 교환", color: "#22c55e" },
 };
 
 // --- Down Arrow ---
@@ -360,7 +360,7 @@ export default function OAuthDiscoveryChain({
           fontFamily: "var(--font-mono)",
         }}
       >
-        OAuth 2.0 + PKCE Discovery Chain
+        OAuth 2.0 + PKCE 디스커버리 체인
       </motion.div>
 
       {chainSteps.map((step, i) => {

@@ -1,133 +1,138 @@
-# Claude Code from Source
+# 소스로 살펴보는 Claude Code
 
-**Architecture, Patterns & Internals of Anthropic's AI Coding Agent**
+**Anthropic AI 코딩 에이전트의 아키텍처, 패턴, 내부 구조 — 한국어판**
+
+[English README](./README.en.md) · [영어 원문](./book/en/) · [원저자 저장소](https://github.com/alejandrobalderas/claude-code-from-source)
+
+> 이 한국어판은 README, 18개 장의 본문, 웹사이트의 설명과 탐색 화면을 한글화했습니다. 본문과 대화형 다이어그램 설명에는 기계 번역이 사용되었으며 추가 교정이 필요할 수 있습니다. 코드 예제, 명령어, 식별자와 Mermaid 원본은 기술적 의미를 보존하기 위해 유지했습니다.
 
 <p align="center">
-  <img src="./web/public/cover.jpg" alt="Claude Code from Source — Book Cover" width="400" />
-  <br/><br/>
-  <a href="https://claude-code-from-source.com"><strong>Read online at claude-code-from-source.com</strong></a>
+  <img src="./web/public/cover.jpg" alt="소스로 살펴보는 Claude Code 책 표지" width="400" />
 </p>
 
----
+> **이 저장소는 순수하게 교육 목적으로 만들어졌습니다.** Claude Code의 소스 코드는 단 한 줄도 포함하지 않습니다. 모든 코드 블록은 아키텍처 패턴을 설명하기 위해 직접 작성한 의사 코드입니다. 목적은 독점 소프트웨어를 복제하거나 재배포하는 것이 아니라, 실제 서비스에 사용되는 AI 에이전트가 어떻게 만들어지는지 엔지니어가 이해하도록 돕는 것입니다.
 
-> **This repository is purely educational.** It contains no source code from Claude Code — not a single line. Every code block is original pseudocode written to illustrate architectural patterns. The goal is to help engineers understand how production AI agents are built, not to reproduce or redistribute proprietary software.
+Anthropic이 Claude Code를 npm에 배포했을 때, `.js.map` 소스 맵의 `sourcesContent` 필드에는 원본 TypeScript 전체가 포함되어 있었습니다. 이 책은 해당 아키텍처를 연구하고, 그 안의 패턴과 절충점, 설계 결정을 엔지니어라면 누구나 배울 수 있는 기술 서술로 정리한 결과물입니다.
 
----
+**총 7부, 18장으로 구성되어 있으며, 인쇄본으로 환산하면 약 400쪽입니다.**
 
-When Anthropic shipped Claude Code on npm, the `.js.map` source maps contained a `sourcesContent` field with the full original TypeScript. This book is the result of studying that architecture and distilling the patterns, trade-offs, and design decisions into a technical narrative that any engineer can learn from.
+각 장은 여러 깊이로 읽을 수 있게 구성했습니다. 기술 리더를 위한 서술, 구현 담당자를 위한 심층 분석, 그리고 자신의 시스템에 적용할 수 있는 패턴을 정리한 **‘직접 적용하기’** 절로 마무리합니다. 다이어그램은 [Mermaid](https://mermaid.js.org/)로 작성되어 GitHub에서 바로 표시됩니다.
 
-**18 chapters across 7 parts.** ~400 pages in print equivalent.
+## 대상 독자
 
-Every chapter has layered depth: a narrative flow for technical leaders, deep-dive sections for implementers, and an **"Apply This"** closing that extracts transferable patterns you can steal for your own systems. Diagrams use [Mermaid](https://mermaid.js.org/) and render natively on GitHub.
+- **에이전트 시스템을 구축하는 시니어 엔지니어**: 패턴과 절충점을 이해하고 자신의 기술 스택에 적용하려는 사람
+- **아키텍처를 평가하는 기술 리더**: 모든 코드 블록을 읽지 않고도 전체 흐름을 파악하려는 사람
+- **실제 서비스에 쓰이는 AI 도구의 내부 동작이 궁금한 사람**
 
----
+## 목차
 
-## Who This Is For
+### 제1부: 기초
 
-- **Senior engineers building agentic systems** — steal the patterns, understand the trade-offs, implement in your own stack
-- **Technical leaders evaluating architectures** — follow the narrative without reading every code block
-- **Anyone curious about how production AI tools actually work** under the hood
+*에이전트가 생각하려면 먼저 프로세스가 실행되어야 한다.*
 
----
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 1 | [AI 에이전트의 아키텍처](./book/ch01-architecture.md) | 핵심 추상화 6가지, 데이터 흐름, 권한 시스템, 빌드 시스템 |
+| 2 | [빠른 시작 — 부트스트랩 파이프라인](./book/ch02-bootstrap.md) | 5단계 초기화, 모듈 수준 I/O 병렬 처리, 신뢰 경계 |
+| 3 | [상태 — 2계층 아키텍처](./book/ch03-state.md) | 부트스트랩 싱글턴, AppState 저장소, 고정 래치, 비용 추적 |
+| 4 | [Claude와 대화하기 — API 계층](./book/ch04-api-layer.md) | 여러 제공자를 지원하는 클라이언트, 프롬프트 캐시, 스트리밍, 오류 복구 |
 
-## Table of Contents
+### 제2부: 핵심 루프
 
-### Part I: Foundations
-*Before the agent can think, the process must exist.*
+*에이전트의 심장 박동: 스트리밍하고, 행동하고, 관찰하고, 반복한다.*
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 1 | [The Architecture of an AI Agent](./book/ch01-architecture.md) | The 6 key abstractions, data flow, permission system, build system |
-| 2 | [Starting Fast — The Bootstrap Pipeline](./book/ch02-bootstrap.md) | 5-phase init, module-level I/O parallelism, trust boundary |
-| 3 | [State — The Two-Tier Architecture](./book/ch03-state.md) | Bootstrap singleton, AppState store, sticky latches, cost tracking |
-| 4 | [Talking to Claude — The API Layer](./book/ch04-api-layer.md) | Multi-provider client, prompt cache, streaming, error recovery |
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 5 | [에이전트 루프](./book/ch05-agent-loop.md) | query.ts 심층 분석, 4계층 압축, 오류 복구, 토큰 예산 |
+| 6 | [도구 — 정의부터 실행까지](./book/ch06-tools.md) | 도구 인터페이스, 14단계 파이프라인, 권한 시스템 |
+| 7 | [도구 동시 실행](./book/ch07-concurrency.md) | 분할 알고리즘, 스트리밍 실행기, 추측 실행 |
 
-### Part II: The Core Loop
-*The heartbeat of the agent: stream, act, observe, repeat.*
+### 제3부: 다중 에이전트 오케스트레이션
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 5 | [The Agent Loop](./book/ch05-agent-loop.md) | query.ts deep dive, 4-layer compression, error recovery, token budgets |
-| 6 | [Tools — From Definition to Execution](./book/ch06-tools.md) | Tool interface, 14-step pipeline, permission system |
-| 7 | [Concurrent Tool Execution](./book/ch07-concurrency.md) | Partition algorithm, streaming executor, speculative execution |
+*에이전트 하나도 강력하다. 여러 에이전트가 협력하면 가능성이 크게 달라진다.*
 
-### Part III: Multi-Agent Orchestration
-*One agent is powerful. Many agents working together are transformative.*
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 8 | [하위 에이전트 생성](./book/ch08-sub-agents.md) | AgentTool, 15단계 runAgent 수명 주기, 내장 에이전트 유형 |
+| 9 | [포크 에이전트와 프롬프트 캐시](./book/ch09-fork-agents.md) | 바이트 단위로 동일한 접두부를 만드는 기법, 캐시 공유, 비용 최적화 |
+| 10 | [작업, 조정, 에이전트 군집](./book/ch10-coordination.md) | 작업 상태 머신, 조정자 모드, 에이전트 군집의 메시지 교환 |
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 8 | [Spawning Sub-Agents](./book/ch08-sub-agents.md) | AgentTool, 15-step runAgent lifecycle, built-in agent types |
-| 9 | [Fork Agents and the Prompt Cache](./book/ch09-fork-agents.md) | Byte-identical prefix trick, cache sharing, cost optimization |
-| 10 | [Tasks, Coordination, and Swarms](./book/ch10-coordination.md) | Task state machine, coordinator mode, swarm messaging |
+### 제4부: 지속성과 지능
 
-### Part IV: Persistence and Intelligence
-*An agent without memory makes the same mistakes forever.*
+*기억이 없는 에이전트는 같은 실수를 끝없이 반복한다.*
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 11 | [Memory — Learning Across Conversations](./book/ch11-memory.md) | File-based memory, 4-type taxonomy, LLM recall, staleness |
-| 12 | [Extensibility — Skills and Hooks](./book/ch12-extensibility.md) | Two-phase skill loading, lifecycle hooks, snapshot security |
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 11 | [메모리 — 대화를 넘어 이어지는 학습](./book/ch11-memory.md) | 파일 기반 메모리, 4가지 유형 분류, LLM 기반 기억 검색, 정보의 노후화 |
+| 12 | [확장성 — 스킬과 훅](./book/ch12-extensibility.md) | 2단계 스킬 로딩, 수명 주기 훅, 스냅샷 기반 보안 |
 
-### Part V: The Interface
-*Everything the user sees passes through this layer.*
+### 제5부: 인터페이스
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 13 | [The Terminal UI](./book/ch13-terminal-ui.md) | Custom Ink fork, rendering pipeline, double-buffer, pools |
-| 14 | [Input and Interaction](./book/ch14-input-interaction.md) | Key parsing, keybindings, chord support, vim mode |
+*사용자가 보는 모든 것은 이 계층을 거친다.*
 
-### Part VI: Connectivity
-*The agent reaches beyond localhost.*
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 13 | [터미널 UI](./book/ch13-terminal-ui.md) | 자체 수정한 Ink 포크, 렌더링 파이프라인, 이중 버퍼, 풀 |
+| 14 | [입력과 상호작용](./book/ch14-input-interaction.md) | 키 입력 해석, 키 바인딩, 연속 키 조합 지원, Vim 모드 |
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 15 | [MCP — The Universal Tool Protocol](./book/ch15-mcp.md) | 8 transports, OAuth for MCP, tool wrapping |
-| 16 | [Remote Control and Cloud Execution](./book/ch16-remote.md) | Bridge v1/v2, CCR, upstream proxy |
+### 제6부: 연결성
 
-### Part VII: Performance Engineering
-*Making it all fast enough that humans don't notice the machinery.*
+*에이전트가 localhost 밖으로 나아간다.*
 
-| # | Chapter | What You'll Learn |
-|---|---------|-------------------|
-| 17 | [Performance — Every Millisecond and Token Counts](./book/ch17-performance.md) | Startup, context window, prompt cache, rendering, search |
-| 18 | [Epilogue — What We Learned](./book/ch18-epilogue.md) | The 5 architectural bets, what transfers, where agents are heading |
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 15 | [MCP — 범용 도구 프로토콜](./book/ch15-mcp.md) | 8가지 전송 방식, MCP용 OAuth, 도구 래핑 |
+| 16 | [원격 제어와 클라우드 실행](./book/ch16-remote.md) | Bridge v1/v2, CCR, 업스트림 프록시 |
 
----
+### 제7부: 성능 엔지니어링
 
-## The 10 Patterns That Make It Work
+*사람이 내부 처리 과정을 의식하지 않을 만큼 모든 것을 빠르게 만든다.*
 
-If you read nothing else:
+| 장 | 제목 | 배우는 내용 |
+|---|---|---|
+| 17 | [성능 — 밀리초 하나, 토큰 하나까지](./book/ch17-performance.md) | 시작 속도, 컨텍스트 창, 프롬프트 캐시, 렌더링, 검색 |
+| 18 | [에필로그 — 우리가 배운 것](./book/ch18-epilogue.md) | 5가지 핵심 아키텍처 선택, 다른 시스템에 적용할 수 있는 요소, 에이전트의 미래 방향 |
 
-1. **AsyncGenerator as agent loop** — yields Messages, typed Terminal return, natural backpressure and cancellation
-2. **Speculative tool execution** — start read-only tools during model streaming, before the response completes
-3. **Concurrent-safe batching** — partition tools by safety, run reads in parallel, serialize writes
-4. **Fork agents for cache sharing** — parallel children share byte-identical prompt prefixes, saving ~95% input tokens
-5. **4-layer context compression** — snip, microcompact, collapse, autocompact — each lighter than the next
-6. **File-based memory with LLM recall** — Sonnet side-query selects relevant memories, not keyword matching
-7. **Two-phase skill loading** — frontmatter only at startup, full content on invocation
-8. **Sticky latches for cache stability** — once a beta header is sent, never unset mid-session
-9. **Slot reservation** — 8K default output cap, escalate to 64K on hit (saves context in 99% of requests)
-10. **Hook config snapshot** — freeze at startup to prevent runtime injection attacks
+## 시스템을 움직이는 10가지 패턴
 
----
+다른 부분을 읽지 않더라도 다음은 살펴보세요.
 
-## How This Book Was Made
+1. **AsyncGenerator 기반 에이전트 루프** — Message를 순차적으로 내보내고, 타입이 지정된 Terminal 값을 반환합니다. 역압과 취소를 자연스럽게 처리합니다.
+2. **도구 추측 실행** — 모델이 응답을 스트리밍하는 동안, 응답이 끝나기 전에 읽기 전용 도구를 실행합니다.
+3. **동시 실행 안전성을 고려한 일괄 처리** — 안전성에 따라 도구를 나누고, 읽기는 병렬로 실행하며 쓰기는 순차적으로 처리합니다.
+4. **캐시 공유를 위한 포크 에이전트** — 병렬로 실행되는 하위 에이전트들이 바이트 단위로 동일한 프롬프트 접두부를 공유해 입력 토큰을 약 95% 절감합니다.
+5. **4계층 컨텍스트 압축** — snip, microcompact, collapse, autocompact 순서로 적용합니다. 앞 단계일수록 더 가볍게 처리합니다.
+6. **LLM으로 기억을 검색하는 파일 기반 메모리** — 키워드를 대조하는 대신, Sonnet에 별도 질의를 보내 관련 기억을 선택합니다.
+7. **2단계 스킬 로딩** — 시작 시에는 프런트매터 메타데이터만 읽고, 실제 호출 시 전체 내용을 불러옵니다.
+8. **캐시 안정성을 위한 고정 래치** — 베타 헤더를 한 번 전송하면 세션 도중에는 해제하지 않습니다.
+9. **슬롯 예약** — 기본 출력 한도를 8K로 설정하고, 한도에 도달하면 64K로 늘립니다. 이를 통해 요청의 99%에서 컨텍스트 공간을 절약합니다.
+10. **훅 설정 스냅샷** — 시작 시 설정을 고정해 실행 중 주입 공격을 방지합니다.
 
-The source was extracted from npm source maps. 36 AI agents analyzed nearly two thousand TypeScript files in four phases:
+## 이 책의 제작 과정
 
-1. **Exploration**: 6 parallel agents read every file in the source tree
-2. **Analysis**: 12 agents wrote 494KB of raw technical documentation
-3. **Writing**: 15 agents rewrote everything from scratch as narrative chapters
-4. **Review & Revision**: 3 editorial reviewers produced 900 lines of feedback; 3 revision agents applied all fixes
+소스는 npm 소스 맵에서 추출했습니다. AI 에이전트 36개가 약 2,000개의 TypeScript 파일을 네 단계에 걸쳐 분석했습니다.
 
-The entire process — from source extraction to final revised book — took approximately 6 hours.
+1. **탐색**: 에이전트 6개가 병렬로 소스 트리의 모든 파일을 읽었습니다.
+2. **분석**: 에이전트 12개가 기술 문서 초안 494KB를 작성했습니다.
+3. **집필**: 에이전트 15개가 모든 내용을 처음부터 다시 써서 서술형 장으로 구성했습니다.
+4. **검토 및 수정**: 편집 검토 에이전트 3개가 900줄의 피드백을 작성했고, 수정 에이전트 3개가 모든 수정 사항을 반영했습니다.
 
----
+소스 추출부터 최종 수정본 완성까지 전체 과정은 약 6시간이 걸렸습니다.
 
-## Disclaimer
+## 한국어 웹사이트 로컬 실행
 
-**This repository does not contain any source code from Claude Code.** All code blocks are original pseudocode using different variable names, written to illustrate architectural patterns. No proprietary prompt text, internal constants, or exact function implementations are included. This project exists purely for educational purposes — to help engineers understand the design patterns behind production AI coding agents.
+```sh
+cd web
+bun install
+bun run dev
+```
 
-The "NO'REILLY" cover is a parody/meme for illustrative purposes only. This project has no affiliation with O'Reilly Media. The crab is just a crab.
+정적 사이트 빌드는 `bun run build`로 실행합니다. 웹사이트 경로는 이 포크의 GitHub Pages 경로(`/claude-code-from-source/`)에 맞춰져 있습니다. 실제 공개 배포에는 저장소의 GitHub Pages 설정이 필요합니다.
 
-This is an independent analysis. Claude Code is a product of Anthropic. This book is not affiliated with, endorsed by, or sponsored by Anthropic.
+## 면책 및 고지
+
+**이 저장소에는 Claude Code의 소스 코드가 포함되어 있지 않습니다.** 모든 코드 블록은 아키텍처 패턴을 설명하기 위해 다른 변수명을 사용하여 직접 작성한 의사 코드입니다. 독점 프롬프트 원문, 내부 상수, 실제 함수 구현을 그대로 담지 않았습니다. 이 프로젝트는 실제 서비스용 AI 코딩 에이전트의 설계 패턴을 엔지니어가 이해하도록 돕기 위한 순수 교육 목적의 자료입니다.
+
+‘NO’REILLY’ 표지는 설명을 위한 패러디이자 밈입니다. 이 프로젝트는 O’Reilly Media와 아무런 관련이 없습니다. 게는 그저 게일 뿐입니다.
+
+이 책은 독립적인 분석 자료입니다. Claude Code는 Anthropic의 제품이며, 이 책은 Anthropic과 제휴 관계가 없고 승인이나 후원을 받지 않았습니다.

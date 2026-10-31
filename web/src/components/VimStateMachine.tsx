@@ -52,12 +52,12 @@ const OPERATORS = new Set(["d", "c", "y"]);
 const MOTIONS = new Set(["w", "b", "e", "0", "$"]);
 
 const PRESET_SEQUENCES = [
-  { keys: "dd", label: "dd", description: "Delete line" },
-  { keys: "d2w", label: "d2w", description: "Delete 2 words" },
-  { keys: "cw", label: "cw", description: "Change word" },
-  { keys: "3dd", label: "3dd", description: "Delete 3 lines" },
-  { keys: "yy", label: "yy", description: "Yank line" },
-  { keys: "p", label: "p", description: "Paste" },
+  { keys: "dd", label: "dd", description: "줄 삭제" },
+  { keys: "d2w", label: "d2w", description: "단어 2개 삭제" },
+  { keys: "cw", label: "CW", description: "단어 변경" },
+  { keys: "3dd", label: "3dd", description: "3줄 삭제" },
+  { keys: "yy", label: "응", description: "양크 라인" },
+  { keys: "p", label: "p", description: "붙여넣기" },
 ];
 
 // --- State Diagram Layout ---
@@ -78,22 +78,22 @@ interface StateEdge {
 }
 
 const STATE_NODES: StateNode[] = [
-  { id: "NORMAL", label: "NORMAL", x: 160, y: 60 },
-  { id: "INSERT", label: "INSERT", x: 430, y: 60 },
-  { id: "OPERATOR", label: "Operator", sublabel: "Pending", x: 100, y: 190 },
-  { id: "COUNT", label: "Count", sublabel: "Pending", x: 295, y: 190 },
-  { id: "OP_COUNT", label: "Op+Count", sublabel: "Pending", x: 200, y: 300 },
+  { id: "NORMAL", label: "일반", x: 160, y: 60 },
+  { id: "INSERT", label: "삽입", x: 430, y: 60 },
+  { id: "OPERATOR", label: "운영자", sublabel: "보류 중", x: 100, y: 190 },
+  { id: "COUNT", label: "개수", sublabel: "보류 중", x: 295, y: 190 },
+  { id: "OP_COUNT", label: "연산+개수", sublabel: "보류 중", x: 200, y: 300 },
 ];
 
 const STATE_EDGES: StateEdge[] = [
-  { from: "NORMAL", to: "INSERT", label: "i, c+motion" },
+  { from: "NORMAL", to: "INSERT", label: "나, c+모션" },
   { from: "INSERT", to: "NORMAL", label: "Esc" },
   { from: "NORMAL", to: "OPERATOR", label: "d, c, y" },
   { from: "NORMAL", to: "COUNT", label: "1-9" },
-  { from: "OPERATOR", to: "NORMAL", label: "motion, repeat" },
+  { from: "OPERATOR", to: "NORMAL", label: "동작, 반복" },
   { from: "OPERATOR", to: "OP_COUNT", label: "1-9" },
   { from: "COUNT", to: "OPERATOR", label: "d, c, y" },
-  { from: "OP_COUNT", to: "NORMAL", label: "motion" },
+  { from: "OP_COUNT", to: "NORMAL", label: "모션" },
 ];
 
 function getActiveStateId(machine: MachineState): string {
@@ -629,7 +629,7 @@ export default function VimStateMachine({ className }: { className?: string }) {
               -- {machine.mode} --
             </span>
             {!focused && (
-              <span className="text-xs opacity-70">Click to focus and type vim commands</span>
+              <span className="text-xs opacity-70">클릭하여 초점을 맞추고 vim 명령을 입력하세요.</span>
             )}
           </div>
           <button
@@ -643,7 +643,7 @@ export default function VimStateMachine({ className }: { className?: string }) {
               color: "#c2c0b6",
             }}
           >
-            Reset
+            재설정
           </button>
         </div>
 
@@ -898,12 +898,7 @@ export default function VimStateMachine({ className }: { className?: string }) {
               </span>
             </div>
           ))}
-          <style>{`
-            @keyframes vim-blink {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.3; }
-            }
-          `}</style>
+          <style>{"@keyframes vim-blink {\n              0%, 100% { 불투명도: 1; }\n              50% { 불투명도: 0.3; }\n            }"}</style>
         </div>
 
         {/* Command Buffer */}
@@ -942,7 +937,7 @@ export default function VimStateMachine({ className }: { className?: string }) {
               </span>
             ) : (
               <span style={{ color: "#555" }}>
-                {focused ? "Type a vim command..." : "Click to focus"}
+                {focused ? "vim 명령을 입력하세요..." : "클릭하여 집중하세요"}
               </span>
             )}
           </div>
@@ -973,7 +968,7 @@ export default function VimStateMachine({ className }: { className?: string }) {
           }}
         >
           <span className="text-xs mr-1" style={{ color: "#87867f" }}>
-            Try:
+            시도해 보세요:
           </span>
           {PRESET_SEQUENCES.map((preset) => (
             <button

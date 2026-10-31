@@ -38,23 +38,23 @@ interface AppStateField {
 }
 
 const bootstrapFields: BootstrapField[] = [
-  { key: "sessionId", value: "a3f7c...", description: "Unique per process, generated via crypto.randomUUID()" },
-  { key: "model", value: "claude-sonnet-4", description: "Current model for API calls, set by mainLoopModelOverride" },
-  { key: "projectRoot", value: "/users/dev/proj", description: "NFC-normalized path, frozen after init()" },
-  { key: "totalCostUSD", value: "$0.42", description: "Monotonically accumulating session cost" },
-  { key: "permissionMode", value: "default", description: "Trust boundary for tool execution" },
-  { key: "isInteractive", value: "true", description: "REPL vs one-shot mode flag" },
-  { key: "promptCache1hEligible", value: "true", description: "Sticky latch -- extended cache TTL" },
-  { key: "afkModeHeaderLatched", value: "null", description: "Sticky latch -- once true, never false" },
+  { key: "sessionId", value: "a3f7c...", description: "crypto.randomUUID()를 통해 생성된 프로세스별로 고유합니다." },
+  { key: "model", value: "claude-sonnet-4", description: "mainLoopModelOverride에 의해 설정된 API 호출의 현재 모델" },
+  { key: "projectRoot", value: "/users/dev/proj", description: "NFC 정규화된 경로, init() 이후 고정됨" },
+  { key: "totalCostUSD", value: "$0.42", description: "단조롭게 누적되는 세션 비용" },
+  { key: "permissionMode", value: "default", description: "도구 실행을 위한 신뢰 경계" },
+  { key: "isInteractive", value: "true", description: "REPL 대 원샷 모드 플래그" },
+  { key: "promptCache1hEligible", value: "true", description: "고정 래치 - 확장된 캐시 TTL" },
+  { key: "afkModeHeaderLatched", value: "null", description: "끈끈한 걸쇠 - 한번 참이면 결코 거짓이 아닙니다." },
 ];
 
 const appStateFields: AppStateField[] = [
-  { key: "mainLoopModel", value: "claude-sonnet-4", description: "Model displayed in the UI and used for next API call" },
-  { key: "theme", value: "dark", description: "UI theme preference" },
-  { key: "verbose", value: "false", description: "Show detailed output toggle" },
-  { key: "permissionMode", value: "default", description: "Synced to Bootstrap STATE and CCR on change" },
-  { key: "messages", value: "[...28 msgs]", description: "Conversation history for UI rendering" },
-  { key: "tasks", value: "{agent-1: ...}", description: "Active subagent task tracking" },
+  { key: "mainLoopModel", value: "claude-sonnet-4", description: "UI에 표시되고 다음 API 호출에 사용되는 모델" },
+  { key: "theme", value: "dark", description: "UI 테마 환경설정" },
+  { key: "verbose", value: "false", description: "자세한 출력 토글 표시" },
+  { key: "permissionMode", value: "default", description: "변경 시 Bootstrap STATE 및 CCR에 동기화됨" },
+  { key: "messages", value: "[...28 msgs]", description: "UI 렌더링을 위한 대화 기록" },
+  { key: "tasks", value: "{agent-1: ...}", description: "활성 하위 에이전트 작업 추적" },
 ];
 
 type AnimationStep =
@@ -65,11 +65,11 @@ type AnimationStep =
   | "api-reads";
 
 const STEP_LABELS: Record<AnimationStep, string> = {
-  idle: "Click \"Change Model\" to see the two-tier flow",
-  "dispatch-appstate": "1. UI dispatches to AppState store",
-  "onchange-fires": "2. onChange side effect fires synchronously",
-  "bootstrap-updates": "3. Bootstrap STATE.model is updated",
-  "api-reads": "4. Next API call reads from Bootstrap STATE",
+  idle: "2계층 흐름을 보려면 '모델 변경'을 클릭하세요.",
+  "파견-앱 상태": "1. UI가 AppState 스토어로 전달됩니다.",
+  "onchange-fires": "2. onChange 부작용이 동시에 발생합니다.",
+  "부트스트랩 업데이트": "3. 부트스트랩 STATE.model이 업데이트되었습니다.",
+  "API 읽기": "4. 다음 API 호출은 Bootstrap STATE에서 읽습니다.",
 };
 
 interface StickyLatch {
@@ -93,7 +93,7 @@ export default function StateTwoTier({ className }: Props) {
   // Sticky latch demo
   const [thinkingLatch, setThinkingLatch] = useState<StickyLatch>({
     value: null,
-    label: "Extended thinking",
+    label: "확장된 사고",
   });
 
   const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -170,7 +170,7 @@ export default function StateTwoTier({ className }: Props) {
   }, []);
 
   const resetLatch = useCallback(() => {
-    setThinkingLatch({ value: null, label: "Extended thinking" });
+    setThinkingLatch({ value: null, label: "확장된 사고" });
   }, []);
 
   // Field row component
@@ -293,7 +293,7 @@ export default function StateTwoTier({ className }: Props) {
               fontWeight: 600,
             }}
           >
-            Bootstrap STATE
+            부트스트랩 상태
           </div>
           <div
             style={{
@@ -303,7 +303,7 @@ export default function StateTwoTier({ className }: Props) {
               lineHeight: 1.4,
             }}
           >
-            Mutable singleton -- available before React mounts. ~80 fields, accessed via getters/setters.
+            가변 싱글톤 - React가 마운트되기 전에 사용 가능합니다. getter/setter를 통해 액세스되는 최대 80개 필드.
           </div>
 
           {bootstrapFields.map((field) => {
@@ -338,7 +338,7 @@ export default function StateTwoTier({ className }: Props) {
               lineHeight: 1.5,
             }}
           >
-            DAG leaf: imports nothing. Importable from anywhere without circular dependencies.
+            DAG 리프: 아무것도 가져오지 않습니다. 순환 종속성 없이 어디서나 가져올 수 있습니다.
           </div>
         </div>
 
@@ -356,7 +356,7 @@ export default function StateTwoTier({ className }: Props) {
         >
           {/* Init arrow: Bootstrap -> AppState */}
           <div style={{ textAlign: "center", fontSize: 10, color: colors.textSecondary, fontFamily: "var(--font-mono)" }}>
-            init
+            초기화
           </div>
           <svg width="60" height="20" viewBox="0 0 60 20">
             <defs>
@@ -377,7 +377,7 @@ export default function StateTwoTier({ className }: Props) {
             style={{ textAlign: "center" }}
           >
             <div style={{ fontSize: 10, color: colors.terracotta, fontFamily: "var(--font-mono)", fontWeight: 600, marginBottom: 2 }}>
-              onChange
+              변경 시
             </div>
             <svg width="60" height="20" viewBox="0 0 60 20">
               <defs>
@@ -400,7 +400,7 @@ export default function StateTwoTier({ className }: Props) {
               maxWidth: 70,
             }}
           >
-            Side effects bridge the tiers
+            부작용으로 계층이 연결됩니다.
           </div>
         </div>
 
@@ -423,7 +423,7 @@ export default function StateTwoTier({ className }: Props) {
               fontWeight: 600,
             }}
           >
-            AppState Store
+            AppState 스토어
           </div>
           <div
             style={{
@@ -433,7 +433,7 @@ export default function StateTwoTier({ className }: Props) {
               lineHeight: 1.4,
             }}
           >
-            Reactive store -- 34-line closure with Object.is equality. Drives React via useSyncExternalStore.
+            반응형 저장소 - Object.is 동등성을 갖춘 34줄 클로저입니다. useSyncExternalStore를 통해 React를 구동합니다.
           </div>
 
           {appStateFields.map((field) => {
@@ -467,7 +467,7 @@ export default function StateTwoTier({ className }: Props) {
               lineHeight: 1.5,
             }}
           >
-            DeepImmutable snapshots. Updater functions prevent stale-state bugs.
+            DeepImmutable 스냅샷. 업데이터 기능은 오래된 상태의 버그를 방지합니다.
           </div>
         </div>
       </div>
@@ -497,7 +497,7 @@ export default function StateTwoTier({ className }: Props) {
             transition: "opacity 0.2s",
           }}
         >
-          Change Model
+          모델 변경
         </button>
       </div>
 
@@ -522,7 +522,7 @@ export default function StateTwoTier({ className }: Props) {
             fontWeight: 600,
           }}
         >
-          Sticky Latch Demo
+          고정 래치 데모
         </div>
 
         <div
@@ -585,7 +585,7 @@ export default function StateTwoTier({ className }: Props) {
               fontFamily: "var(--font-mono)",
             }}
           >
-            <span style={{ color: colors.textSecondary }}>Latch state:</span>
+            <span style={{ color: colors.textSecondary }}>래치 상태:</span>
             <span
               style={{
                 fontWeight: 600,
@@ -598,10 +598,10 @@ export default function StateTwoTier({ className }: Props) {
               }}
             >
               {thinkingLatch.value === null
-                ? "null (not evaluated)"
+                ? "null(평가되지 않음)"
                 : thinkingLatch.value
-                  ? "true (LATCHED)"
-                  : "false"}
+                  ? "사실(래치됨)"
+                  : "거짓"}
             </span>
           </div>
 
@@ -621,7 +621,7 @@ export default function StateTwoTier({ className }: Props) {
                 cursor: "pointer",
               }}
             >
-              Reset demo
+              데모 재설정
             </motion.button>
           )}
         </div>
@@ -646,12 +646,12 @@ export default function StateTwoTier({ className }: Props) {
                 overflow: "hidden",
               }}
             >
-              <strong style={{ color: colors.latchStuck }}>The toggle is stuck ON.</strong>{" "}
-              Once extended thinking is activated, the <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>thinkingClearLatched</code> flag
-              stays <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>true</code> for the rest of the session.{" "}
-              <strong>Why?</strong> The thinking budget is part of the API request body, which is part of the prompt cache key.
-              Toggling it off would bust the server-side cache for 50,000+ tokens of system prompt.
-              The latch ensures you only enter a cache namespace when you need it, then stay there.
+              <strong style={{ color: colors.latchStuck }}>토글이 켜져 있습니다.</strong>{" "}
+              확장된 사고가 활성화되면, <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>생각깨끗한걸림</code> 깃발
+              숙박 <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 3, background: isDark ? "#333" : "#e8e6dc" }}>사실</code> 남은 세션 동안.{" "}
+              <strong>왜요?</strong> 사고 예산은 프롬프트 캐시 키의 일부인 API 요청 본문의 일부입니다.
+              이를 끄면 50,000개 이상의 시스템 프롬프트 토큰에 대한 서버 측 캐시가 파열됩니다.
+              래치는 필요할 때만 캐시 네임스페이스를 입력하고 그 상태를 유지하도록 보장합니다.
             </motion.div>
           )}
         </AnimatePresence>
@@ -670,15 +670,15 @@ export default function StateTwoTier({ className }: Props) {
         >
           <span>
             <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: colors.latchOff, marginRight: 4, verticalAlign: "middle" }} />
-            null = not evaluated
+            null = 평가되지 않음
           </span>
           <span>
             <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: colors.latchStuck, marginRight: 4, verticalAlign: "middle" }} />
-            true = latched (permanent)
+            true = 래치됨(영구)
           </span>
           <span>
             <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: colors.textSecondary, marginRight: 4, verticalAlign: "middle" }} />
-            never returns to false
+            결코 거짓으로 돌아가지 않는다
           </span>
         </div>
       </div>
@@ -703,11 +703,11 @@ export default function StateTwoTier({ className }: Props) {
             lineHeight: 1.7,
           }}
         >
-          <div style={{ fontWeight: 600, color: colors.terracotta, marginBottom: 4 }}>Bootstrap STATE</div>
-          <div>Consumers: API client, cost tracker, context builder</div>
-          <div>Persistence: process exit handlers</div>
-          <div>Dependencies: DAG leaf (nothing)</div>
-          <div>Test reset: resetStateForTests()</div>
+          <div style={{ fontWeight: 600, color: colors.terracotta, marginBottom: 4 }}>부트스트랩 상태</div>
+          <div>소비자: API 클라이언트, 비용 추적기, 컨텍스트 빌더</div>
+          <div>지속성: 프로세스 종료 핸들러</div>
+          <div>종속성: DAG 리프(없음)</div>
+          <div>테스트 재설정: ResetStateForTests()</div>
         </div>
         <div
           style={{
@@ -720,11 +720,11 @@ export default function StateTwoTier({ className }: Props) {
             lineHeight: 1.7,
           }}
         >
-          <div style={{ fontWeight: 600, color: colors.green, marginBottom: 4 }}>AppState Store</div>
-          <div>Consumers: React components, side effects</div>
-          <div>Persistence: via onChange to disk</div>
-          <div>Dependencies: imports types across codebase</div>
-          <div>Test reset: create new store instance</div>
+          <div style={{ fontWeight: 600, color: colors.green, marginBottom: 4 }}>AppState 스토어</div>
+          <div>소비자: React 구성요소, 부작용</div>
+          <div>지속성: onChange를 통해 디스크로</div>
+          <div>종속성: 코드베이스 전체에서 유형을 가져옵니다.</div>
+          <div>테스트 재설정: 새 스토어 인스턴스 생성</div>
         </div>
       </div>
     </div>

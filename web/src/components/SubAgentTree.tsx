@@ -41,7 +41,7 @@ const agentTypeInfo: Record<
     model: "Sonnet",
     toolCount: 14,
     permissionMode: "default",
-    description: "Full-featured agent with all tools",
+    description: "모든 도구를 갖춘 완전한 기능의 에이전트",
     tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, ...",
     defaultMode: "sync",
   },
@@ -49,7 +49,7 @@ const agentTypeInfo: Record<
     model: "Haiku",
     toolCount: 5,
     permissionMode: "auto-deny writes",
-    description: "Read-only search specialist. Cheapest, fastest",
+    description: "읽기 전용 검색 전문가입니다. 가장 저렴하고 가장 빠릅니다.",
     tools: "Read, Grep, Glob, Bash (read-only), Agent",
     defaultMode: "sync",
   },
@@ -57,7 +57,7 @@ const agentTypeInfo: Record<
     model: "Haiku",
     toolCount: 5,
     permissionMode: "auto-deny writes",
-    description: "Research + analysis. No editing capability",
+    description: "연구 + 분석. 편집 기능 없음",
     tools: "Read, Grep, Glob, Bash (read-only), Agent",
     defaultMode: "sync",
   },
@@ -65,7 +65,7 @@ const agentTypeInfo: Record<
     model: "Opus",
     toolCount: 8,
     permissionMode: "default",
-    description: "Adversarial testing + verification",
+    description: "적대적 테스트 + 검증",
     tools: "Read, Bash, Grep, Glob, Edit, Write, ...",
     defaultMode: "async",
   },
@@ -73,7 +73,7 @@ const agentTypeInfo: Record<
     model: "Sonnet",
     toolCount: 3,
     permissionMode: "auto-deny writes",
-    description: "User-facing guidance. Limited tools",
+    description: "사용자 지향 지침. 제한된 도구",
     tools: "Read, Grep, Glob",
     defaultMode: "sync",
   },
@@ -219,7 +219,7 @@ export default function SubAgentTree({ className }: Props) {
               transition: "background 0.2s",
             }}
           >
-            Spawn Agent {agents.length >= 6 ? "(max 6)" : ""}
+            에이전트 생성 {agents.length >= 6 ? "(최대 6개)" : ""}
           </button>
 
           <AnimatePresence>
@@ -279,7 +279,7 @@ export default function SubAgentTree({ className }: Props) {
                         marginTop: 2,
                       }}
                     >
-                      {agentTypeInfo[type].model} / {agentTypeInfo[type].toolCount} tools
+                      {agentTypeInfo[type].model} / {agentTypeInfo[type].toolCount} 도구
                     </div>
                   </button>
                 ))}
@@ -309,7 +309,7 @@ export default function SubAgentTree({ className }: Props) {
                 background: colors.syncColor,
               }}
             />
-            Sync
+            동기화
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span
@@ -320,7 +320,7 @@ export default function SubAgentTree({ className }: Props) {
                 background: colors.asyncColor,
               }}
             />
-            Async
+            비동기
           </span>
         </div>
 
@@ -338,7 +338,7 @@ export default function SubAgentTree({ className }: Props) {
               cursor: "pointer",
             }}
           >
-            Clear
+            지우기
           </button>
         )}
       </div>
@@ -366,7 +366,7 @@ export default function SubAgentTree({ className }: Props) {
               textAlign: "center",
             }}
           >
-            Parent Agent
+            상위 에이전트
             <div
               style={{
                 fontSize: 11,
@@ -375,7 +375,7 @@ export default function SubAgentTree({ className }: Props) {
                 marginTop: 4,
               }}
             >
-              Opus / 14 tools / main loop
+              Opus / 14개 도구 / 메인 루프
             </div>
           </div>
         </div>
@@ -567,7 +567,7 @@ export default function SubAgentTree({ className }: Props) {
                               color: colors.textSecondary,
                             }}
                           >
-                            {agent.toolCount} tools
+                            {agent.toolCount} 도구
                           </span>
                           <span
                             style={{
@@ -597,7 +597,7 @@ export default function SubAgentTree({ className }: Props) {
                             fontFamily: "var(--font-mono)",
                           }}
                         >
-                          {isActive ? "Running..." : "Completed"}
+                          {isActive ? "실행중..." : "완료됨"}
                         </div>
                       </div>
                     </motion.div>
@@ -618,8 +618,8 @@ export default function SubAgentTree({ className }: Props) {
               fontSize: 14,
             }}
           >
-            Click "Spawn Agent" to create sub-agents and see how they connect to
-            the parent
+            &quot;에이전트 생성&quot;을 클릭하여 하위 에이전트를 생성하고 이들이 어떻게 연결되는지 확인하세요.
+            부모
           </div>
         )}
       </div>
@@ -659,7 +659,7 @@ export default function SubAgentTree({ className }: Props) {
                     color: colors.terracotta,
                   }}
                 >
-                  {agentTypeLabels[selected.type]} Agent
+                  {agentTypeLabels[selected.type]} 대리인
                 </div>
                 <span
                   style={{
@@ -698,15 +698,15 @@ export default function SubAgentTree({ className }: Props) {
                 }}
               >
                 {[
-                  { label: "Model", value: selected.model },
-                  { label: "Tools", value: `${selected.toolCount} available` },
-                  { label: "Permission Mode", value: selected.permissionMode },
+                  { label: "모델", value: selected.model },
+                  { label: "도구", value: `${selected.toolCount} available` },
+                  { label: "권한 모드", value: selected.permissionMode },
                   {
-                    label: "Abort Controller",
+                    label: "컨트롤러 중단",
                     value:
                       selected.mode === "sync"
-                        ? "Shared (ESC kills both)"
-                        : "Independent (survives ESC)",
+                        ? "공유(ESC는 둘 다 종료)"
+                        : "독립(ESC에서 살아남음)",
                   },
                 ].map((item) => (
                   <div
@@ -763,7 +763,7 @@ export default function SubAgentTree({ className }: Props) {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  Available Tools
+                  사용 가능한 도구
                 </div>
                 <div
                   style={{
@@ -806,8 +806,8 @@ export default function SubAgentTree({ className }: Props) {
                   }}
                 >
                   {selected.mode === "sync"
-                    ? "Synchronous Execution"
-                    : "Asynchronous Execution"}
+                    ? "동기 실행"
+                    : "비동기 실행"}
                 </div>
                 <div
                   style={{
@@ -817,8 +817,8 @@ export default function SubAgentTree({ className }: Props) {
                   }}
                 >
                   {selected.mode === "sync"
-                    ? "Blocks parent agent. Shares abort controller (ESC kills both). Parent iterates the runAgent() generator directly, yielding messages up the call stack."
-                    : "Runs in background independently. Gets its own abort controller (survives ESC). Results written to disk output file. Parent notified on completion via task-notification."}
+                    ? "상위 에이전트를 차단합니다. 중단 컨트롤러를 공유합니다(ESC는 둘 다 종료합니다). 상위는 runAgent() 생성기를 직접 반복하여 호출 스택에 메시지를 생성합니다."
+                    : "백그라운드에서 독립적으로 실행됩니다. 자체 중단 컨트롤러를 가져옵니다(ESC가 유지됨). 결과가 디스크 출력 파일에 기록됩니다. 작업 알림을 통해 부모에게 완료 알림이 전달됩니다."}
                 </div>
               </div>
             </div>

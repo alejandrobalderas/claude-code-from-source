@@ -37,82 +37,82 @@ interface RoutingResult {
 const routeSteps: RouteStep[] = [
   {
     id: "bridge",
-    label: "Bridge Transport",
-    check: 'starts with "bridge:"?',
+    label: "교량 운송",
+    check: "\"브리지:\"로 시작하나요?",
     detail:
-      "Cross-machine communication via Remote Control relay. Two Claude Code instances on different machines communicate through Anthropic's servers. Requires explicit user consent.",
+      "원격 제어 릴레이를 통한 기계 간 통신. 서로 다른 시스템에 있는 두 개의 Claude Code 인스턴스는 Anthropic의 서버를 통해 통신합니다. 명시적인 사용자 동의가 필요합니다.",
   },
   {
     id: "uds",
-    label: "UDS Socket",
-    check: 'starts with "uds:"?',
+    label: "UDS 소켓",
+    check: "\"uds:\"로 시작하나요?",
     detail:
-      "Local inter-process via Unix Domain Sockets. For instances on the same machine in different processes (e.g., VS Code extension + terminal). Fast, secure, reliable.",
+      "Unix 도메인 소켓을 통한 로컬 프로세스 간. 서로 다른 프로세스(예: VS Code 확장 + 터미널)의 동일한 머신에 있는 인스턴스의 경우. 빠르고 안전하며 안정적입니다.",
   },
   {
     id: "registry_running",
-    label: "In-Process (Running)",
-    check: "found in agentNameRegistry & running?",
+    label: "진행 중(실행 중)",
+    check: "AgentNameRegistry에서 발견되어 실행 중입니까?",
     detail:
-      "Most common path. Message queued via pendingMessages array, delivered at next tool-round boundary. Preserves turn structure -- no race conditions.",
+      "가장 일반적인 경로. PendingMessages 배열을 통해 대기 중인 메시지는 다음 도구 라운드 경계에서 전달됩니다. 회전 구조를 유지하며 경쟁 조건이 없습니다.",
   },
   {
     id: "registry_terminal",
-    label: "Resume Dead Agent",
-    check: "found but in terminal state?",
+    label: "죽은 에이전트 재개",
+    check: "찾았지만 종료 상태인가요?",
     detail:
-      "Auto-resume: reconstructs agent from disk transcript, rebuilds message history, re-registers as background task. Coordinator never needs to track agent liveness.",
+      "자동 재개: 디스크 기록에서 에이전트를 재구성하고, 메시지 기록을 재구성하고, 백그라운드 작업으로 다시 등록합니다. 코디네이터는 에이전트의 활성 상태를 추적할 필요가 없습니다.",
   },
   {
     id: "mailbox",
-    label: "Team Mailbox",
-    check: "team context active?",
+    label: "팀 사서함",
+    check: "팀 컨텍스트가 활성화되어 있나요?",
     detail:
-      'File-based mailbox system. Messages written to recipient\'s mailbox file on disk. Supports broadcast via "*" wildcard. Cap: 50 messages for UI representation.',
+      "파일 기반 메일함 시스템. 디스크에 있는 수신자의 메일함 파일에 기록된 메시지입니다. \"*\" 와일드카드를 통한 브로드캐스트를 지원합니다. 최대: UI 표현을 위한 메시지 50개",
   },
   {
     id: "error",
-    label: "Error",
-    check: "fallthrough",
-    detail: "Recipient not found in any routing table. Returns an error to the sender.",
+    label: "오류",
+    check: "실패",
+    detail: "라우팅 테이블에서 수신자를 찾을 수 없습니다. 보낸 사람에게 오류를 반환합니다.",
   },
 ];
 
 const routeResults: Record<RouteType, RoutingResult> = {
   bridge: {
     route: "bridge",
-    label: "Bridge Relay",
-    detail: "Delivered via Remote Control servers (cross-machine)",
+    label: "브리지 릴레이",
+    detail: "원격 제어 서버를 통해 전달됨(기계 간)",
     color: "#6b8dd6",
   },
   uds: {
     route: "uds",
-    label: "UDS Socket",
-    detail: "Delivered via Unix Domain Socket (local inter-process)",
+    label: "UDS 소켓",
+    detail: "Unix 도메인 소켓을 통해 전달됨(로컬 프로세스 간)",
     color: "#6b8dd6",
   },
   registry_running: {
     route: "registry_running",
-    label: "Queued",
-    detail: "Queued in pendingMessages, delivered at tool-round boundary",
+    label: "대기 중",
+    detail: "보류 중인 메시지에 대기 중이며 도구 라운드 경계에서 전달됨",
     color: "#4ade80",
   },
   registry_terminal: {
     route: "registry_terminal",
-    label: "Resumed",
-    detail: "Agent resurrected from disk transcript with full history",
+    label: "재개됨",
+    detail: "전체 기록이 포함된 디스크 기록에서 에이전트가 부활했습니다.",
     color: "#f59e0b",
   },
   mailbox: {
     route: "mailbox",
-    label: "Mailbox",
-    detail: "Written to file-based mailbox for async delivery",
+    label: "사서함",
+    detail: "비동기 전달을 위해 파일 기반 사서함에 기록",
     color: "#4ade80",
   },
   error: {
     route: "error",
-    label: "Error",
-    detail: "Recipient not found in any routing table",
+    label: "오류",
+    detail: "라우팅 테이블에서 수신자를 찾을 수 없습니다.",
     color: "#ef4444",
   },
 };
@@ -120,37 +120,37 @@ const routeResults: Record<RouteType, RoutingResult> = {
 const presets: Preset[] = [
   {
     name: "bridge:remote-session-1",
-    description: "Remote session across machines",
+    description: "머신 간 원격 세션",
     resolvedRoute: "bridge",
     rawTo: "bridge:remote-session-1",
   },
   {
     name: "uds:/tmp/claude.sock",
-    description: "VS Code extension socket",
+    description: "VS Code 확장 소켓",
     resolvedRoute: "uds",
     rawTo: "uds:/tmp/claude.sock",
   },
   {
     name: "researcher",
-    description: "Running background agent",
+    description: "백그라운드 에이전트 실행 중",
     resolvedRoute: "registry_running",
     rawTo: "researcher",
   },
   {
     name: "explorer-agent",
-    description: "Completed agent (will resume)",
+    description: "완료된 에이전트(재개 예정)",
     resolvedRoute: "registry_terminal",
     rawTo: "explorer-agent",
   },
   {
     name: "background-worker",
-    description: "Swarm teammate with mailbox",
+    description: "우편함을 가지고 있는 에이전트 군집의 팀원",
     resolvedRoute: "mailbox",
     rawTo: "background-worker",
   },
   {
     name: "nonexistent-agent",
-    description: "Unknown recipient",
+    description: "알 수 없는 수신자",
     resolvedRoute: "error",
     rawTo: "nonexistent-agent",
   },
@@ -323,7 +323,7 @@ export default function SendMessageRouter({ className }: Props) {
               fontWeight: 600,
             }}
           >
-            SendMessage Routing Dispatch
+            SendMessage 라우팅 발송
           </span>
           <span
             style={{
@@ -332,7 +332,7 @@ export default function SendMessageRouter({ className }: Props) {
               marginLeft: "auto",
             }}
           >
-            Chapter 10 -- Coordination
+            제 10 장 -- 조정
           </span>
         </div>
 
@@ -350,7 +350,7 @@ export default function SendMessageRouter({ className }: Props) {
                 color: colors.textSecondary,
               }}
             >
-              to:
+              에:
             </span>
             <input
               type="text"
@@ -363,7 +363,7 @@ export default function SendMessageRouter({ className }: Props) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") routeMessage();
               }}
-              placeholder="recipient name or address..."
+              placeholder="받는 사람 이름이나 주소..."
               style={{
                 width: "100%",
                 padding: "10px 12px 10px 36px",
@@ -398,7 +398,7 @@ export default function SendMessageRouter({ className }: Props) {
               whiteSpace: "nowrap",
             }}
           >
-            {isRouting ? "Routing..." : "Route Message"}
+            {isRouting ? "라우팅..." : "메시지 라우팅"}
           </button>
           {(matchedRoute || currentCheckIndex >= 0) && (
             <button
@@ -414,7 +414,7 @@ export default function SendMessageRouter({ className }: Props) {
                 cursor: "pointer",
               }}
             >
-              Reset
+              재설정
             </button>
           )}
         </div>
@@ -471,7 +471,7 @@ export default function SendMessageRouter({ className }: Props) {
             fontFamily: "var(--font-mono)",
           }}
         >
-          Priority-ordered dispatch chain
+          우선순위 파견 체인
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -496,8 +496,8 @@ export default function SendMessageRouter({ className }: Props) {
               indicatorColor = colors.terracotta;
             } else if (isMatched) {
               stepBg = isDark
-                ? "rgba(217, 119, 87, 0.18)"
-                : "rgba(217, 119, 87, 0.1)";
+                ? "RGBA(217, 119, 87, 0.18)"
+                : "RGBA(217, 119, 87, 0.1)";
               borderColor = colors.terracotta;
               indicatorColor = colors.terracotta;
             } else if (isPassed) {
@@ -689,7 +689,7 @@ export default function SendMessageRouter({ className }: Props) {
                           flexShrink: 0,
                         }}
                       >
-                        Delivered!
+                        배달되었습니다!
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -781,7 +781,7 @@ export default function SendMessageRouter({ className }: Props) {
               marginBottom: 6,
             }}
           >
-            Mailbox Messages
+            사서함 메시지
           </div>
           <div
             style={{
@@ -848,7 +848,7 @@ export default function SendMessageRouter({ className }: Props) {
               marginTop: 4,
             }}
           >
-            UI message cap
+            UI 메시지 캡
           </div>
         </div>
       </div>

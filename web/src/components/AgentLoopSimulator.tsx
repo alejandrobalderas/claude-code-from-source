@@ -31,49 +31,49 @@ function StepVisual({ children }: { children: React.ReactNode }) {
 const steps: Step[] = [
   {
     id: 1,
-    title: "Receive Input",
-    shortTitle: "Input",
+    title: "입력 수신",
+    shortTitle: "입력",
     description:
-      "The loop begins when a user sends a message or when tool results from the previous iteration arrive. These become the new messages appended to the conversation history.",
+      "루프는 사용자가 메시지를 보내거나 이전 반복의 도구 결과가 도착할 때 시작됩니다. 이는 대화 기록에 추가되는 새 메시지가 됩니다.",
     visual: (
       <StepVisual>
         <div style={{ opacity: 0.5, marginBottom: 4 }}>// new messages</div>
         <div>
-          {"{"} role: <span style={{ color: "#d97757" }}>"user"</span>, content:{" "}
-          <span style={{ color: "#d97757" }}>"Read the config file"</span> {"}"}
+          {"{"} 역할: <span style={{ color: "#d97757" }}>&quot;사용자&quot;</span>, 내용:{" "}
+          <span style={{ color: "#d97757" }}>&quot;구성 파일 읽기&quot;</span> {"}"}
         </div>
       </StepVisual>
     ),
   },
   {
     id: 2,
-    title: "Context Management",
-    shortTitle: "Context",
+    title: "컨텍스트 관리",
+    shortTitle: "맥락",
     description:
-      "Before calling the model, the system checks token usage. If the conversation is too long, compression layers kick in: tool result budgeting, snip compaction, or full summarization.",
+      "모델을 호출하기 전에 시스템은 토큰 사용량을 확인합니다. 대화가 너무 길면 압축 레이어가 시작됩니다: 도구 결과 예산 책정, 스닙 압축 또는 전체 요약.",
     visual: (
       <StepVisual>
         <div>
-          tokens used: <strong>142,800</strong> / 200,000
+          사용된 토큰: <strong>142,800</strong> / 200,000
         </div>
         <div style={{ color: "#22c55e", marginTop: 4 }}>
-          Under threshold (80%). No compression needed.
+          기준치 미만(80%). 압축이 필요하지 않습니다.
         </div>
       </StepVisual>
     ),
   },
   {
     id: 3,
-    title: "Stream to Model",
-    shortTitle: "Stream",
+    title: "모델로 스트리밍",
+    shortTitle: "스트림",
     description:
-      "The full message array is sent to the Claude API. Response tokens stream back in real-time. The system processes each chunk as it arrives, building up text and tool_use blocks.",
+      "전체 메시지 배열이 Claude API로 전송됩니다. 응답 토큰은 실시간으로 다시 스트리밍됩니다. 시스템은 각 청크가 도착하는 대로 처리하여 텍스트 및 tool_use 블록을 구축합니다.",
     visual: (
       <StepVisual>
         <div style={{ opacity: 0.5 }}>// streaming response...</div>
         <div style={{ marginTop: 4 }}>
-          <span style={{ color: "#87867f" }}>{">"}</span> Let me read that
-          config file for you
+          <span style={{ color: "#87867f" }}>{">"}</span> 읽어 보도록 할게요
+          당신을 위한 구성 파일
           <span
             style={{
               display: "inline-block",
@@ -86,27 +86,27 @@ const steps: Step[] = [
             }}
           />
         </div>
-        <style>{`@keyframes blink { 50% { opacity: 0; } }`}</style>
+        <style>{"@keyframes 깜박임 { 50% { 불투명도: 0; } }"}</style>
       </StepVisual>
     ),
   },
   {
     id: 4,
-    title: "Parse Response",
-    shortTitle: "Parse",
+    title: "구문 분석 응답",
+    shortTitle: "구문 분석",
     description:
-      "Once streaming completes, the response is parsed into content blocks. Text blocks become visible output. tool_use blocks are extracted with their names, IDs, and input parameters.",
+      "스트리밍이 완료되면 응답이 콘텐츠 블록으로 구문 분석됩니다. 텍스트 블록은 가시적 출력이 됩니다. tool_use 블록은 이름, ID 및 입력 매개변수와 함께 추출됩니다.",
     visual: (
       <StepVisual>
         <div>
-          blocks: [<br />
-          &nbsp;&nbsp;{"{"} type:{" "}
-          <span style={{ color: "#87867f" }}>"text"</span>, text: "Let me
-          read..." {"}"},<br />
-          &nbsp;&nbsp;{"{"} type:{" "}
-          <span style={{ color: "#d97757" }}>"tool_use"</span>, name: "Read",
+          블록: [<br />
+          &amp;amp;nbsp;&amp;amp;nbsp;{"{"} 유형:{" "}
+          <span style={{ color: "#87867f" }}>&quot;텍스트&quot;</span>, 텍스트: &quot;내가 할게
+          읽어봐...&quot; {"}"},<br />
+          &amp;amp;nbsp;&amp;amp;nbsp;{"{"} 유형:{" "}
+          <span style={{ color: "#d97757" }}>&quot;도구_사용&quot;</span>, 이름: &quot;읽기&quot;,
           <br />
-          &nbsp;&nbsp;&nbsp;&nbsp;input: {"{"} file_path: "./config.ts" {"}"}{" "}
+          &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;입력: {"{"} 파일_경로: &quot;./config.ts&quot; {"}"}{" "}
           {"}"}
           <br />]
         </div>
@@ -115,10 +115,10 @@ const steps: Step[] = [
   },
   {
     id: 5,
-    title: "Execute Tools",
-    shortTitle: "Tools",
+    title: "도구 실행",
+    shortTitle: "도구",
     description:
-      "Tool calls are executed through a 14-step pipeline. Read-only tools (Read, Glob, Grep) run in parallel. Write tools (Edit, Write, Bash) run serially. Each goes through permission checks.",
+      "도구 호출은 14단계 파이프라인을 통해 실행됩니다. 읽기 전용 도구(Read, Glob, Grep)는 병렬로 실행됩니다. 쓰기 도구(Edit, Write, Bash)는 순차적으로 실행됩니다. 각각은 권한 확인을 거칩니다.",
     visual: (
       <StepVisual>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -133,8 +133,8 @@ const steps: Step[] = [
                 marginRight: 8,
               }}
             />
-            Read("./config.ts")
-            <span style={{ color: "#22c55e", marginLeft: 8 }}>running</span>
+            읽기(&quot;./config.ts&quot;)
+            <span style={{ color: "#22c55e", marginLeft: 8 }}>달리기</span>
           </div>
           <div>
             <span
@@ -147,11 +147,11 @@ const steps: Step[] = [
                 marginRight: 8,
               }}
             />
-            Glob("**/*.json")
-            <span style={{ color: "#22c55e", marginLeft: 8 }}>running</span>
+            글로브(&quot;**/*.json&quot;)
+            <span style={{ color: "#22c55e", marginLeft: 8 }}>달리기</span>
           </div>
           <div style={{ opacity: 0.5, fontSize: 11, marginTop: 2 }}>
-            read-only tools execute in parallel
+            읽기 전용 도구는 병렬로 실행됩니다.
           </div>
         </div>
       </StepVisual>
@@ -159,21 +159,21 @@ const steps: Step[] = [
   },
   {
     id: 6,
-    title: "Collect Results",
-    shortTitle: "Results",
+    title: "결과 수집",
+    shortTitle: "결과",
     description:
-      "Tool outputs are gathered and formatted as tool_result messages. Large outputs are truncated to fit within the per-message token budget. Results are paired with their tool_use IDs.",
+      "도구 출력은 tool_result 메시지로 수집되고 형식화됩니다. 큰 출력은 메시지당 토큰 예산에 맞게 잘립니다. 결과는 tool_use ID와 쌍을 이룹니다.",
     visual: (
       <StepVisual>
         <div>
-          {"{"} role:{" "}
-          <span style={{ color: "#87867f" }}>"tool_result"</span>,
+          {"{"} 역할:{" "}
+          <span style={{ color: "#87867f" }}>&quot;도구_결과&quot;</span>,
           <br />
-          &nbsp;&nbsp;tool_use_id: "toolu_01X...",
+          &amp;amp;nbsp;&amp;amp;nbsp;tool_use_id: &amp;quot;toolu_01X...&amp;quot;,
           <br />
-          &nbsp;&nbsp;content:{" "}
+          &amp;nbsp;&amp;nbsp; 내용:{" "}
           <span style={{ color: "#d97757" }}>
-            "export default {"{"} port: 3001... {"}"}"
+            &quot;기본값 내보내기 {"{"} 포트: 3001... {"}"}"
           </span>
           <br />
           {"}"}
@@ -183,28 +183,28 @@ const steps: Step[] = [
   },
   {
     id: 7,
-    title: "Post-Processing",
-    shortTitle: "Hooks",
+    title: "후처리",
+    shortTitle: "훅",
     description:
-      "PostToolUse hooks fire, allowing extensions to inspect or modify results. The system checks stop conditions: did a hook request early termination? Did the model hit a stop sequence?",
+      "PostToolUse 훅가 실행되어 확장 프로그램이 결과를 검사하거나 수정할 수 있습니다. 시스템은 중지 조건을 확인합니다. 훅가 조기 종료를 요청했습니까? 모델이 정지 시퀀스에 도달했나요?",
     visual: (
       <StepVisual>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div>
-            PostToolUse hooks:{" "}
-            <span style={{ color: "#22c55e" }}>2 registered</span>
+            PostTool훅을 사용하세요:{" "}
+            <span style={{ color: "#22c55e" }}>2개 등록됨</span>
           </div>
           <div>
-            &nbsp;&nbsp;block-any-type.ts{" "}
-            <span style={{ color: "#22c55e" }}>passed</span>
+            &amp;nbsp;&amp;nbsp;모든 유형 차단.ts{" "}
+            <span style={{ color: "#22c55e" }}>합격</span>
           </div>
           <div>
-            &nbsp;&nbsp;auto-compact.ts{" "}
-            <span style={{ color: "#22c55e" }}>passed</span>
+            &amp;amp;nbsp;&amp;amp;nbsp;auto-compact.ts{" "}
+            <span style={{ color: "#22c55e" }}>합격</span>
           </div>
           <div style={{ marginTop: 4 }}>
-            Stop conditions:{" "}
-            <span style={{ color: "#87867f" }}>none triggered</span>
+            정지 조건:{" "}
+            <span style={{ color: "#87867f" }}>트리거된 항목 없음</span>
           </div>
         </div>
       </StepVisual>
@@ -212,10 +212,10 @@ const steps: Step[] = [
   },
   {
     id: 8,
-    title: "Decision",
-    shortTitle: "Decide",
+    title: "결정",
+    shortTitle: "결정하다",
     description:
-      "The model examines its response. If there are pending tool calls, it loops back to step 1 with the tool results. If it has enough information, it produces a final text response and exits.",
+      "모델은 응답을 검사합니다. 보류 중인 도구 호출이 있는 경우 도구 결과를 사용하여 1단계로 되돌아갑니다. 정보가 충분하면 최종 텍스트 응답을 생성하고 종료됩니다.",
     visual: null, // handled specially
   },
 ];
@@ -346,7 +346,7 @@ export default function AgentLoopSimulator({ className }: Props) {
             color: colors.textMuted,
           }}
         >
-          Iteration {iteration}
+          반복 {iteration}
         </span>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <label
@@ -369,7 +369,7 @@ export default function AgentLoopSimulator({ className }: Props) {
               }}
               style={{ accentColor: colors.active }}
             />
-            auto-play
+            자동 재생
           </label>
         </div>
       </div>
@@ -480,7 +480,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                 marginBottom: 8,
               }}
             >
-              The Agent Loop
+              에이전트 루프
             </div>
             <div
               style={{
@@ -492,9 +492,9 @@ export default function AgentLoopSimulator({ className }: Props) {
                 lineHeight: 1.6,
               }}
             >
-              Step through one iteration of Claude Code's core loop. Each
-              iteration receives input, calls the model, executes tools, and
-              decides whether to continue or respond.
+              Claude Code의 핵심 루프를 한 번 반복해 보세요. 각각
+              반복은 입력을 받고, 모델을 호출하고, 도구를 실행하고,
+              계속할지 아니면 응답할지 결정합니다.
             </div>
             <button
               onClick={() => setCurrentStep(1)}
@@ -510,7 +510,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                 fontFamily: "var(--font-mono)",
               }}
             >
-              Start Loop
+              루프 시작
             </button>
           </motion.div>
         ) : activeStep && currentStep !== 8 ? (
@@ -537,7 +537,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                 letterSpacing: "0.05em",
               }}
             >
-              Step {activeStep.id} of 8
+              단계 {activeStep.id} 8개 중
             </div>
             <div
               style={{
@@ -586,7 +586,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                 letterSpacing: "0.05em",
               }}
             >
-              Step 8 of 8
+              8단계 중 8단계
             </div>
             <div
               style={{
@@ -596,7 +596,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                 marginBottom: 10,
               }}
             >
-              Decision
+              결정
             </div>
             <div
               style={{
@@ -641,7 +641,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                       fill="currentColor"
                     />
                   </svg>
-                  Loop back (more tool calls)
+                  루프백(추가 도구 호출)
                 </button>
                 <button
                   onClick={() => handleDecision("exit")}
@@ -675,7 +675,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  Exit (respond to user)
+                  종료(사용자에게 응답)
                 </button>
               </div>
             ) : (
@@ -701,8 +701,8 @@ export default function AgentLoopSimulator({ className }: Props) {
                   }}
                 >
                   {decision === "loop"
-                    ? "Iteration complete -- looping back to step 1"
-                    : "Iteration complete -- responding to user"}
+                    ? "반복 완료 - 1단계로 다시 반복"
+                    : "반복 완료 - 사용자에게 응답"}
                 </div>
                 <div
                   style={{
@@ -712,7 +712,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                 >
                   {decision === "loop"
                     ? `The model needs more information. Starting iteration ${iteration + 1}...`
-                    : "The model has gathered enough information and is producing a final response."}
+                    : "모델은 충분한 정보를 수집했으며 최종 응답을 생성하고 있습니다."}
                 </div>
                 {decision === "exit" && (
                   <button
@@ -729,7 +729,7 @@ export default function AgentLoopSimulator({ className }: Props) {
                       fontFamily: "var(--font-mono)",
                     }}
                   >
-                    Start over
+                    다시 시작하세요
                   </button>
                 )}
               </motion.div>
@@ -763,7 +763,7 @@ export default function AgentLoopSimulator({ className }: Props) {
               opacity: currentStep <= 1 ? 0.4 : 1,
             }}
           >
-            Previous
+            이전
           </button>
           <button
             onClick={handleReset}
@@ -778,7 +778,7 @@ export default function AgentLoopSimulator({ className }: Props) {
               textUnderlineOffset: 3,
             }}
           >
-            Reset
+            재설정
           </button>
           <button
             onClick={handleNext}
@@ -797,7 +797,7 @@ export default function AgentLoopSimulator({ className }: Props) {
               opacity: currentStep >= 8 ? 0.4 : 1,
             }}
           >
-            Next Step
+            다음 단계
           </button>
         </div>
       )}

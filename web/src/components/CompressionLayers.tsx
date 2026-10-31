@@ -18,28 +18,28 @@ interface Message {
 
 function createConversation(): Message[] {
   return [
-    { id: "u1", type: "user", label: "Set up the project structure", tokens: 400, visible: true, compressed: false, summary: false, height: 28 },
-    { id: "a1", type: "assistant", label: "I'll create the directories and files...", tokens: 1200, visible: true, compressed: false, summary: false, height: 36 },
-    { id: "t1", type: "tool_result", label: "Bash: mkdir -p src/components (output: 2.1K chars)", tokens: 3800, visible: true, compressed: false, summary: false, height: 44 },
-    { id: "t2", type: "tool_result", label: "Write: src/index.ts (output: 4.5K chars)", tokens: 6200, visible: true, compressed: false, summary: false, height: 52 },
-    { id: "a2", type: "assistant", label: "Now let me configure the build system...", tokens: 2400, visible: true, compressed: false, summary: false, height: 38 },
-    { id: "t3", type: "tool_result", label: "Read: package.json (output: 8.2K chars)", tokens: 12000, visible: true, compressed: false, summary: false, height: 56 },
-    { id: "t4", type: "tool_result", label: "Glob: **/*.config.ts (output: 1.8K chars)", tokens: 2800, visible: true, compressed: false, summary: false, height: 40 },
-    { id: "u2", type: "user", label: "Now add authentication with sessions", tokens: 600, visible: true, compressed: false, summary: false, height: 28 },
-    { id: "a3", type: "assistant", label: "I'll implement session-based auth with better-auth...", tokens: 3200, visible: true, compressed: false, summary: false, height: 42 },
-    { id: "t5", type: "tool_result", label: "Read: src/auth/config.ts (output: 12K chars)", tokens: 18000, visible: true, compressed: false, summary: false, height: 62 },
-    { id: "t6", type: "tool_result", label: "Write: src/auth/session.ts (output: 6.8K chars)", tokens: 9400, visible: true, compressed: false, summary: false, height: 54 },
-    { id: "t7", type: "tool_result", label: "Read: src/database/schema.ts (output: 22K chars)", tokens: 28000, visible: true, compressed: false, summary: false, height: 68 },
-    { id: "a4", type: "assistant", label: "Auth is set up. Let me add the middleware...", tokens: 1800, visible: true, compressed: false, summary: false, height: 36 },
-    { id: "t8", type: "tool_result", label: "Write: src/middleware/auth.ts (output: 9.1K chars)", tokens: 14000, visible: true, compressed: false, summary: false, height: 58 },
-    { id: "u3", type: "user", label: "Add CRUD endpoints for the resources", tokens: 500, visible: true, compressed: false, summary: false, height: 28 },
-    { id: "a5", type: "assistant", label: "I'll create tRPC routers for each resource...", tokens: 4200, visible: true, compressed: false, summary: false, height: 44 },
-    { id: "t9", type: "tool_result", label: "Read: src/routers/index.ts (output: 15K chars)", tokens: 22000, visible: true, compressed: false, summary: false, height: 64 },
-    { id: "t10", type: "tool_result", label: "Write: src/routers/users.ts (output: 11K chars)", tokens: 16000, visible: true, compressed: false, summary: false, height: 60 },
-    { id: "t11", type: "tool_result", label: "Write: src/routers/posts.ts (output: 14K chars)", tokens: 20000, visible: true, compressed: false, summary: false, height: 64 },
-    { id: "a6", type: "assistant", label: "Routers are ready. Running type checks...", tokens: 1600, visible: true, compressed: false, summary: false, height: 34 },
-    { id: "t12", type: "tool_result", label: "Bash: bun run check-types (output: 18K chars)", tokens: 24000, visible: true, compressed: false, summary: false, height: 66 },
-    { id: "t13", type: "tool_result", label: "Bash: bun run test (output: 6.2K chars)", tokens: 8400, visible: true, compressed: false, summary: false, height: 52 },
+    { id: "u1", type: "user", label: "프로젝트 구조 설정", tokens: 400, visible: true, compressed: false, summary: false, height: 28 },
+    { id: "a1", type: "assistant", label: "디렉토리와 파일을 생성하겠습니다.", tokens: 1200, visible: true, compressed: false, summary: false, height: 36 },
+    { id: "t1", type: "tool_result", label: "Bash: mkdir -p src/comComponents (출력: 2.1K 문자)", tokens: 3800, visible: true, compressed: false, summary: false, height: 44 },
+    { id: "t2", type: "tool_result", label: "쓰기: src/index.ts (출력: 4.5K 자)", tokens: 6200, visible: true, compressed: false, summary: false, height: 52 },
+    { id: "a2", type: "assistant", label: "이제 빌드 시스템을 구성하겠습니다.", tokens: 2400, visible: true, compressed: false, summary: false, height: 38 },
+    { id: "t3", type: "tool_result", label: "읽기: package.json(출력: 8.2K자)", tokens: 12000, visible: true, compressed: false, summary: false, height: 56 },
+    { id: "t4", type: "tool_result", label: "Glob: **/*.config.ts(출력: 1.8K 문자)", tokens: 2800, visible: true, compressed: false, summary: false, height: 40 },
+    { id: "u2", type: "user", label: "이제 세션으로 인증을 추가하세요.", tokens: 600, visible: true, compressed: false, summary: false, height: 28 },
+    { id: "a3", type: "assistant", label: "더 나은 인증으로 세션 기반 인증을 구현하겠습니다.", tokens: 3200, visible: true, compressed: false, summary: false, height: 42 },
+    { id: "t5", type: "tool_result", label: "읽기: src/auth/config.ts(출력: 12K 문자)", tokens: 18000, visible: true, compressed: false, summary: false, height: 62 },
+    { id: "t6", type: "tool_result", label: "쓰기: src/auth/session.ts (출력: 6.8K 자)", tokens: 9400, visible: true, compressed: false, summary: false, height: 54 },
+    { id: "t7", type: "tool_result", label: "읽기: src/database/schema.ts(출력: 22K 문자)", tokens: 28000, visible: true, compressed: false, summary: false, height: 68 },
+    { id: "a4", type: "assistant", label: "인증이 설정되었습니다. 미들웨어를 추가하겠습니다.", tokens: 1800, visible: true, compressed: false, summary: false, height: 36 },
+    { id: "t8", type: "tool_result", label: "쓰기: src/middleware/auth.ts (출력: 9.1K 문자)", tokens: 14000, visible: true, compressed: false, summary: false, height: 58 },
+    { id: "u3", type: "user", label: "리소스에 대한 CRUD 엔드포인트 추가", tokens: 500, visible: true, compressed: false, summary: false, height: 28 },
+    { id: "a5", type: "assistant", label: "각 리소스에 대해 tRPC 라우터를 생성하겠습니다.", tokens: 4200, visible: true, compressed: false, summary: false, height: 44 },
+    { id: "t9", type: "tool_result", label: "읽기: src/routers/index.ts(출력: 15K 문자)", tokens: 22000, visible: true, compressed: false, summary: false, height: 64 },
+    { id: "t10", type: "tool_result", label: "쓰기: src/routers/users.ts (출력: 11K 문자)", tokens: 16000, visible: true, compressed: false, summary: false, height: 60 },
+    { id: "t11", type: "tool_result", label: "쓰기: src/routers/posts.ts (출력: 14K 문자)", tokens: 20000, visible: true, compressed: false, summary: false, height: 64 },
+    { id: "a6", type: "assistant", label: "라우터가 준비되었습니다. 유형 검사 실행 중...", tokens: 1600, visible: true, compressed: false, summary: false, height: 34 },
+    { id: "t12", type: "tool_result", label: "Bash: 번 실행 검사 유형(출력: 18,000자)", tokens: 24000, visible: true, compressed: false, summary: false, height: 66 },
+    { id: "t13", type: "tool_result", label: "Bash: 번 실행 테스트(출력: 6.2K 자)", tokens: 8400, visible: true, compressed: false, summary: false, height: 52 },
   ];
 }
 
@@ -57,8 +57,8 @@ interface Layer {
 const layers: Layer[] = [
   {
     id: 1,
-    name: "Tool Result Budget",
-    description: "Enforce per-message size limits. Clips large tool outputs to fit within budget.",
+    name: "도구 결과 예산",
+    description: "메시지당 크기 제한을 적용합니다. 예산에 맞게 대형 도구 출력을 잘라냅니다.",
     apply: (msgs) =>
       msgs.map((m) => {
         if (m.type === "tool_result" && m.tokens > 10000) {
@@ -75,8 +75,8 @@ const layers: Layer[] = [
   },
   {
     id: 2,
-    name: "Snip Compact",
-    description: "Physically remove old messages from the conversation. Keeps system prompt and recent context.",
+    name: "스닙 컴팩트",
+    description: "대화에서 오래된 메시지를 물리적으로 제거합니다. 시스템 프롬프트와 최신 상황을 유지합니다.",
     apply: (msgs) => {
       // Remove first ~30% of visible messages
       const visibleIds = msgs.filter((m) => m.visible).map((m) => m.id);
@@ -90,7 +90,7 @@ const layers: Layer[] = [
   {
     id: 3,
     name: "Microcompact",
-    description: "Remove stale tool results from cache. Keeps structure, drops content of old tool outputs.",
+    description: "캐시에서 오래된 도구 결과를 제거합니다. 구조를 유지하고 이전 도구 출력의 콘텐츠를 삭제합니다.",
     apply: (msgs) =>
       msgs.map((m) => {
         if (m.type === "tool_result" && m.visible && !m.compressed) {
@@ -107,8 +107,8 @@ const layers: Layer[] = [
   },
   {
     id: 4,
-    name: "Context Collapse",
-    description: "Replace verbose spans of messages with AI-generated summaries.",
+    name: "컨텍스트 축소",
+    description: "장황한 메시지 범위를 AI 생성 요약으로 대체합니다.",
     apply: (msgs) => {
       const visible = msgs.filter((m) => m.visible);
       if (visible.length <= 4) return msgs;
@@ -129,7 +129,7 @@ const layers: Layer[] = [
       result.splice(insertIdx, 0, {
         id: "summary-1",
         type: "assistant",
-        label: "[Summary] Set up project, configured auth, created routers, ran checks",
+        label: "[요약] 프로젝트 설정, 인증 설정, 라우터 생성, 점검 실행",
         tokens: Math.floor(collapsedTokens * 0.08),
         visible: true,
         compressed: false,
@@ -142,7 +142,7 @@ const layers: Layer[] = [
   {
     id: 5,
     name: "Auto-Compact",
-    description: "Emergency full summarization. Replaces entire conversation with a concise summary. Circuit breaker prevents repeated triggers.",
+    description: "긴급 전체 요약. 전체 대화를 간결한 요약으로 대체합니다. 회로 차단기는 반복되는 트리거를 방지합니다.",
     apply: (msgs) => {
       const totalTokens = msgs
         .filter((m) => m.visible)
@@ -151,7 +151,7 @@ const layers: Layer[] = [
         {
           id: "auto-summary",
           type: "assistant" as const,
-          label: "[Auto-Compact Summary] Full session context: project setup, auth implementation, CRUD routers, type checks passing, tests green",
+          label: "[자동 압축 요약] 전체 세션 컨텍스트: 프로젝트 설정, 인증 구현, CRUD 라우터, 유형 검사 통과, 녹색 테스트",
           tokens: Math.min(30000, Math.floor(totalTokens * 0.15)),
           visible: true,
           compressed: false,
@@ -264,7 +264,7 @@ export default function CompressionLayers({ className }: Props) {
               fontWeight: 600,
             }}
           >
-            Used:{" "}
+            사용:{" "}
             <motion.span
               key={totalTokens}
               initial={{ opacity: 0.5 }}
@@ -273,7 +273,7 @@ export default function CompressionLayers({ className }: Props) {
             >
               {formatTokens(totalTokens)}
             </motion.span>{" "}
-            / {formatTokens(TOTAL_CAPACITY)} tokens
+            / {formatTokens(TOTAL_CAPACITY)} 토큰
           </span>
           <span
             style={{
@@ -282,7 +282,7 @@ export default function CompressionLayers({ className }: Props) {
               color: colors.textMuted,
             }}
           >
-            {usagePercent.toFixed(0)}% capacity
+            {usagePercent.toFixed(0)}% 용량
           </span>
         </div>
         <div
@@ -330,7 +330,7 @@ export default function CompressionLayers({ className }: Props) {
               letterSpacing: "0.05em",
             }}
           >
-            Conversation ({messages.filter((m) => m.visible).length} messages)
+            대화({messages.filter((m) => m.visible).length} 메시지)
           </div>
           <AnimatePresence>
             {messages.map(
@@ -415,7 +415,7 @@ export default function CompressionLayers({ className }: Props) {
               letterSpacing: "0.05em",
             }}
           >
-            Compression Layers
+            압축 레이어
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {layers.map((layer, i) => {
@@ -468,7 +468,7 @@ export default function CompressionLayers({ className }: Props) {
                       {isApplied && savedPerLayer[i] !== undefined
                         ? `Saved ${formatTokens(savedPerLayer[i])} tokens`
                         : isNext
-                          ? "Click to apply"
+                          ? "신청하려면 클릭하세요"
                           : layer.description.slice(0, 50) + "..."}
                     </div>
                   </button>
@@ -493,7 +493,7 @@ export default function CompressionLayers({ className }: Props) {
               fontFamily: "var(--font-mono)",
             }}
           >
-            Reset conversation
+            대화 재설정
           </button>
 
           {/* Total saved */}
@@ -515,8 +515,8 @@ export default function CompressionLayers({ className }: Props) {
                   fontWeight: 600,
                 }}
               >
-                Total saved:{" "}
-                {formatTokens(savedPerLayer.reduce((a, b) => a + b, 0))} tokens
+                저장된 총 금액:{" "}
+                {formatTokens(savedPerLayer.reduce((a, b) => a + b, 0))} 토큰
               </div>
             </div>
           )}

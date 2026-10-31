@@ -29,11 +29,11 @@ interface GanttItem {
 }
 
 const items: GanttItem[] = [
-  { label: "Commands loading", startMs: 0, endMs: 10, color: "#d97757" },
-  { label: "Agent loading", startMs: 0, endMs: 8, color: "#f59e0b" },
-  { label: "Hook loading", startMs: 2, endMs: 12, color: "#4ade80" },
-  { label: "Plugin loading", startMs: 5, endMs: 15, color: "#a78bfa" },
-  { label: "MCP init", startMs: 8, endMs: 25, color: "#60a5fa" },
+  { label: "명령 로드 중", startMs: 0, endMs: 10, color: "#d97757" },
+  { label: "에이전트 로딩", startMs: 0, endMs: 8, color: "#f59e0b" },
+  { label: "훅 로딩", startMs: 2, endMs: 12, color: "#4ade80" },
+  { label: "플러그인 로딩", startMs: 5, endMs: 15, color: "#a78bfa" },
+  { label: "MCP 초기화", startMs: 8, endMs: 25, color: "#60a5fa" },
 ];
 
 const MAX_MS = 30;
@@ -193,12 +193,12 @@ export default function SetupGantt({ className }: Props) {
         }}
       >
         <span>
-          Total wall time:{" "}
+          총 벽 시간:{" "}
           <span style={{ color: colors.terracotta, fontWeight: 600 }}>~25ms</span>
         </span>
         <span style={{ opacity: 0.5 }}>|</span>
         <span>
-          Sequential would be:{" "}
+          순차적은 다음과 같습니다.{" "}
           <span style={{ textDecoration: "line-through" }}>~70ms</span>
         </span>
       </motion.div>

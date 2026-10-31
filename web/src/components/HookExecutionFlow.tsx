@@ -60,66 +60,66 @@ interface FlowConnection {
 const nodes: FlowNode[] = [
   {
     id: "start",
-    label: "executeHooks()",
+    label: "실행훅()",
     kind: "action",
-    detail: "Hook event triggered",
+    detail: "훅 이벤트가 트리거됨",
   },
   {
     id: "trusted",
-    label: "Workspace trusted?",
+    label: "작업 공간을 신뢰할 수 있나요?",
     kind: "decision",
   },
   {
     id: "skip",
-    label: "Return immediately",
+    label: "즉시 반납",
     kind: "outcome",
     color: "#87867f",
-    detail: "Hooks disabled",
+    detail: "훅가 비활성화되었습니다.",
   },
   {
     id: "match",
-    label: "Match hook config rules",
+    label: "매치훅 구성 규칙",
     kind: "action",
-    detail: "Filter by event type + pattern",
+    detail: "이벤트 유형 + 패턴으로 필터링",
   },
   {
     id: "run",
-    label: "Run matching hooks",
+    label: "일치하는 훅 실행",
     kind: "action",
-    detail: "Parallel execution with timeout",
+    detail: "시간 초과가 있는 병렬 실행",
   },
   {
     id: "exit",
-    label: "Check exit code",
+    label: "종료 코드 확인",
     kind: "decision",
   },
   {
     id: "success",
-    label: "Exit 0: Success",
+    label: "출구 0: 성공",
     kind: "outcome",
     color: "#22c55e",
-    detail: "Tool call proceeds",
+    detail: "공구콜 진행",
   },
   {
     id: "block",
-    label: "Exit 2: Block",
+    label: "2번 출구: 차단",
     kind: "outcome",
     color: "#ef4444",
-    detail: "Tool call rejected",
+    detail: "도구 호출이 거부됨",
   },
   {
     id: "warn",
-    label: "Other: Warning",
+    label: "기타: 경고",
     kind: "outcome",
     color: "#eab308",
-    detail: "Logged, call proceeds",
+    detail: "기록됨, 통화가 진행됨",
   },
 ];
 
 const connections: FlowConnection[] = [
   { from: "start", to: "trusted" },
-  { from: "trusted", to: "skip", label: "No", side: "right" },
-  { from: "trusted", to: "match", label: "Yes" },
+  { from: "trusted", to: "skip", label: "아니요", side: "right" },
+  { from: "trusted", to: "match", label: "예" },
   { from: "match", to: "run" },
   { from: "run", to: "exit" },
   { from: "exit", to: "success" },
@@ -410,7 +410,7 @@ export default function HookExecutionFlow({
           fontFamily: "var(--font-mono)",
         }}
       >
-        Hook Execution Flow
+        훅 실행 흐름
       </motion.div>
 
       {/* Step 1: executeHooks */}

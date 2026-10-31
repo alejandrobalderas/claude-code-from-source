@@ -46,100 +46,100 @@ interface ErrorType {
 const errorTypes: ErrorType[] = [
   {
     id: "prompt-too-long",
-    title: "Prompt Too Long",
+    title: "프롬프트가 너무 김",
     code: "413",
     icon: "\u26A0",
     steps: [
       {
         id: 1,
-        label: "Context Collapse Drain",
+        label: "컨텍스트 축소 드레인",
         description:
-          "Drains staged context collapses -- removes verbose tool results and earlier conversation sections that were already marked for removal.",
+          "단계적 컨텍스트 축소 - 이미 제거 대상으로 표시된 자세한 도구 결과와 이전 대화 섹션을 제거합니다.",
         detail:
-          "The context pipeline stages collapses proactively. This step just flushes them. Cheap and fast.",
-        successCriteria: "Token count drops below model's context window",
+          "컨텍스트 파이프라인 단계가 사전에 축소됩니다. 이 단계에서는 단순히 플러시합니다. 저렴하고 빠릅니다.",
+        successCriteria: "토큰 수가 모델의 컨텍스트 창 아래로 떨어집니다.",
       },
       {
         id: 2,
-        label: "Reactive Compact",
+        label: "리액티브 컴팩트",
         description:
-          "Emergency summarization via a dedicated compact sub-agent. Rewrites the entire conversation into a condensed summary.",
+          "전용 컴팩트 하위 에이전트를 통한 긴급 요약. 전체 대화를 요약된 요약으로 다시 작성합니다.",
         detail:
-          "One-shot guard: hasAttemptedReactiveCompact prevents infinite loops. Fires once per error type, never again.",
+          "원샷 가드: hasAttemptedReactiveCompact는 무한 루프를 방지합니다. 오류 유형별로 한 번만 발생하고 다시는 발생하지 않습니다.",
         successCriteria:
-          "Compaction succeeds and new token count fits the context window",
+          "압축이 성공하고 새 토큰 수가 컨텍스트 창에 맞습니다.",
       },
       {
         id: 3,
-        label: "Surface Error & Exit",
+        label: "표면 오류 및 종료",
         description:
-          "All recovery exhausted. The error is finally surfaced to the user and the loop terminates.",
+          "모든 회복이 소진되었습니다. 오류가 최종적으로 사용자에게 표시되고 루프가 종료됩니다.",
         detail:
-          'Returns Terminal { reason: "prompt_too_long" }. The withholding pattern ends here -- this is the first time the user sees the error.',
-        successCriteria: "N/A -- terminal state",
+          "터미널 { 이유: \"prompt_too_long\" }을 반환합니다. 원천징수 패턴은 여기서 끝납니다. 사용자가 처음으로 오류를 보게 되는 경우입니다.",
+        successCriteria: "해당 없음 - 터미널 상태",
       },
     ],
   },
   {
     id: "max-output-tokens",
-    title: "Max Output Tokens",
+    title: "최대 출력 토큰",
     code: "max_tokens",
     icon: "\u2702",
     steps: [
       {
         id: 1,
-        label: "8K \u2192 64K Escalation",
+        label: "8K → 64K 에스컬레이션",
         description:
-          "Default output cap is 8,000 tokens (p99 output is 4,911). When hit, escalate to 64K via maxOutputTokensOverride.",
+          "기본 출력 한도는 8,000개 토큰입니다(p99 출력은 4,911개입니다). 적중되면 maxOutputTokensOverride를 통해 64K로 에스컬레이션합니다.",
         detail:
-          "Only <1% of requests hit the 8K cap. The low default saves significant cost at fleet scale.",
-        successCriteria: "Response completes within 64K tokens",
+          "요청의 1% 미만만이 8K 한도에 도달했습니다. 낮은 기본값은 차량 규모에서 상당한 비용을 절감합니다.",
+        successCriteria: "64K 토큰 내에서 응답이 완료됩니다.",
       },
       {
         id: 2,
-        label: "Multi-Turn Recovery (\u00D73)",
+        label: "다회전 회복(×3)",
         description:
-          "Still hitting the cap at 64K. The model's partial response is kept, and a continuation request is sent. Up to 3 attempts.",
+          "여전히 64K에 도달했습니다. 모델의 부분 응답이 유지되고 계속 요청이 전송됩니다. 최대 3회 시도 가능.",
         detail:
-          "maxOutputTokensRecoveryCount tracks attempts. Each continuation appends the partial output and asks the model to continue.",
+          "maxOutputTokensRecoveryCount는 시도를 추적합니다. 각 연속은 부분 출력을 추가하고 모델에 계속하도록 요청합니다.",
         successCriteria:
-          "Model finishes its response within 3 continuation attempts",
+          "모델은 3번의 연속 시도 이내에 응답을 완료합니다.",
       },
       {
         id: 3,
-        label: "Surface Error & Exit",
+        label: "표면 오류 및 종료",
         description:
-          "3 recovery attempts exhausted. The accumulated partial output is kept, but the loop exits.",
+          "3번의 복구 시도가 소진되었습니다. 누적된 부분 출력은 유지되지만 루프가 종료됩니다.",
         detail:
-          'Returns Terminal { reason: "completed" } with the partial output. The user sees what the model managed to produce.',
-        successCriteria: "N/A -- terminal state",
+          "부분 출력과 함께 터미널 { 이유: \"완료\" }를 반환합니다. 사용자는 모델이 생성한 내용을 볼 수 있습니다.",
+        successCriteria: "해당 없음 - 터미널 상태",
       },
     ],
   },
   {
     id: "media-size",
-    title: "Media / Size Errors",
+    title: "미디어/크기 오류",
     code: "media_error",
     icon: "\uD83D\uDDBC",
     steps: [
       {
         id: 1,
-        label: "Retry Without Media",
+        label: "미디어 없이 재시도",
         description:
-          "Strips media attachments (images, PDFs) from the request and retries. Uses reactive compact to rebuild context without the oversized content.",
+          "요청에서 미디어 첨부 파일(이미지, PDF)을 제거하고 재시도합니다. 너무 큰 콘텐츠 없이 컨텍스트를 다시 작성하기 위해 반응형 압축을 사용합니다.",
         detail:
-          "Triggered by ImageSizeError, ImageResizeError, or similar. The one-shot hasAttemptedReactiveCompact guard applies here too.",
+          "ImageSizeError, ImageResizeError 또는 유사한 요인에 의해 트리거됩니다. 원샷 hasAttemptedReactiveCompact 가드가 여기에도 적용됩니다.",
         successCriteria:
-          "Request succeeds after media removal and context recompaction",
+          "미디어 제거 및 컨텍스트 재압축 후 요청 성공",
       },
       {
         id: 2,
-        label: "Surface Error & Exit",
+        label: "표면 오류 및 종료",
         description:
-          "Media removal did not resolve the issue. The error is surfaced to the user.",
+          "미디어를 제거해도 문제가 해결되지 않았습니다. 오류가 사용자에게 표시됩니다.",
         detail:
-          'Returns Terminal { reason: "image_error" }. Distinct terminal reason allows callers to show media-specific guidance.',
-        successCriteria: "N/A -- terminal state",
+          "터미널 { 이유: \"image_error\" }를 반환합니다. 명확한 최종 이유를 통해 발신자는 미디어별 안내를 표시할 수 있습니다.",
+        successCriteria: "해당 없음 - 터미널 상태",
       },
     ],
   },
@@ -316,7 +316,7 @@ export default function ErrorEscalation({
             color: colors.text,
           }}
         >
-          Error Recovery Escalation Ladder
+          오류 복구 에스컬레이션 사다리
         </h3>
         <p
           style={{
@@ -326,12 +326,12 @@ export default function ErrorEscalation({
             lineHeight: 1.5,
           }}
         >
-          Errors are{" "}
+          오류는{" "}
           <strong style={{ color: colors.terracotta }}>
-            withheld from the stream
+            스트림에서 보류
           </strong>{" "}
-          while recovery attempts happen silently. The user only sees an error if
-          all steps fail.
+          복구 시도는 자동으로 수행됩니다. 다음과 같은 경우에만 사용자에게 오류가 표시됩니다.
+          모든 단계가 실패합니다.
         </p>
       </div>
 
@@ -405,7 +405,7 @@ export default function ErrorEscalation({
             transition: "all 0.15s ease",
           }}
         >
-          {isAnimating ? "Recovering..." : "Trigger Error"}
+          {isAnimating ? "복구 중..." : "트리거 오류"}
         </button>
 
         <div
@@ -423,7 +423,7 @@ export default function ErrorEscalation({
               whiteSpace: "nowrap",
             }}
           >
-            Recovery succeeds at step:
+            다음 단계에서 복구가 성공합니다.
           </label>
           <div style={{ display: "flex", gap: 4 }}>
             {currentError.steps.map((step, i) => {
@@ -500,8 +500,8 @@ export default function ErrorEscalation({
               \u25CF
             </motion.span>
             <span>
-              Error withheld from stream -- recovery in progress. User sees
-              nothing.
+              스트림에서 오류가 보류되었습니다. 복구가 진행 중입니다. 사용자가 본다
+              아무것도.
             </span>
           </motion.div>
         )}
@@ -630,7 +630,7 @@ export default function ErrorEscalation({
                                 fontWeight: 600,
                               }}
                             >
-                              Recovered!
+                              회복되었습니다!
                             </motion.span>
                           )}
                           {status === "failure" && isLast && (
@@ -644,7 +644,7 @@ export default function ErrorEscalation({
                                 fontWeight: 600,
                               }}
                             >
-                              All recovery exhausted
+                              모든 회복이 소진되었습니다.
                             </motion.span>
                           )}
                         </div>
@@ -722,8 +722,8 @@ export default function ErrorEscalation({
                         <span style={{ fontSize: 16 }}>\u2193</span>
                         <span>
                           {getStepStatus(step.id) === "failure"
-                            ? "Failed \u2014 escalating..."
-                            : "escalates to"}
+                            ? "실패 — 에스컬레이션 중..."
+                            : "에스컬레이션"}
                         </span>
                       </motion.div>
                     </div>
@@ -750,23 +750,23 @@ export default function ErrorEscalation({
         }}
       >
         <div style={{ fontWeight: 600, marginBottom: 6, color: colors.text }}>
-          Death Spiral Guards
+          죽음의 나선 경비대
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <span>
-            \u2022 <code>hasAttemptedReactiveCompact</code> -- one-shot flag,
-            fires once per error
+            \u2022 <code>hasAttemptedReactiveCompact</code> -- 원샷 플래그,
+            오류당 한 번 실행됩니다.
           </span>
           <span>
-            \u2022 <code>MAX_OUTPUT_TOKENS_RECOVERY_LIMIT = 3</code> -- hard
-            cap on continuations
+            \u2022 <code>MAX_OUTPUT_TOKENS_RECOVERY_LIMIT = 3</code> -- 어렵다
+            연속극 한도
           </span>
           <span>
-            \u2022 Circuit breaker on auto-compact after 3 consecutive failures
+            \u2022 3회 연속 실패 후 회로 차단기가 자동 압축됨
           </span>
           <span>
-            \u2022 No stop hooks on error responses (prevents error \u2192 hook
-            \u2192 retry \u2192 error loops)
+            \u2022 오류 응답 시 중지 훅 없음(오류 \u2192 훅 방지)
+            \u2192 재시도 \u2192 오류 루프)
           </span>
         </div>
       </div>

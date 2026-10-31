@@ -7,7 +7,7 @@ interface Props {
 
 const { title, description, ogImage } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const ogImageURL = ogImage || new URL('/og-image.jpg', Astro.site).href;
+const ogImageURL = ogImage || new URL(`${import.meta.env.BASE_URL}og-image.jpg`, Astro.site).href;
 ---
 
 <title>{title}</title>
@@ -15,6 +15,7 @@ const ogImageURL = ogImage || new URL('/og-image.jpg', Astro.site).href;
 <link rel="canonical" href={canonicalURL.href} />
 
 <!-- Open Graph -->
+<meta property="og:locale" content="ko_KR" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content={canonicalURL.href} />
 <meta property="og:title" content={title} />

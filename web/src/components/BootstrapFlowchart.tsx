@@ -32,29 +32,29 @@ interface Step {
 const steps: Step[] = [
   {
     file: "cli.tsx",
-    description: "Fast-path dispatch",
-    detail: "--version, --help exit immediately",
+    description: "빠른 경로 파견",
+    detail: "--version, --help 즉시 종료",
     hasFastPath: true,
   },
   {
     file: "main.tsx",
-    description: "Module-level I/O",
-    detail: "Subprocess spawns, keychain reads, TLS preconnect",
+    description: "모듈 수준 I/O",
+    detail: "하위 프로세스 생성, 키체인 읽기, TLS 사전 연결",
   },
   {
     file: "init.ts",
-    description: "Parse args, trust boundary",
-    detail: "Config resolution, 10 setup dialogs, init()",
+    description: "구문 분석 인수, 신뢰 경계",
+    detail: "구성 해상도, 10개 설정 대화상자, init()",
   },
   {
     file: "setup.ts",
-    description: "Commands, agents, hooks, plugins",
-    detail: "Parallel loading with awaited I/O results",
+    description: "명령, 에이전트, 훅, 플러그인",
+    detail: "대기 중인 I/O 결과를 사용한 병렬 로딩",
   },
   {
     file: "replLauncher.ts",
-    description: "Seven launch paths converge",
-    detail: "REPL, one-shot, resume, MCP, pipe, eval, coordinator",
+    description: "7개의 발사 경로가 수렴됩니다.",
+    detail: "REPL, 원샷, 이력서, MCP, 파이프, 평가, 코디네이터",
     isDestination: true,
   },
 ];
@@ -211,7 +211,7 @@ export default function BootstrapFlowchart({ className }: Props) {
                       fontWeight: 600,
                     }}
                   >
-                    exit(0)
+                    출구(0)
                   </span>
                 </div>
               )}
@@ -256,7 +256,7 @@ export default function BootstrapFlowchart({ className }: Props) {
             color: colors.terracotta,
           }}
         >
-          Running REPL
+          REPL 실행
         </motion.div>
       </div>
     </div>

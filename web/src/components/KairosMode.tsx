@@ -27,15 +27,15 @@ interface Step {
 }
 
 const standardSteps: Step[] = [
-  { label: "Model observes", detail: "Pattern, correction, or important fact detected during conversation" },
-  { label: "Create memory file", detail: "Immediately writes a categorized .md file (user_, feedback_, project_)" },
-  { label: "Update MEMORY.md index", detail: "Adds reference link to the always-loaded index file" },
+  { label: "모델 관찰", detail: "대화 중 패턴, 수정, 중요한 사실 감지" },
+  { label: "메모리 파일 생성", detail: "분류된 .md 파일(user_, Feedback_, project_)을 즉시 작성합니다." },
+  { label: "MEMORY.md 색인 업데이트", detail: "항상 로드되는 색인 파일에 참조 링크를 추가합니다." },
 ];
 
 const kairosSteps: Step[] = [
-  { label: "Model observes", detail: "Same detection, but defers structured storage" },
-  { label: "Append to daily log", detail: "Quick append to today's raw log -- minimal interruption to flow" },
-  { label: "Nightly /dream consolidation", detail: "Batch process: deduplicate, categorize, prune, update index" },
+  { label: "모델 관찰", detail: "감지는 동일하지만 구조화된 저장소가 연기됩니다." },
+  { label: "일일 로그에 추가", detail: "오늘의 원시 로그에 빠르게 추가 - 흐름 중단 최소화" },
+  { label: "야간/꿈 강화", detail: "일괄 프로세스: 중복 제거, 분류, 정리, 색인 업데이트" },
 ];
 
 interface Props {
@@ -279,7 +279,7 @@ export default function KairosMode({ className }: Props) {
               color: colors.textSecondary,
             }}
           >
-            vs
+            대
           </div>
         </motion.div>
 
@@ -317,7 +317,7 @@ export default function KairosMode({ className }: Props) {
             fontFamily: "var(--font-mono)",
           }}
         >
-          Pros: Immediately organized. Cons: Interrupts flow, may over-index
+          장점: 즉시 정리됩니다. 단점: 흐름을 중단하고 과도한 색인을 생성할 수 있음
         </div>
         <div
           style={{
@@ -331,7 +331,7 @@ export default function KairosMode({ className }: Props) {
             fontFamily: "var(--font-mono)",
           }}
         >
-          Pros: Low friction, natural pruning. Cons: Requires /dream discipline
+          장점: 마찰이 적고 가지치기가 자연스럽습니다. 단점: /dream 규율 필요
         </div>
       </motion.div>
     </div>

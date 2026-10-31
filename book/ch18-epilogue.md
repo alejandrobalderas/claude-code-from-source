@@ -1,135 +1,169 @@
-# Chapter 18: What We Learned
+<a id="chapter-18-what-we-learned"></a>
 
-## Five Architectural Bets
+# 제18장: 에필로그 — 우리가 배운 것
 
-Claude Code is not the only agentic system. It is not the first. But it made five architectural bets that distinguish it from the landscape of agent frameworks, and after nearly two thousand files and seventeen chapters, those bets deserve examination.
+<a id="five-architectural-bets"></a>
 
-### Bet 1: The Generator Loop Over Callbacks
+## 다섯 가지 건축 관련 베팅
 
-Most agent frameworks give you a pipeline: define tools, register handlers, let the framework orchestrate. The developer writes callbacks. The framework decides when to call them.
+Claude Code가 유일한 에이전트 시스템은 아닙니다. 처음이 아닙니다. 그러나 에이전트 프레임워크의 환경과 구별되는 5개의 아키텍처 베팅을 했으며 거의 ​​2천 개의 파일과 17개의 챕터를 거친 후 이러한 베팅은 검토할 가치가 있습니다.
 
-Claude Code does the opposite. The `query()` function is an async generator -- the developer owns the loop. The model streams a response, the generator yields tool calls, the caller executes them, appends results, and the generator loops. There is one function, one data flow, one place where every interaction passes through. The 10 terminal states and 7 continuation states of the generator's return type encode every possible outcome. The loop is the system.
+<a id="bet-1-the-generator-loop-over-callbacks"></a>
 
-The bet was that a single generator function, even one that grew to 1,700 lines, would be more comprehensible than a distributed callback graph. After studying the source, the bet paid off. When you want to understand why a session ended, you look at one function. When you want to add a new terminal state, you add one variant to one discriminated union. The type system enforces exhaustive handling. A callback architecture would scatter this logic across dozens of files, and the interactions between callbacks would be implicit rather than visible in the control flow.
+### 내기 1: 콜백에 대한 생성기 루프
 
-### Bet 2: File-Based Memory Over Databases
+대부분의 에이전트 프레임워크는 도구 정의, 핸들러 등록, 프레임워크 조정 등의 파이프라인을 제공합니다. 개발자가 콜백을 작성합니다. 프레임워크는 호출 시기를 결정합니다.
 
-Chapter 11 made the case in detail, but the architectural significance extends beyond memory. The decision to use plain Markdown files instead of SQLite, a vector database, or a cloud service was a bet on transparency over capability. A database would support richer queries, faster lookups, and transactional guarantees. Files provide none of that. What files provide is trust.
+Claude Code는 그 반대입니다. `query()` 함수는 비동기 생성기입니다. 즉, 개발자가 루프를 소유합니다. 모델은 응답을 스트리밍하고, 생성기는 도구 호출을 생성하고, 호출자는 이를 실행하고, 결과를 추가하고, 생성기는 반복됩니다. 하나의 기능, 하나의 데이터 흐름, 모든 상호 작용이 통과하는 하나의 장소가 있습니다. 생성기 반환 유형의 10개 터미널 상태와 7개 연속 상태는 가능한 모든 결과를 인코딩합니다. 루프는 시스템이다.
 
-A user who opens `~/.claude/projects/myapp/memory/MEMORY.md` in vim and sees exactly what the agent remembers about them has a fundamentally different relationship with the system than a user who must ask the agent "what do you remember?" and hope the answer is complete. The file-based design makes the agent's knowledge state externally observable, not just self-reported. This matters more than query performance. The LLM-powered recall system compensates for the storage simplicity with retrieval intelligence -- a Sonnet side-query selecting five relevant memories from a manifest is more precise than embedding similarity and requires zero infrastructure.
+단일 생성기 함수는 심지어 1,700줄로 늘어난 함수라도 분산 콜백 그래프보다 더 이해하기 쉬울 것이라고 확신했습니다. 소스를 연구한 후 내기는 성공했습니다. 세션이 종료된 이유를 이해하려면 함수 하나를 살펴보세요. 새로운 최종 상태를 추가하려면 구별된 하나의 공용체에 하나의 변형을 추가합니다. 유형 시스템은 철저한 처리를 시행합니다. 콜백 아키텍처는 이 논리를 수십 개의 파일에 분산시키고 콜백 간의 상호 작용은 제어 흐름에 표시되지 않고 암시적입니다.
 
-### Bet 3: Self-Describing Tools Over Central Orchestrators
+<a id="bet-2-file-based-memory-over-databases"></a>
 
-Agent frameworks typically provide a tool registry: you describe your tools in a central configuration, and the framework presents them to the model. Claude Code's tools describe themselves. Each `Tool` object carries its own name, description, input schema, prompt contribution, concurrency safety flag, and execution logic. The tool system's job is not to describe tools to the model -- it is to let tools describe themselves.
+### 내기 2: 데이터베이스에 대한 파일 기반 메모리
 
-This bet pays off in extensibility. MCP tools (Chapter 15) become first-class citizens by implementing the same interface. A tool from an MCP server and a built-in tool are indistinguishable to the model. The system does not need a separate "MCP tool adapter" layer -- the wrapping produces a standard `Tool` object, and from that point forward, the existing tool pipeline handles it: permission checking, concurrent execution, result budgeting, hook interception.
+11장에서는 사례를 자세히 설명했지만 구조적 중요성은 기억을 넘어서는 것입니다. SQLite, 벡터 데이터베이스 또는 클라우드 서비스 대신 일반 Markdown 파일을 사용하기로 한 결정은 기능보다 투명성에 대한 선택이었습니다. 데이터베이스는 더 풍부한 쿼리, 더 빠른 조회 및 트랜잭션 보장을 지원합니다. 파일은 그 어떤 것도 제공하지 않습니다. 파일이 제공하는 것은 신뢰입니다.
 
-### Bet 4: Fork Agents for Cache Sharing
+vim에서 `~/.claude/projects/myapp/memory/MEMORY.md`을 열고 에이전트가 자신에 대해 무엇을 기억하는지 정확히 보는 사용자는 에이전트에게 "무엇을 기억하시나요?"라고 물어야 하는 사용자와 시스템과 근본적으로 다른 관계를 갖습니다. 답변이 완료되기를 바랍니다. 파일 기반 설계를 통해 에이전트의 지식 상태를 자체 보고뿐만 아니라 외부에서도 관찰할 수 있습니다. 이는 쿼리 성능보다 더 중요합니다. LLM 기반 리콜 시스템은 검색 인텔리전스를 통해 스토리지 단순성을 보완합니다. 매니페스트에서 5개의 관련 메모리를 선택하는 Sonnet 사이드 쿼리는 유사성을 포함하는 것보다 더 정확하며 인프라가 필요하지 않습니다.
 
-Chapter 9 covered the fork mechanism: a sub-agent that starts with the parent's full conversation in its context window, sharing the parent's prompt cache. This is not a convenience optimization -- it is an architectural bet that the cache sharing model is worth the complexity of fork lifecycle management.
+<a id="bet-3-self-describing-tools-over-central-orchestrators"></a>
 
-The alternative -- spawning a fresh agent with a summary of the conversation -- is simpler but expensive. Every fresh agent pays the full cost of processing its context from scratch. A forked agent gets the parent's cached prefix for free (a 90% discount on input tokens), making it economical to spawn agents for small tasks: memory extraction, code review, verification passes. The background memory extraction agent (Chapter 11) runs after every query loop turn, and its cost is marginal precisely because it shares the parent's cache. Without fork-based cache sharing, that agent would be prohibitively expensive.
+### 내기 3: 중앙 오케스트레이터에 대한 자체 설명 도구
 
-### Bet 5: Hooks Over Plugins
+에이전트 프레임워크는 일반적으로 도구 레지스트리를 제공합니다. 중앙 구성에서 도구를 설명하면 프레임워크가 도구를 모델에 제공합니다. Claude Code의 도구는 스스로를 설명합니다. 각 `Tool` 개체에는 고유한 이름, 설명, 입력 스키마, 프롬프트 기여, 동시성 안전 플래그 및 실행 논리가 포함됩니다. 도구 시스템의 임무는 도구를 모델에 설명하는 것이 아니라 도구가 스스로 설명하도록 하는 것입니다.
 
-Most extensibility systems use plugins -- code that registers capabilities and runs within the host process. Claude Code uses hooks -- external processes that run at lifecycle points and communicate through exit codes and JSON on stdin/stdout.
+이 베팅은 확장성 측면에서 보상을 받습니다. MCP 도구(15장)는 동일한 인터페이스를 구현하여 일류 시민이 됩니다. MCP 서버의 도구와 내장 도구는 모델과 구별할 수 없습니다. 시스템에는 별도의 "MCP 도구 어댑터" 계층이 필요하지 않습니다. 래핑은 표준 `Tool` 개체를 생성하고 해당 시점부터 기존 도구 파이프라인이 이를 처리합니다(권한 확인, 동시 실행, 결과 예산 책정, 훅 차단).
 
-The bet is that process isolation is worth the overhead. A plugin can crash the host. A hook crashes its own process. A plugin can leak memory into the host's heap. A hook's memory dies with its process. A plugin requires an API surface that must be versioned and maintained. A hook requires stdin, stdout, and an exit code -- a protocol that has been stable since 1971.
+<a id="bet-4-fork-agents-for-cache-sharing"></a>
 
-The overhead is real: spawning a process per hook invocation costs milliseconds that an in-process callback would not. The -70% fast path for internal callbacks (Chapter 12) shows that the system knows this cost matters. But for external hooks -- user scripts, team linters, enterprise policy servers -- the isolation guarantee makes the system safer to extend. An enterprise can deploy hook-based policy enforcement without worrying that a malformed hook script will crash their developers' sessions.
+### 내기 4: 캐시 공유를 위한 포크 에이전트
 
----
+9장에서는 포크 메커니즘을 다루었습니다. 즉, 컨텍스트 창에서 상위의 전체 대화로 시작하여 상위의 프롬프트 캐시를 공유하는 하위 에이전트입니다. 이는 편리한 최적화가 아닙니다. 캐시 공유 모델이 포크 수명주기 관리의 복잡성을 감당할 가치가 있다는 것은 구조적 내기입니다.
 
-## What Transfers, What Does Not
+대화 요약을 통해 새로운 에이전트를 생성하는 대안은 더 간단하지만 비용이 많이 듭니다. 모든 신규 에이전트는 컨텍스트를 처음부터 처리하는 데 드는 전체 비용을 지불합니다. 분기된 에이전트는 상위의 캐시된 접두사를 무료로 가져오므로(입력 토큰에 대해 90% 할인) 메모리 추출, 코드 검토, 확인 통과와 같은 작은 작업을 위해 에이전트를 생성하는 것이 경제적입니다. 백그라운드 메모리 추출 에이전트(11장)는 쿼리 루프가 바뀔 때마다 실행되며 상위 캐시를 공유하기 때문에 비용이 매우 적습니다. 포크 기반 캐시 공유가 없으면 해당 에이전트의 비용이 엄청나게 비쌉니다.
 
-Not every pattern in Claude Code generalizes. Some are consequences of scale, resources, or specific constraints that other agent builders may not share.
+<a id="bet-5-hooks-over-plugins"></a>
 
-### Patterns That Transfer to Any Agent
+### 베팅 5: 플러그인에 대한 훅
 
-**The generator loop pattern.** Any agent that needs to stream responses, handle tool calls, and manage multiple terminal states benefits from making the loop explicit rather than hiding it behind callbacks. The discriminated union return type -- encoding exactly why the loop stopped -- is a pattern that eliminates an entire class of "why did the agent stop?" debugging sessions.
+대부분의 확장성 시스템은 기능을 등록하고 호스트 프로세스 내에서 실행되는 코드인 플러그인을 사용합니다. Claude Code는 훅(수명 주기 지점에서 실행되고 stdin/stdout의 종료 코드 및 JSON을 통해 통신하는 외부 프로세스)를 사용합니다.
 
-**File-based memory with LLM recall.** The specific implementation details are Claude Code's, but the principle -- simple storage combined with intelligent retrieval -- applies to any agent that needs to persist knowledge across sessions. The four-type taxonomy (user, feedback, project, reference) and the derivability test ("can this be re-derived from the current project state?") are reusable design heuristics.
+프로세스 격리는 오버헤드를 감당할 가치가 있다는 것이 확실합니다. 플러그인이 호스트를 충돌시킬 수 있습니다. 훅가 자체 프로세스를 중단시킵니다. 플러그인은 호스트의 힙으로 메모리를 누출할 수 있습니다. Hook의 메모리는 해당 프로세스와 함께 소멸됩니다. 플러그인에는 버전을 관리하고 유지 관리해야 하는 API 표면이 필요합니다. 훅에는 stdin, stdout 및 종료 코드(1971년 이후 안정적인 프로토콜)가 필요합니다.
 
-**Asymmetric read/write channels for remote execution.** When reads are high-frequency streams and writes are low-frequency RPCs, separating them is correct regardless of the specific transport protocol.
-
-**Bitmap pre-filters for search.** Any agent searching a large file index benefits from a 26-bit letter bitmap as a pre-filter. Four bytes per entry, one integer comparison per candidate -- the cost-to-benefit ratio is remarkable.
-
-**Prompt cache stability as an architectural concern.** If your agent uses an API with prompt caching, structuring the prompt with stable content first and volatile content last is not an optimization -- it is an architectural decision that determines your cost structure.
-
-### Patterns Specific to Claude Code's Scale
-
-**The forked terminal renderer.** Claude Code forked Ink and reimplemented the rendering pipeline with packed typed arrays, pool-based interning, and cell-level diffing because it needed 60fps streaming in a terminal. Most agents render to a web interface or a simple log output. The engineering investment only makes sense when terminal rendering is your primary UI and you are streaming at high frequency.
-
-**The 50+ startup profiling checkpoints.** Meaningful when you have hundreds of thousands of users and 0.5% sampling produces statistically significant data. For a smaller agent, a simpler timing system suffices.
-
-**Eight MCP transport types.** Claude Code supports stdio, SSE, HTTP, WebSocket, SDK, two IDE variants, and a Claude.ai proxy because it must integrate with every deployment topology. Most agents need stdio and HTTP.
-
-**The hooks snapshot security model.** Freezing hook configuration at startup and never re-reading it implicitly is a defense against a specific threat: malicious repository code modifying hooks after the user accepts the trust dialog. This matters when your agent runs in arbitrary repositories with untrusted `.claude/` configurations. An agent that only runs in trusted environments can use simpler hook management.
+오버헤드는 실제입니다. 훅 호출당 프로세스를 생성하는 데는 프로세스 내 콜백이 수행하지 않는 비용인 밀리초가 소요됩니다. 내부 콜백의 -70% 빠른 경로(12장)는 시스템이 이 비용이 중요하다는 것을 알고 있음을 보여줍니다. 그러나 외부 훅(사용자 스크립트, 팀 린터, 엔터프라이즈 정책 서버)의 경우 격리 보장으로 인해 시스템을 더 안전하게 확장할 수 있습니다. 기업은 잘못된 훅 스크립트로 인해 개발자 세션이 중단될 것이라는 걱정 없이 훅 기반 정책 시행을 배포할 수 있습니다.
 
 ---
 
-## The Cost of Complexity
+<a id="what-transfers-what-does-not"></a>
 
-Nearly two thousand files. What does that buy, and what does it cost?
+## 전송되는 것과 전송되지 않는 것
 
-The file count is misleading as a complexity metric. Much of it is test infrastructure, type definitions, configuration schemas, and the forked Ink renderer. The actual behavioral complexity concentrates in a small number of high-density files: `query.ts` (1,700 lines, the agent loop), `hooks.ts` (4,900 lines, the lifecycle interception system), `REPL.tsx` (5,000 lines, the interactive orchestrator), and the memory system's prompt building functions.
+Claude Code의 모든 패턴이 일반화되는 것은 아닙니다. 일부는 다른 에이전트 빌더가 공유하지 않을 수 있는 규모, 리소스 또는 특정 제약 조건의 결과입니다.
 
-The complexity comes from three sources, each with a different character:
+<a id="patterns-that-transfer-to-any-agent"></a>
 
-**Protocol diversity.** Supporting five terminal keyboard protocols, eight MCP transport types, four remote execution topologies, and seven configuration scopes is inherently complex. Each additional protocol is a linear addition to the codebase, not an exponential one -- but the sum is large. This complexity is accidental in the Brooksian sense: it comes from the environment (terminal fragmentation, MCP transport evolution, remote deployment topologies), not from the problem being solved.
+### 모든 에이전트로 전송되는 패턴
 
-**Performance optimization.** The pool-based rendering, bitmap search pre-filters, sticky cache latches, and speculative tool execution each add complexity in exchange for measurable performance gains. This complexity is justified by measurement -- every optimization was preceded by profiling data that identified the bottleneck. The risk is that optimizations accumulate and interact in ways that make the hot paths harder to modify.
+**생성기 루프 패턴.** 응답을 스트리밍하고, 도구 호출을 처리하고, 여러 터미널 상태를 관리해야 하는 모든 에이전트는 루프를 콜백 뒤에 숨기지 않고 명시적으로 만드는 것이 좋습니다. 식별된 공용체 반환 유형(루프가 중지된 이유를 정확하게 인코딩)은 "에이전트가 중지된 이유는 무엇입니까?"라는 전체 클래스를 제거하는 패턴입니다. 디버깅 세션.
 
-**Behavioral tuning.** The memory system's prompt instructions, the staleness warnings, the verification protocol, the "ignore memory" anti-pattern instruction -- these are not code complexity. They are prompt complexity, and they carry a different maintenance burden. When the model's behavior changes between versions, prompt instructions that were carefully tuned through evals may need re-tuning. The eval infrastructure (referenced throughout the codebase as case numbers and eval scores) is the defense against regression, but it requires ongoing investment.
+**LLM 리콜이 포함된 파일 기반 메모리.** 구체적인 구현 세부 사항은 Claude Code의 것이지만 지능형 검색과 결합된 간단한 저장이라는 원칙은 세션 전반에 걸쳐 지식을 유지해야 하는 모든 에이전트에 적용됩니다. 4가지 유형의 분류(사용자, 피드백, 프로젝트, 참조)와 파생 가능성 테스트("현재 프로젝트 상태에서 다시 파생될 수 있습니까?")는 재사용 가능한 설계 휴리스틱입니다.
 
-The maintenance burden of this system is significant. A new engineer reading the codebase must understand not just the code paths but the eval outcomes that motivated specific prompt phrasings, the production incidents that motivated specific security checks, and the performance profiles that motivated specific optimizations. The code comments are thorough -- many include eval case numbers and before/after measurements -- but thorough comments in nearly two thousand files are themselves a reading burden.
+**원격 실행을 위한 비대칭 읽기/쓰기 채널.** 읽기가 고주파수 스트림이고 쓰기가 저주파 RPC인 경우 특정 전송 프로토콜에 관계없이 이들을 분리하는 것이 정확합니다.
 
----
+**검색을 위한 비트맵 사전 필터.** 대용량 파일 인덱스를 검색하는 모든 에이전트는 26비트 문자 비트맵을 사전 필터로 활용하는 것이 좋습니다. 항목당 4바이트, 후보당 하나의 정수 비교 - 비용 대비 이점 비율이 놀랍습니다.
 
-## Where Agentic Systems Are Heading
+**아키텍처적 고려 사항인 프롬프트 캐시 안정성.** 에이전트가 프롬프트 캐싱이 포함된 API를 사용하는 경우 안정적인 콘텐츠를 먼저 사용하고 휘발성 콘텐츠를 마지막으로 사용하여 프롬프트를 구성하는 것은 최적화가 아닙니다. 이는 비용 구조를 결정하는 아키텍처 결정입니다.
 
-Four trends are visible from the patterns in Claude Code, and they point toward where the field is going.
+<a id="patterns-specific-to-claude-codes-scale"></a>
 
-### MCP as the Universal Protocol
+### Claude Code의 규모에 특정한 패턴
 
-Chapter 15 described Claude Code as one of the most complete MCP clients. The significance is not Claude Code's implementation -- it is that MCP exists at all. A standardized protocol for tool discovery and invocation means that tools built for one agent work with any agent. The ecosystem effects are obvious: an MCP server for Postgres, once built, serves every agent that speaks MCP. The developer's investment in tool integration is portable.
+**분기된 터미널 렌더러.** Claude Code는 터미널에서 60fps 스트리밍이 필요했기 때문에 Ink를 분기하고 압축형 배열, 풀 기반 인터닝 및 셀 수준 비교를 사용하여 렌더링 파이프라인을 다시 구현했습니다. 대부분의 에이전트는 웹 인터페이스 또는 간단한 로그 출력으로 렌더링됩니다. 엔지니어링 투자는 터미널 렌더링이 기본 UI이고 높은 빈도로 스트리밍하는 경우에만 의미가 있습니다.
 
-The implication for agent builders: if you are defining a custom tool protocol, you are probably making a mistake. MCP is good enough, it is getting better, and the ecosystem advantages of a standard protocol compound over time. Build an MCP client, contribute to the spec, and let the protocol evolve through community feedback.
+**50개 이상의 스타트업 프로파일링 체크포인트.** 수십만 명의 사용자가 있고 0.5% 샘플링이 통계적으로 유의미한 데이터를 생성하는 경우 의미가 있습니다. 소규모 에이전트의 경우 더 간단한 타이밍 시스템이면 충분합니다.
 
-### Multi-Agent Coordination
+**8가지 MCP 전송 유형.** Claude Code는 모든 배포 토폴로지와 통합되어야 하기 때문에 stdio, SSE, HTTP, WebSocket, SDK, 두 가지 IDE 변형 및 Claude.ai 프록시를 지원합니다. 대부분의 에이전트에는 stdio 및 HTTP가 필요합니다.
 
-Claude Code's sub-agent system (Chapter 8), task coordination (Chapter 10), and fork mechanism (Chapter 9) are early implementations of multi-agent patterns. They solve specific problems -- cache sharing, parallel exploration, structured verification -- but they also reveal the fundamental challenge: coordination overhead.
-
-Every message between agents consumes tokens. Every fork shares a cache but adds a conversation branch that the parent must eventually reconcile. The Task system's state machine (queued, running, completed, failed, cancelled) is coordination machinery that adds complexity without adding capability. As agents become more capable, the pressure will shift from "how do we coordinate multiple agents?" to "how do we make one agent capable enough that coordination is unnecessary?"
-
-The current evidence suggests both approaches will coexist. Simple tasks will use single agents. Complex tasks will use coordinated multi-agent systems. The engineering challenge is making the coordination overhead low enough that the crossover point favors multi-agent for genuinely parallel work, not just for tasks that are complex.
-
-### Persistent Memory
-
-Claude Code's memory system is version 1 of persistent agent memory. The file-based design, the four-type taxonomy, the LLM-powered recall, the staleness system, and the KAIROS mode for long-running sessions are all first-generation solutions to a problem that will evolve significantly.
-
-Future memory systems will likely add structured retrieval (the current system retrieves whole files; future systems might retrieve specific facts), cross-project transfer learning (user preferences that apply everywhere, project conventions that do not), and collaborative memory (Chapter 11's team memory is a first step, but the sync, conflict resolution, and access control are minimal).
-
-The open question is whether the file-based approach scales. At 200 memories per project, it works. At 2,000 memories per project, the Sonnet side-query's manifest becomes too large, the consolidation becomes too expensive, and the index exceeds its caps. The architectural bet on files-over-databases will face its hardest test as usage grows.
-
-### Autonomous Operation
-
-The KAIROS mode, the background memory extraction agent, the auto-dream consolidation, the speculative tool execution -- these are all steps toward autonomous operation. The agent does useful work without being asked: it remembers what you forgot to tell it to remember, it consolidates its own knowledge while you sleep, it starts executing the next tool before the current response is complete.
-
-The trajectory is clear. Future agents will be less reactive and more proactive. They will notice patterns the user has not described, suggest corrections the user has not requested, and maintain their own knowledge without explicit `/remember` commands. Claude Code's memory system, with its background extraction safety net and its prompt-engineered "what to save" heuristics, is the prototype for this future.
-
-The constraint is trust. Autonomous operation requires the user to trust that the agent will do the right thing when unattended. The file-based memory, the observable hook system, the staleness warnings, the permission dialogs -- all of these exist because trust must be earned, not assumed. The path to more autonomous agents runs through more transparent agents.
+**훅 스냅샷 보안 모델.** 시작 시 훅 구성을 동결하고 암시적으로 다시 읽지 않는 것은 특정 위협, 즉 사용자가 신뢰 대화 상자를 수락한 후 훅을 수정하는 악성 저장소 코드에 대한 방어입니다. 이는 신뢰할 수 없는 `.claude/` 구성을 사용하여 에이전트가 임의 저장소에서 실행될 때 중요합니다. 신뢰할 수 있는 환경에서만 실행되는 에이전트는 더 간단한 훅 관리를 사용할 수 있습니다.
 
 ---
 
-## Closing
+<a id="the-cost-of-complexity"></a>
 
-Seventeen chapters. Six core abstractions. A generator loop at the center, tools extending outward, memory reaching backward through time, hooks guarding the perimeter, a rendering engine translating it all into characters on a screen, and MCP connecting it to the world beyond the codebase.
+## 복잡성의 비용
 
-The deepest pattern in Claude Code is not any single technique. It is the recurring decision to push complexity to the boundaries. The rendering system pushes complexity to the pools and the diff -- inside the pipeline, everything is integer comparisons. The input system pushes complexity to the tokenizer and the keybinding resolver -- inside the handlers, everything is typed actions. The memory system pushes complexity to the write protocol and the recall selector -- inside the conversation, everything is context. The agent loop pushes complexity to the terminal states and the tool system -- inside the loop, it is just: stream, collect, execute, append, repeat.
+거의 2,000개의 파일이 있습니다. 그것은 무엇을 구매하고 비용은 얼마입니까?
 
-Each boundary absorbs chaos and exports order. Raw bytes become `ParsedKey`. Markdown files become recalled memories. MCP JSON-RPC becomes `Tool` objects. Hook exit codes become permission decisions. On one side of each boundary, the world is messy -- five keyboard protocols, fragile OAuth servers, stale memories, untrusted repository hooks. On the other side, the world is typed, bounded, and exhaustively handled.
+파일 수는 복잡성 측정 기준으로 오해의 소지가 있습니다. 그 중 대부분은 테스트 인프라, 유형 정의, 구성 스키마 및 포크된 잉크 렌더러입니다. 실제 동작 복잡성은 `query.ts`(1,700라인, 에이전트 루프), `hooks.ts`(4,900라인, 수명 주기 차단 시스템), `REPL.tsx`(5,000라인, 대화형 오케스트레이터) 및 메모리 시스템의 신속한 구축 기능과 같은 소수의 고밀도 파일에 집중됩니다.
 
-If you are building an agentic system, this is the transferable lesson. Not the specific techniques -- you may not need pool-based rendering or KAIROS mode or eight MCP transports. But the principle: define your boundaries, absorb complexity there, and keep everything between them clean. The boundaries are where the engineering is hard. The interior is where the engineering is pleasant. Design for pleasant interiors, and invest your complexity budget at the edges.
+복잡성은 각각 다른 성격을 지닌 세 가지 원인에서 비롯됩니다.
 
-The source code is open. The crab has the map in its claw. Go read it.
+**프로토콜 다양성.** 5개의 터미널 키보드 프로토콜, 8개의 MCP 전송 유형, 4개의 원격 실행 토폴로지 및 7개의 구성 범위를 지원하는 것은 본질적으로 복잡합니다. 각 추가 프로토콜은 코드베이스에 선형적으로 추가되는 것이지 기하급수적으로 추가되는 것은 아니지만 그 합은 큽니다. 이러한 복잡성은 Brooksian 의미에서 우연입니다. 이는 해결 중인 문제가 아닌 환경(터미널 단편화, MCP 전송 진화, 원격 배포 토폴로지)에서 비롯됩니다.
+
+**성능 최적화.** 풀 기반 렌더링, 비트맵 검색 사전 필터, 고정 캐시 래치 및 추측 도구 실행은 측정 가능한 성능 향상 대신 복잡성을 추가합니다. 이러한 복잡성은 측정에 의해 정당화됩니다. 모든 최적화는 병목 현상을 식별하는 프로파일링 데이터에 의해 이루어졌습니다. 위험은 핫 경로를 수정하기 어렵게 만드는 방식으로 최적화가 누적되고 상호 작용한다는 것입니다.
+
+**동작 조정.** 메모리 시스템의 프롬프트 지침, 부실 경고, 확인 프로토콜, "메모리 무시" 안티 패턴 지침 등은 코드 복잡성이 아닙니다. 이는 즉각적으로 복잡하며 유지 관리 부담도 다릅니다. 버전 간에 모델의 동작이 변경되면 평가를 통해 신중하게 조정된 프롬프트 지침을 다시 조정해야 할 수 있습니다. 평가 인프라(코드베이스 전체에서 사례 번호 및 평가 점수로 참조됨)는 회귀에 대한 방어 수단이지만 지속적인 투자가 필요합니다.
+
+이 시스템의 유지 관리 부담은 상당합니다. 코드베이스를 읽는 새로운 엔지니어는 코드 경로뿐만 아니라 특정 프롬프트 문구에 동기를 부여한 평가 결과, 특정 보안 검사에 동기를 부여한 생산 사건, 특정 최적화에 동기를 부여한 성능 프로필을 이해해야 합니다. 코드 주석은 철저합니다. 많은 주석에는 평가 사례 번호와 측정 전/후가 포함되어 있습니다. 그러나 거의 2,000개에 달하는 파일에 대한 철저한 주석 자체는 읽기 부담입니다.
+
+---
+
+<a id="where-agentic-systems-are-heading"></a>
+
+## 에이전트 시스템이 향하고 있는 곳
+
+Claude Code의 패턴에서 네 가지 추세를 볼 수 있으며, 이는 해당 분야가 어디로 향하고 있는지를 가리킵니다.
+
+<a id="mcp-as-the-universal-protocol"></a>
+
+### 범용 프로토콜로서의 MCP
+
+15장에서는 Claude Code를 가장 완벽한 MCP 클라이언트 중 하나로 설명했습니다. 중요한 것은 Claude Code의 구현이 아니라 MCP가 존재한다는 것입니다. 도구 검색 및 호출을 위한 표준화된 프로토콜은 하나의 에이전트용으로 구축된 도구가 모든 에이전트에서 작동함을 의미합니다. 생태계 효과는 명백합니다. Postgres용 MCP 서버는 일단 구축되면 MCP를 사용하는 모든 에이전트에 서비스를 제공합니다. 도구 통합에 대한 개발자의 투자는 이식 가능합니다.
+
+에이전트 빌더에 대한 의미: 사용자 정의 도구 프로토콜을 정의하는 경우 실수를 저지르는 것일 수 있습니다. MCP는 충분히 훌륭하고 점점 더 좋아지고 있으며 시간이 지남에 따라 표준 프로토콜의 생태계 이점이 복합적으로 결합됩니다. MCP 클라이언트를 구축하고, 사양에 기여하고, 커뮤니티 피드백을 통해 프로토콜이 발전하도록 하세요.
+
+<a id="multi-agent-coordination"></a>
+
+### 다중 에이전트 조정
+
+Claude Code의 하위 에이전트 시스템(8장), 작업 조정(10장) 및 포크 메커니즘(9장)은 다중 에이전트 패턴의 초기 구현입니다. 캐시 공유, 병렬 탐색, 구조화된 검증 등 특정 문제를 해결하지만 조정 오버헤드라는 근본적인 과제도 드러냅니다.
+
+에이전트 간의 모든 메시지는 토큰을 사용합니다. 모든 포크는 캐시를 공유하지만 상위 포크가 결국 조정해야 하는 대화 분기를 추가합니다. 작업 시스템의 상태 시스템(대기 중, 실행 중, 완료, 실패, 취소됨)은 기능을 추가하지 않고 복잡성을 추가하는 조정 시스템입니다. 에이전트의 능력이 향상됨에 따라 "여러 에이전트을 어떻게 조정합니까?"라는 압박감이 커질 것입니다. "조정이 불필요할 정도로 하나의 에이전트를 어떻게 만들 수 있습니까?"
+
+현재 증거에 따르면 두 가지 접근 방식이 공존할 것입니다. 간단한 작업에서는 단일 에이전트를 사용합니다. 복잡한 작업에서는 조정된 다중 에이전트 시스템을 사용합니다. 엔지니어링 과제는 복잡한 작업뿐만 아니라 진정한 병렬 작업을 위해 교차점이 다중 에이전트를 선호할 만큼 조정 오버헤드를 낮게 만드는 것입니다.
+
+<a id="persistent-memory"></a>
+
+### 영구 메모리
+
+Claude Code의 메모리 시스템은 영구 에이전트 메모리 버전 1입니다. 파일 기반 설계, 4가지 유형 분류, LLM 기반 리콜, 부실 시스템 및 장기 실행 세션을 위한 KAIROS 모드는 모두 크게 발전할 문제에 대한 1세대 솔루션입니다.
+
+미래의 메모리 시스템은 구조화된 검색(현재 시스템은 전체 파일을 검색하지만 미래의 시스템은 특정 사실을 검색할 수 있음), 프로젝트 간 전이 학습(모든 곳에 적용되는 사용자 기본 설정, 그렇지 않은 프로젝트 규칙) 및 협업 메모리(11장의 팀 메모리는 첫 번째 단계이지만 동기화, 충돌 해결 및 액세스 제어는 최소화됨)를 추가할 가능성이 높습니다.
+
+열린 질문은 파일 기반 접근 방식이 확장되는지 여부입니다. 프로젝트당 200개의 메모리로 작동합니다. 프로젝트당 메모리가 2,000개이면 Sonnet 부가 쿼리의 매니페스트가 너무 커지고 통합 비용이 너무 많이 들고 인덱스가 한도를 초과합니다. 데이터베이스보다 파일을 사용하는 아키텍처에 대한 투자는 사용량이 증가함에 따라 가장 어려운 테스트에 직면하게 될 것입니다.
+
+<a id="autonomous-operation"></a>
+
+### 자율 운영
+
+KAIROS 모드, 백그라운드 메모리 추출 에이전트, 자동 드림 통합, 추측 도구 실행 등은 모두 자율 작동을 위한 단계입니다. 에이전트는 요청받지 않고도 유용한 작업을 수행합니다. 사용자가 기억하라고 지시하는 것을 잊어버린 내용을 기억하고, 사용자가 잠든 동안 자신의 지식을 통합하며, 현재 응답이 완료되기 전에 다음 도구 실행을 시작합니다.
+
+궤도는 분명하다. 미래의 에이전트은 덜 수동적이고 더 적극적으로 대처할 것입니다. 그들은 사용자가 설명하지 않은 패턴을 발견하고, 사용자가 요청하지 않은 수정 사항을 제안하며, 명시적인 `/remember` 명령 없이도 자신의 지식을 유지합니다. 백그라운드 추출 안전망과 신속하게 엔지니어링된 "무엇을 저장할지" 휴리스틱을 갖춘 Claude Code의 메모리 시스템은 이러한 미래를 위한 프로토타입입니다.
+
+제약은 신뢰입니다. 자율 운영을 위해서는 에이전트가 무인 상태에서 올바른 작업을 수행할 것이라는 사용자의 신뢰가 필요합니다. 파일 기반 메모리, 관찰 가능한 훅 시스템, 부실 경고, 권한 대화 상자 등 이 모든 것이 존재하는 이유는 신뢰를 가정하는 것이 아니라 획득해야 하기 때문입니다. 보다 자율적인 에이전트를 향한 길은 보다 투명한 에이전트를 통해 이어집니다.
+
+---
+
+<a id="closing"></a>
+
+## 폐회
+
+17장. 6가지 핵심 추상화. 중앙의 생성기 루프, 바깥쪽으로 확장되는 도구, 시간이 지남에 따라 뒤로 도달하는 메모리, 경계를 보호하는 훅, 모든 것을 화면의 문자로 변환하는 렌더링 엔진, 코드베이스 너머의 세계와 연결하는 MCP입니다.
+
+Claude Code의 가장 깊은 패턴은 단일 기술이 아닙니다. 복잡성을 한계까지 밀어붙이는 것은 반복되는 결정입니다. 렌더링 시스템은 풀과 diff에 복잡성을 가중시킵니다. 파이프라인 내부에서는 모든 것이 정수 비교입니다. 입력 시스템은 토크나이저와 키 바인딩 해석기에 복잡성을 가중시킵니다. 핸들러 내부에서는 모든 것이 입력된 작업입니다. 메모리 시스템은 쓰기 프로토콜과 리콜 선택기에 복잡성을 가중시킵니다. 대화 내부에서는 모든 것이 컨텍스트입니다. 에이전트 루프는 터미널 상태와 도구 시스템에 복잡성을 더합니다. 루프 내부에서는 스트리밍, 수집, 실행, 추가, 반복만 수행됩니다.
+
+각 경계는 혼돈을 흡수하고 질서를 내보냅니다. 원시 바이트는 `ParsedKey`이 됩니다. 마크다운 파일은 추억이 됩니다. MCP JSON-RPC는 `Tool` 객체가 됩니다. 훅 종료 코드는 권한 결정이 됩니다. 각 경계의 한쪽에는 5개의 키보드 프로토콜, 취약한 OAuth 서버, 오래된 메모리, 신뢰할 수 없는 저장소 훅 등 세상이 지저분합니다. 반면에 세상은 유형화되고, 제한되고, 철저하게 처리됩니다.
+
+에이전트 시스템을 구축하는 경우 이것이 양도 가능한 교훈입니다. 특정 기술은 아닙니다. 풀 기반 렌더링이나 KAIROS 모드 또는 8개의 MCP 전송이 필요하지 않을 수도 있습니다. 그러나 원칙은 경계를 정의하고 거기에서 복잡성을 흡수하며 경계 사이의 모든 것을 깨끗하게 유지하는 것입니다. 경계는 엔지니어링이 어려운 곳입니다. 내부는 엔지니어링이 즐거운 곳입니다. 쾌적한 인테리어를 위해 디자인하고 복잡한 예산을 가장자리에 투자하십시오.
+
+소스코드가 공개되어 있습니다. 게의 발톱에는 지도가 있습니다. 가서 읽어보세요.

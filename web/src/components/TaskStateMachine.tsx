@@ -26,34 +26,34 @@ const transitions: Transition[] = [
   {
     from: "pending",
     to: "running",
-    label: "execution starts",
-    trigger: "Task registered and first execution begins",
+    label: "실행이 시작됩니다",
+    trigger: "작업이 등록되고 첫 번째 실행이 시작됩니다.",
     detail:
-      "The brief state between registration and first execution. Task moves to running when the agent loop or shell process starts.",
+      "등록과 첫 번째 실행 사이의 간략한 상태입니다. 에이전트 루프 또는 셸 프로세스가 시작되면 작업이 실행 중으로 이동합니다.",
   },
   {
     from: "running",
     to: "completed",
-    label: "normal finish",
-    trigger: "Agent finishes work successfully or shell exits 0",
+    label: "정상적인 마무리",
+    trigger: "에이전트가 작업을 성공적으로 완료하거나 쉘이 0을 종료합니다.",
     detail:
-      "The task produced its result. Output written to disk file. notified flag flips to true when parent is told.",
+      "작업이 결과를 낳았습니다. 디스크 파일에 출력이 기록됩니다. 부모에게 알리면 알림 플래그가 참으로 전환됩니다.",
   },
   {
     from: "running",
     to: "failed",
-    label: "error",
-    trigger: "Unhandled exception, API error, or tool failure",
+    label: "오류",
+    trigger: "처리되지 않은 예외, API 오류 또는 도구 오류",
     detail:
-      "An error terminated execution. The error is captured in the task output file and reported via task-notification XML.",
+      "오류로 인해 실행이 종료되었습니다. 오류는 작업 출력 파일에 캡처되고 작업 알림 XML을 통해 보고됩니다.",
   },
   {
     from: "running",
     to: "killed",
-    label: "abort / user stop",
-    trigger: "User presses ESC, coordinator calls TaskStop, or abort signal",
+    label: "중단/사용자 중지",
+    trigger: "사용자가 ESC를 누르거나 코디네이터가 TaskStop을 호출하거나 신호를 중단함",
     detail:
-      "Explicitly stopped. The abort controller fires, cleanup runs in the finally block. No result is produced.",
+      "명시적으로 중지되었습니다. 중단 컨트롤러가 실행되고 finally 블록에서 정리가 실행됩니다. 결과가 생성되지 않습니다.",
   },
 ];
 
@@ -78,39 +78,39 @@ const communicationPatterns: Record<
   { title: string; description: string; details: string[] }
 > = {
   foreground: {
-    title: "Foreground (Sync)",
+    title: "전경(동기화)",
     description:
-      "Parent iterates runAgent() generator directly. Messages yield up the call stack.",
+      "상위는 runAgent() 생성기를 직접 반복합니다. 메시지는 호출 스택을 생성합니다.",
     details: [
-      "Parent calls runAgent() and iterates the async generator",
-      "Each message yields back to the parent immediately",
-      "Shares parent's abort controller (ESC kills both)",
-      "Can transition to background mid-execution via Promise.race",
-      "No disk output needed -- messages flow through the generator chain",
+      "부모는 runAgent()를 호출하고 비동기 생성기를 반복합니다.",
+      "각 메시지는 즉시 상위 메시지로 반환됩니다.",
+      "부모의 중단 컨트롤러를 공유합니다(ESC는 둘 다 종료합니다).",
+      "Promise.race를 통해 실행 도중 백그라운드로 전환할 수 있습니다.",
+      "디스크 출력이 필요하지 않습니다. 메시지는 생성기 체인을 통해 흐릅니다.",
     ],
   },
   background: {
-    title: "Background (Async)",
+    title: "배경(비동기)",
     description:
-      "Three channels: disk output files, task-notifications, and pending message queue.",
+      "세 가지 채널: 디스크 출력 파일, 작업 알림 및 보류 중인 메시지 대기열.",
     details: [
-      "Disk: every task writes to an outputFile (JSONL transcript)",
-      "Notifications: XML <task-notification> injected into parent's conversation",
-      "Queue: SendMessage targets a running agent via pendingMessages array",
-      "Messages drained at tool-round boundaries (not mid-execution)",
-      "notified flag prevents duplicate completion messages",
+      "디스크: 모든 작업은 outputFile(JSONL 기록)에 기록됩니다.",
+      "알림: XML <task-notification>이 부모 대화에 삽입되었습니다.",
+      "대기열: SendMessage는 보류 중인 메시지 배열을 통해 실행 중인 에이전트를 대상으로 합니다.",
+      "도구 라운드 경계(실행 중간이 아님)에서 메시지가 유출됩니다.",
+      "통지된 플래그는 중복된 완료 메시지를 방지합니다.",
     ],
   },
   coordinator: {
-    title: "Coordinator Mode",
+    title: "코디네이터 모드",
     description:
-      "Manager-worker hierarchy. Coordinator gets only 3 tools: Agent, SendMessage, TaskStop.",
+      "관리자-근로자 계층 구조. 코디네이터는 Agent, SendMessage, TaskStop의 3가지 도구만 갖습니다.",
     details: [
-      "Coordinator thinks, plans, decomposes -- never touches code directly",
-      "Workers get full tool set minus coordination tools",
-      "4 phases: Research -> Synthesis -> Implementation -> Verification",
-      '"Never delegate understanding" -- coordinator synthesizes research',
-      "Scratchpad enables cross-worker knowledge sharing via filesystem",
+      "코디네이터는 생각하고, 계획하고, 분해합니다. 코드를 직접 건드리지 않습니다.",
+      "작업자는 조정 도구를 제외한 전체 도구 세트를 얻습니다.",
+      "4단계: 연구 -> 합성 -> 구현 -> 검증",
+      "\"이해를 위임하지 마십시오\" -- 코디네이터가 연구를 종합합니다.",
+      "Scratchpad를 사용하면 파일 시스템을 통해 작업자 간 지식 공유가 가능합니다.",
     ],
   },
 };
@@ -388,7 +388,7 @@ export default function TaskStateMachine({ className }: Props) {
               letterSpacing: "0.05em",
             }}
           >
-            Available Transitions
+            사용 가능한 전환
           </div>
 
           {availableTransitions.length > 0 ? (
@@ -426,14 +426,14 @@ export default function TaskStateMachine({ className }: Props) {
                       fontSize: 11,
                     }}
                   >
-                    {t.from} -&gt; {t.to}
+                    {t.from} -&amp;amp;gt; {t.to}
                   </span>
                 </button>
               ))}
             </div>
           ) : (
             <div style={{ fontSize: 13, color: colors.textSecondary }}>
-              Terminal state reached.
+              최종 상태에 도달했습니다.
               <button
                 onClick={reset}
                 style={{
@@ -450,7 +450,7 @@ export default function TaskStateMachine({ className }: Props) {
                   cursor: "pointer",
                 }}
               >
-                Reset to pending
+                보류 중으로 재설정
               </button>
             </div>
           )}
@@ -475,7 +475,7 @@ export default function TaskStateMachine({ className }: Props) {
               letterSpacing: "0.05em",
             }}
           >
-            Transition Detail
+            전환 세부정보
           </div>
 
           <AnimatePresence mode="wait">
@@ -496,7 +496,7 @@ export default function TaskStateMachine({ className }: Props) {
                     marginBottom: 8,
                   }}
                 >
-                  {activeTransition.from} -&gt; {activeTransition.to}
+                  {activeTransition.from} -&amp;amp;gt; {activeTransition.to}
                 </div>
                 <div
                   style={{
@@ -506,7 +506,7 @@ export default function TaskStateMachine({ className }: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  Trigger:
+                  트리거:
                 </div>
                 <div
                   style={{
@@ -535,7 +535,7 @@ export default function TaskStateMachine({ className }: Props) {
                 exit={{ opacity: 0 }}
               >
                 <div style={{ fontSize: 13, color: colors.textSecondary }}>
-                  Click a transition to see details and animate the state change.
+                  세부 정보를 확인하고 상태 변경에 애니메이션을 적용하려면 전환을 클릭하세요.
                 </div>
                 <div
                   style={{
@@ -585,7 +585,7 @@ export default function TaskStateMachine({ className }: Props) {
             letterSpacing: "0.05em",
           }}
         >
-          Communication Patterns
+          의사소통 패턴
         </div>
 
         {/* Tabs */}

@@ -37,18 +37,18 @@ interface Arrow {
 }
 
 const states: State[] = [
-  { id: "queued", label: "queued", x: 100, y: 110, color: "#87867f" },
-  { id: "executing", label: "executing", x: 300, y: 110, color: "#d97757" },
-  { id: "completed", label: "completed", x: 500, y: 50, color: "#4ade80" },
-  { id: "error", label: "error", x: 500, y: 170, color: "#ef4444" },
-  { id: "cancelled", label: "cancelled", x: 100, y: 220, color: "#f59e0b" },
+  { id: "queued", label: "대기 중", x: 100, y: 110, color: "#87867f" },
+  { id: "executing", label: "실행", x: 300, y: 110, color: "#d97757" },
+  { id: "completed", label: "완료", x: 500, y: 50, color: "#4ade80" },
+  { id: "error", label: "오류", x: 500, y: 170, color: "#ef4444" },
+  { id: "cancelled", label: "취소됨", x: 100, y: 220, color: "#f59e0b" },
 ];
 
 const arrows: Arrow[] = [
-  { from: "queued", to: "executing", label: "concurrency check passes" },
-  { from: "executing", to: "completed", label: "call() finishes" },
-  { from: "executing", to: "error", label: "exception thrown" },
-  { from: "queued", to: "cancelled", label: "abort signal" },
+  { from: "queued", to: "executing", label: "동시성 검사 통과" },
+  { from: "executing", to: "completed", label: "call() 완료" },
+  { from: "executing", to: "error", label: "예외가 발생했습니다." },
+  { from: "queued", to: "cancelled", label: "중단 신호" },
 ];
 
 const stateMap = Object.fromEntries(states.map((s) => [s.id, s]));
@@ -238,7 +238,7 @@ export default function ToolLifecycle({ className }: Props) {
               fill={colors.textSecondary}
               fontFamily="var(--font-mono)"
             >
-              enqueue
+              대기열에 넣다
             </text>
           </motion.g>
         </svg>
